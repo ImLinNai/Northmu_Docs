@@ -1,0 +1,22 @@
+    {if empty($hideFooter)}
+    <footer class="footer footer-transparent d-print-none">
+        <div class="container-xl">
+            <div class="row text-center align-items-center">
+                <div class="col-12">
+                    <div class="text-secondary small">
+                        {$copyright}
+                        {if $siteIcp}
+                        <span class="mx-2">·</span><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener" class="text-secondary text-decoration-none">{$siteIcp}</a>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {/if}
+</div>
+{$extraScripts|raw}
+<script src="/static/vendor/tabler/js/tabler.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

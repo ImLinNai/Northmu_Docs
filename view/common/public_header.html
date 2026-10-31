@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-bs-theme="light" data-theme-color="{$themeColor}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{$pageTitle}</title>
+    <meta name="description" content="{$siteDesc}">
+    <meta name="theme-color" content="#f8fafc">
+    <script>
+        (function () {
+            document.documentElement.classList.add('js');
+            try {
+                var t = localStorage.getItem('northmu-theme');
+                if (!t) {
+                    t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+                document.documentElement.setAttribute('data-bs-theme', t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="icon" href="{:site_favicon_url()}">
+    <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+    {$extraHead|raw}
+</head>
+<body>
+<div class="nm-boot" id="nmBoot" aria-hidden="true">
+    <div class="nm-boot-panel">
+        <div class="nm-skeleton nm-skeleton-brand"></div>
+        <div class="nm-skeleton nm-skeleton-line w-75"></div>
+        <div class="nm-skeleton nm-skeleton-line w-50"></div>
+    </div>
+</div>
+<div class="nm-loading-bar" id="nmLoadingBar"></div>
+<div class="page">
+    <header class="navbar navbar-expand-md d-print-none front-nav{if $siteNavStyle == 'floating'} is-floating{/if}">
+        <div class="container-xl">
+            <a class="navbar-brand navbar-brand-autodark d-flex align-items-center gap-2" href="/">
+                {if $siteBrandMode == 'image' && $siteBrandImage}
+                <img src="{$siteBrandImage}" alt="{$siteName}" class="brand-image">
+                {else}
+                    {if $siteLogo}
+                    <img src="{$siteLogo}" alt="{$siteName}" class="brand-logo">
+                    {else}
+                    <span class="brand-mark"><i class="ti ti-book-2"></i></span>
+                    {/if}
+                    <span class="fw-bold">{$siteName}</span>
+                {/if}
+            </a>
+            <nav class="navbar-nav flex-row align-items-center ms-4 gap-1 d-none d-sm-flex front-nav-links">
+                {foreach $navItems as $item}
+                <a class="nav-link{if $item.active} active{/if}" href="{$item.url}"{if $item.target == '_blank'} target="_blank" rel="noopener"{/if}>{$item.title}</a>
+                {/foreach}
+            </nav>
+            <form class="front-search ms-auto d-none d-md-block" action="/docs/search" method="get" role="search">
+                <i class="ti ti-search"></i>
+                <input type="search" name="q" value="{$searchKeyword|default=''}" placeholder="搜索公开文档…" maxlength="100" aria-label="搜索公开文档">
+            </form>
+            <nav class="navbar-nav flex-row align-items-center ms-auto ms-md-3 gap-1">
+                <div class="dropdown d-sm-none">
+                    <button class="btn btn-icon btn-ghost-secondary" type="button" data-bs-toggle="dropdown" aria-label="导航菜单">
+                        <i class="ti ti-menu-2"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        {foreach $navItems as $item}
+                        <a class="dropdown-item{if $item.active} active{/if}" href="{$item.url}"{if $item.target == '_blank'} target="_blank" rel="noopener"{/if}>{$item.title}</a>
+                        {/foreach}
+                    </div>
+                </div>
+                <a class="btn btn-icon btn-ghost-secondary d-md-none" href="/docs/search" title="搜索" aria-label="搜索">
+                    <i class="ti ti-search"></i>
+                </a>
+                <button class="btn btn-icon btn-ghost-secondary" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
+                    <i class="ti ti-sun theme-icon-sun"></i>
+                    <i class="ti ti-moon theme-icon-moon"></i>
+                </button>
+                {if $adminLogged}
+                <div class="dropdown ms-1 nm-user-menu">
+                    <button class="btn nm-user-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="账号菜单">
+                        {if $adminProfile && $adminProfile.avatar}
+                        <img src="{$adminProfile.avatar}" alt="{$adminProfile.display_name|default='管理员'}" class="nm-nav-avatar">
+                        {else}
+                        <span class="nm-nav-avatar nm-nav-avatar-fallback">{$adminProfile.initial|default='管'}</span>
+                        {/if}
+                        <span class="nm-user-name d-none d-lg-inline">{$adminProfile.display_name|default='管理员'}</span>
+                        <i class="ti ti-chevron-down nm-user-caret"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end nm-user-dropdown">
+                        <div class="nm-user-dropdown-head">
+                            <div class="fw-semibold text-truncate">{$adminProfile.display_name|default='管理员'}</div>
+                            <div class="text-secondary small text-truncate">{$adminProfile.username|default=''}</div>
+                        </div>
+                        <a class="dropdown-item" href="/admin"><i class="ti ti-dashboard me-2"></i>进入后台</a>
+                        <a class="dropdown-item" href="/admin/settings#adminProfile"><i class="ti ti-user-circle me-2"></i>账号设置</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="/admin/logout"><i class="ti ti-logout me-2"></i>退出登录</a>
+                    </div>
+                </div>
+                {elseif $siteNavLogin}
+                <a href="/admin/login" class="btn btn-primary btn-sm ms-1"><i class="ti ti-login me-1"></i>登录</a>
+                {/if}
+            </nav>
+        </div>
+    </header>

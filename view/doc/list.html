@@ -1,0 +1,121 @@
+{include file="common/public_header" /}
+
+<main class="doc-page">
+    <div class="container-xl">
+        <div class="doc-shell">
+            <aside class="doc-sidebar" data-doc-sidebar>
+                {include file="doc/sidebar" /}
+            </aside>
+            <div class="doc-sidebar-backdrop"></div>
+
+            <section class="doc-main">
+                <div class="doc-mobile-bar d-md-none">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-sidebar-toggle>
+                        <i class="ti ti-menu-2 me-1"></i>分类
+                    </button>
+                </div>
+
+                <div class="doc-list-head">
+                    <div class="doc-list-head-text">
+                        <h1 class="doc-list-title">{$listTitle}</h1>
+                        <div class="doc-list-meta">
+                            <span><i class="ti ti-file-text me-1"></i>{$listSubtitle}</span>
+                            {if $isSearch}
+                            <span class="doc-search-flag"><i class="ti ti-search me-1"></i>{$searchKeyword}</span>
+                            {/if}
+                        </div>
+                    </div>
+                    {if $isSearch}
+                    <a href="/docs" class="btn btn-sm btn-outline-secondary flex-shrink-0">
+                        <i class="ti ti-arrow-back-up me-1"></i>返回全部
+                    </a>
+                    {/if}
+                </div>
+
+                {if $docs}
+                <div class="doc-list">
+                    {volist name="docs" id="doc"}
+                    <article class="card doc-card nm-reveal">
+                        <div class="card-body">
+                            <div class="doc-card-head">
+                                <a class="doc-card-title" href="/doc/{$doc.id}">{$doc.title}</a>
+                                {if $doc.is_top}
+                                <span class="doc-badge-top"><i class="ti ti-pin"></i>置顶</span>
+                                {/if}
+                                {if $doc.is_encrypted}
+                                <span class="doc-badge-lock"><i class="ti ti-lock"></i>加密</span>
+                                {/if}
+                            </div>
+                            <p class="doc-card-excerpt">{$doc.excerpt}</p>
+                            <div class="doc-card-foot">
+                                <span class="doc-meta-item doc-author">
+                                    {if $author.avatar}
+                                    <img src="{$author.avatar}" alt="{$author.display_name}" class="doc-author-avatar doc-author-avatar-sm">
+                                    {else}
+                                    <span class="doc-author-avatar doc-author-avatar-sm doc-author-avatar-fallback">{$author.initial}</span>
+                                    {/if}
+                                    <span>{$author.display_name}</span>
+                                </span>
+                                <span class="doc-meta-item"><i class="ti ti-folder"></i>{$doc.category_name}</span>
+                                <span class="doc-meta-item"><i class="ti ti-calendar-event"></i>发布于 {$doc.published_date}</span>
+                                <span class="doc-meta-item"><i class="ti ti-eye"></i>{$doc.views}</span>
+                                {if $doc.tags}
+                                <span class="doc-tags">
+                                    {volist name="doc.tags" id="tag"}
+                                    <span class="doc-tag">{$tag}</span>
+                                    {/volist}
+                                </span>
+                                {/if}
+                                <a class="doc-read-link ms-auto" href="/doc/{$doc.id}">
+                                    {if $doc.is_locked}输入密码<i class="ti ti-lock"></i>{else}阅读<i class="ti ti-arrow-right"></i>{/if}
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                    {/volist}
+                </div>
+                {else}
+                <div class="card doc-empty">
+                    <div class="card-body text-center">
+                        <i class="ti ti-file-off doc-empty-icon"></i>
+                        <h3 class="doc-empty-title">{$isSearch ? '没有找到相关文档' : '这里还没有可浏览的文档'}</h3>
+                        <p class="text-secondary mb-4">{$isSearch ? '换个关键词试试，或浏览其他分类中的内容。' : '管理员发布公开或加密文档后会展示在这里，请稍后再来看看。'}</p>
+                        <a href="/docs" class="btn btn-primary btn-sm">
+                            <i class="ti ti-files me-1"></i>浏览全部文档
+                        </a>
+                    </div>
+                </div>
+                {/if}
+            </section>
+
+            <aside class="doc-side">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-bulb me-1"></i>浏览提示</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="doc-tip-list">
+                            <li><i class="ti ti-chevron-down"></i>点击分类前的箭头可折叠子分类，折叠状态会被记住。</li>
+                            <li><i class="ti ti-search"></i>使用顶部搜索框可按标题与正文检索公开文档。</li>
+                            <li><i class="ti ti-lock"></i>标题带锁的文档需要访问密码；私密分类与私密文档不会出现在前台。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-body text-center">
+                        <i class="ti ti-shield-lock doc-side-icon"></i>
+                        <div class="fw-semibold mt-2">{$siteName}</div>
+                        <p class="text-secondary small mb-3">{$siteDesc}</p>
+                        {if $adminLogged}
+                        <a href="/admin" class="btn btn-primary btn-sm w-100"><i class="ti ti-dashboard me-1"></i>进入后台</a>
+                        {else}
+                        <a href="/admin/login" class="btn btn-outline-secondary btn-sm w-100"><i class="ti ti-login me-1"></i>管理员登录</a>
+                        {/if}
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</main>
+
+{include file="common/public_footer" /}

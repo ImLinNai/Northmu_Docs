@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-bs-theme="light" data-theme-color="{$themeColor}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{$loginTitle} - {$siteName}</title>
+    <script>
+        (function () {
+            document.documentElement.classList.add('js');
+            try {
+                var t = localStorage.getItem('northmu-theme');
+                if (!t) {
+                    t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+                document.documentElement.setAttribute('data-bs-theme', t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="icon" href="{:site_favicon_url()}">
+    <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1030">
+    <button class="btn btn-icon btn-ghost-secondary{if $loginBg} theme-toggle-on-bg{/if}" type="button" data-theme-toggle title="切换主题">
+        <i class="ti ti-sun theme-icon-sun"></i>
+        <i class="ti ti-moon theme-icon-moon"></i>
+    </button>
+</div>
+
+<div class="auth-page{if $loginBg} has-bg{/if}"{if $loginBg} style="background-image:url('{$loginBg}')"{/if}>
+    {if $loginBg}
+    <span class="auth-page-overlay" style="opacity:{$loginOverlayAlpha}"></span>
+    {/if}
+    <div class="auth-card">
+        <div class="auth-brand">
+            {if $loginIcon}
+            <img src="{$loginIcon}" alt="{$siteName}" class="brand-logo brand-logo-lg">
+            {else}
+            <div class="brand-mark brand-mark-lg"><i class="ti ti-book-2"></i></div>
+            {/if}
+            <div>
+                <h1 class="h2 mb-1">{$siteName}</h1>
+                <div class="text-secondary">{$siteDesc}</div>
+            </div>
+        </div>
+
+        <div class="card card-md">
+            <div class="card-body">
+                <h2 class="h3 text-center mb-1">{$loginTitle}</h2>
+                <p class="text-secondary text-center mb-4">{$loginDesc}</p>
+
+                {if $error}
+                <div class="alert alert-danger" role="alert">
+                    <i class="ti ti-alert-circle me-1"></i> {$error}
+                </div>
+                {/if}
+
+                <form method="post" action="/admin/login" autocomplete="off">
+                    {:csrf_field()}
+                    <div class="mb-3">
+                        <label class="form-label">管理员账号</label>
+                        <div class="input-group input-group-flat">
+                            <span class="input-group-text"><i class="ti ti-user"></i></span>
+                            <input type="text" class="form-control" name="username" value="{$username}" placeholder="请输入账号" required autofocus>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">登录密码</label>
+                        <div class="input-group input-group-flat">
+                            <span class="input-group-text"><i class="ti ti-lock"></i></span>
+                            <input type="password" class="form-control" name="password" placeholder="请输入密码" required autocomplete="current-password">
+                        </div>
+                    </div>
+                    {if $captchaOn}
+                    <div class="mb-3">
+                        <label class="form-label">验证码</label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control" name="captcha" placeholder="请输入验证码" required autocomplete="off" maxlength="8">
+                            <img src="/captcha" alt="验证码" class="rounded border" style="height:38px;cursor:pointer" onclick="this.src='/captcha?'+Date.now()" title="点击刷新">
+                        </div>
+                    </div>
+                    {/if}
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-login me-1"></i> 登录
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/" class="text-secondary text-decoration-none small"><i class="ti ti-arrow-left me-1"></i>返回站点首页</a>
+        </div>
+        <div class="auth-footer">{$copyright}</div>
+    </div>
+</div>
+
+<script src="/static/vendor/tabler/js/tabler.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

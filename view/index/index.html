@@ -1,0 +1,87 @@
+{include file="common/public_header" /}
+
+<main class="hero-wrap home-template-{$home.template}{if $home.bgType != 'none'} has-bg{/if}"{if $home.bgType != 'none'} style="--home-overlay:{$home.overlayAlpha}"{/if}>
+    {if $home.bgType == 'image'}
+    <div class="hero-bg" aria-hidden="true"><img src="{$home.bgImage}" alt=""></div>
+    {elseif $home.bgType == 'video'}
+    <div class="hero-bg" aria-hidden="true">
+        <video autoplay muted loop playsinline preload="metadata">
+            <source src="{$home.bgVideo}">
+        </video>
+    </div>
+    {/if}
+    {if $home.bgType != 'none'}
+    <div class="hero-overlay" aria-hidden="true"></div>
+    {/if}
+
+    <div class="hero-inner">
+        <div class="hero-copy">
+            {if $home.badge}
+            <div class="hero-badge">
+                <i class="ti ti-sparkles"></i>
+                <span>{$home.badge}</span>
+            </div>
+            {/if}
+            <h1 class="hero-title">{$home.title}</h1>
+            {if $home.intro}
+            <p class="hero-text">{$home.intro}</p>
+            {/if}
+            {if $homeButtons}
+            <div class="hero-actions">
+                {foreach $homeButtons as $button}
+                <a href="{$button.url}" class="btn {if $button.style == 'outline'}btn-outline-primary hero-btn-outline{else}btn-primary{/if}"{if $button.external} target="_blank" rel="noopener"{/if}>{$button.label}</a>
+                {/foreach}
+            </div>
+            {/if}
+            {if $home.note}
+            <div class="hero-note">
+                <i class="ti ti-lock me-1"></i>{$home.note}
+            </div>
+            {/if}
+        </div>
+
+        <aside class="hero-visual" aria-hidden="true">
+            <div class="hero-visual-card">
+                <div class="hero-visual-head">
+                    <span class="brand-mark"><i class="ti ti-book-2"></i></span>
+                    <span class="fw-bold">{$siteName}</span>
+                    <span class="badge bg-success-lt text-success ms-auto">在线</span>
+                </div>
+                <div class="hero-visual-item">
+                    <span class="hero-visual-icon"><i class="ti ti-world"></i></span>
+                    <div>
+                        <div class="fw-semibold">公开文档</div>
+                        <div class="small text-secondary">所有人均可浏览</div>
+                    </div>
+                    <i class="ti ti-arrow-up-right ms-auto text-secondary"></i>
+                </div>
+                <div class="hero-visual-item">
+                    <span class="hero-visual-icon"><i class="ti ti-lock"></i></span>
+                    <div>
+                        <div class="fw-semibold">加密文档</div>
+                        <div class="small text-secondary">输入访问密码后阅读</div>
+                    </div>
+                    <i class="ti ti-key ms-auto text-secondary"></i>
+                </div>
+                <div class="hero-visual-item">
+                    <span class="hero-visual-icon"><i class="ti ti-eye-off"></i></span>
+                    <div>
+                        <div class="fw-semibold">私有文档</div>
+                        <div class="small text-secondary">仅管理员可见</div>
+                    </div>
+                    <i class="ti ti-shield-lock ms-auto text-secondary"></i>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="hero-footer">
+        <span>{$copyright}</span>
+        {if $siteIcp}
+        <span class="hero-footer-sep">·</span>
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">{$siteIcp}</a>
+        {/if}
+    </div>
+</main>
+
+{include file="common/public_footer" /}

@@ -1,0 +1,170 @@
+{include file="common/header" /}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">全部日志</div>
+                <div class="h3 mb-0">{$totalCount}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">今日记录</div>
+                <div class="h3 mb-0">{$todayCount}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">登录相关</div>
+                <div class="h3 mb-0">{$loginCount}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">登录失败</div>
+                <div class="h3 mb-0 text-red">{$failCount}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" action="/admin/logs" class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="logModule">模块</label>
+                <select class="form-select" id="logModule" name="module">
+                    <option value="">全部模块</option>
+                    {volist name="modules" id="name"}
+                    <option value="{$key}"{if $filters.module == $key} selected{/if}>{$name}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="logKeyword">关键词</label>
+                <div class="input-icon">
+                    <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                    <input type="search" class="form-control" id="logKeyword" name="keyword" value="{$filters.keyword}" placeholder="详情、账号或 IP">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="logFrom">开始日期</label>
+                <input type="date" class="form-control" id="logFrom" name="date_from" value="{$filters.date_from}">
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label" for="logTo">结束日期</label>
+                <input type="date" class="form-control" id="logTo" name="date_to" value="{$filters.date_to}">
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">筛选</button>
+                <a href="/admin/logs" class="btn btn-link link-secondary px-2">重置</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <div class="text-secondary small">共 {$paginator->total()} 条记录</div>
+    <div class="btn-list ms-auto">
+        <a href="{$exportUrl}" class="btn btn-outline-secondary">
+            <i class="ti ti-download me-1"></i>导出 CSV
+        </a>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
+            <i class="ti ti-trash me-1"></i>清理日志
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+            <tr>
+                <th class="w-1 text-nowrap">时间</th>
+                <th class="w-1">管理员</th>
+                <th class="w-1">模块</th>
+                <th class="w-1">动作</th>
+                <th>详情</th>
+                <th class="w-1">对象</th>
+                <th class="w-1">IP / 客户端</th>
+            </tr>
+            </thead>
+            <tbody>
+            {volist name="logs" id="log"}
+            <tr>
+                <td class="text-secondary small text-nowrap">{$log.created_at}</td>
+                <td class="text-nowrap">{$log.username ?: '访客'}</td>
+                <td class="text-nowrap">{$log.module_label}</td>
+                <td class="text-nowrap"><span class="badge {$log.action_class}">{$log.action_label}</span></td>
+                <td>{$log.description}</td>
+                <td class="text-secondary small text-nowrap">{$log.target_text ?: '-'}</td>
+                <td class="text-secondary small">
+                    <div>{$log.ip ?: '-'}</div>
+                    {if $log.ua_short}
+                    <div class="text-truncate" style="max-width:180px" title="{$log.user_agent}">{$log.ua_short}</div>
+                    {/if}
+                </td>
+            </tr>
+            {/volist}
+            {empty name="logs"}
+            <tr>
+                <td colspan="7">
+                    <div class="text-center text-secondary py-5">
+                        <i class="ti ti-list-details" style="font-size:2rem;opacity:.5"></i>
+                        <div class="mt-2">暂无符合条件的操作日志。</div>
+                    </div>
+                </td>
+            </tr>
+            {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if $paginator->total() > 0}
+    <div class="card-footer d-flex align-items-center">
+        <div class="text-secondary small">第 {$paginator->currentPage()} / {$paginator->lastPage()} 页</div>
+        <div class="ms-auto">{$paginator->render()|raw}</div>
+    </div>
+    {/if}
+</div>
+
+<div class="modal modal-blur fade" id="clearLogsModal" tabindex="-1" aria-labelledby="clearLogsTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="/admin/logs/clear">
+            {:csrf_field()}
+            <div class="modal-header">
+                <h5 class="modal-title" id="clearLogsTitle">清理操作日志</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="ti ti-alert-triangle me-1"></i>日志清理后无法恢复，建议先导出备份。
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="mode" id="clearModeDays" value="days" checked>
+                    <label class="form-check-label" for="clearModeDays">清理指定天数之前的日志</label>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control" name="days" value="90" min="1" max="3650" aria-label="保留天数">
+                    <span class="input-group-text">天前</span>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="mode" id="clearModeAll" value="all">
+                    <label class="form-check-label text-danger" for="clearModeAll">清空全部日志（不可恢复）</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-danger">确认清理</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{include file="common/footer" /}

@@ -1,0 +1,101 @@
+{include file="common/header" /}
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-database-export me-1"></i>创建备份</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="attachment-upload-icon"><i class="ti ti-cloud-download"></i></div>
+                    <div class="text-secondary small">
+                        一键导出当前数据库与附件目录，生成一个 ZIP 压缩包。备份包含所有文档、分类、标签、版本、登录日志与附件文件。
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-secondary small mb-1">当前数据库</div>
+                    <div class="font-monospace">{$dbName}</div>
+                </div>
+                <div class="alert alert-info mb-0">
+                    <div class="d-flex">
+                        <i class="ti ti-info-circle me-2"></i>
+                        <div class="small">
+                            压缩包内含 <code>database.sql</code>（MySQL 5.7 兼容）与 <code>uploads/</code> 附件目录；备份文件保存在 <code>data/backups</code>，不在公开目录中。
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <form method="post" action="/admin/backup/create">
+                    {:csrf_field()}
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="ti ti-database-export me-1"></i>立即创建备份
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-archive me-1"></i>备份记录</h3>
+                <span class="card-subtitle ms-auto">{$backupCount} 个 / {$totalSize}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th class="w-1">大小</th>
+                        <th class="w-1">创建时间</th>
+                        <th class="w-1 text-end">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {volist name="backups" id="backup"}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="ti ti-file-zip text-secondary"></i>
+                                <span class="font-monospace text-truncate" style="max-width:320px" title="{$backup.name}">{$backup.name}</span>
+                            </div>
+                        </td>
+                        <td class="text-secondary text-nowrap">{$backup.size_text}</td>
+                        <td class="text-secondary small text-nowrap">{$backup.created_text}</td>
+                        <td>
+                            <div class="btn-list justify-content-end">
+                                <a href="{$backup.download_url}" class="btn btn-sm btn-outline-primary">
+                                    <i class="ti ti-download me-1"></i>下载
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="backups"}
+                    <tr>
+                        <td colspan="4">
+                            <div class="text-center text-secondary py-5">
+                                <i class="ti ti-archive-off" style="font-size:2rem;opacity:.5"></i>
+                                <div class="mt-2">还没有备份，点击左侧按钮创建第一个备份。</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="text-secondary small">
+                    <i class="ti ti-restore me-1"></i>
+                    恢复备份：解压 ZIP 后，将 <code>uploads</code> 目录覆盖到 <code>public/uploads</code>，再把 <code>database.sql</code> 导入同名数据库即可。恢复前建议先创建一份新的备份。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{include file="common/footer" /}

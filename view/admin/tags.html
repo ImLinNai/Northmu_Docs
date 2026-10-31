@@ -1,0 +1,155 @@
+{include file="common/header" /}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-tag-plus me-1"></i>新建标签</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/admin/tags/save">
+                    {:csrf_field()}
+                    <div class="mb-3">
+                        <label class="form-label required" for="newTagName">标签名称</label>
+                        <input type="text" class="form-control" id="newTagName" name="name" maxlength="50" required placeholder="例如：部署">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="ti ti-plus me-1"></i>创建标签
+                    </button>
+                </form>
+                <div class="form-hint mt-2">标签需先在此创建；文档编辑页只能从已有标签中选择。</div>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="text-secondary small">
+                    <i class="ti ti-info-circle me-1"></i>
+                    合并标签会把源标签的所有文档关联转移到目标标签，然后删除源标签。此操作不可撤销。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">全部标签</h3>
+                <span class="card-subtitle ms-auto">共 {$tags|count} 个</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                    <tr>
+                        <th>标签</th>
+                        <th class="w-1">引用文档</th>
+                        <th class="w-1">创建时间</th>
+                        <th class="w-1 text-end">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {volist name="tags" id="tag"}
+                    <tr>
+                        <td><span class="badge bg-secondary-lt">{$tag.name}</span></td>
+                        <td class="text-secondary">{$tag.doc_count}</td>
+                        <td class="text-secondary small text-nowrap">{$tag.created_at}</td>
+                        <td>
+                            <div class="btn-list flex-nowrap justify-content-end">
+                                <button type="button" class="btn btn-sm btn-ghost-secondary"
+                                        data-bs-toggle="modal" data-bs-target="#tagEditModal"
+                                        data-tag-edit data-id="{$tag.id}" data-name="{$tag.name}">
+                                    <i class="ti ti-edit me-1"></i>重命名
+                                </button>
+                                <button type="button" class="btn btn-sm btn-ghost-secondary"
+                                        data-bs-toggle="modal" data-bs-target="#tagMergeModal"
+                                        data-tag-merge data-id="{$tag.id}" data-name="{$tag.name}">
+                                    <i class="ti ti-git-merge me-1"></i>合并
+                                </button>
+                                <form action="/admin/tags/delete" method="post" data-confirm="删除标签「{$tag.name}」？文档本身不会被删除。">
+                                    {:csrf_field()}
+                                    <input type="hidden" name="id" value="{$tag.id}">
+                                    <button type="submit" class="btn btn-sm btn-ghost-danger">
+                                        <i class="ti ti-trash me-1"></i>删除
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {/volist}
+                    {empty name="tags"}
+                    <tr>
+                        <td colspan="4">
+                            <div class="text-center text-secondary py-5">
+                                <i class="ti ti-tags-off" style="font-size:2rem;opacity:.5"></i>
+                                <div class="mt-2">还没有标签，先在左侧创建一个吧。</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {/empty}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-blur fade" id="tagEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="/admin/tags/save">
+                {:csrf_field()}
+                <input type="hidden" name="id" id="tagEditId" value="0">
+                <div class="modal-header">
+                    <h5 class="modal-title">重命名标签</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label required" for="tagEditName">标签名称</label>
+                    <input type="text" class="form-control" id="tagEditName" name="name" maxlength="50" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-blur fade" id="tagMergeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="/admin/tags/merge" id="tagMergeForm">
+                {:csrf_field()}
+                <input type="hidden" name="source_id" id="mergeSourceId" value="0">
+                <div class="modal-header">
+                    <h5 class="modal-title">合并标签</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">源标签</label>
+                        <input type="text" class="form-control" id="mergeSourceName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required" for="mergeTargetId">合并到</label>
+                        <select class="form-select" id="mergeTargetId" name="target_id" required>
+                            <option value="">选择目标标签…</option>
+                            {volist name="tags" id="tag"}
+                            <option value="{$tag.id}">{$tag.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                    <div class="text-secondary small">
+                        源标签的文档关联会转移到目标标签，重复关联会自动去重，源标签随后被删除。
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-warning">确认合并</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{include file="common/footer" /}

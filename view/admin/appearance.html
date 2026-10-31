@@ -1,0 +1,606 @@
+{include file="common/header" /}
+
+<form method="post" action="/admin/appearance/save" enctype="multipart/form-data" class="row g-3">
+    {:csrf_field()}
+
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-brand-vercel me-1"></i>品牌信息</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label class="form-label required" for="siteName">网站名称</label>
+                        <input type="text" class="form-control" id="siteName" name="site_name" value="{$settings.site_name}" maxlength="50" required>
+                        <div class="form-hint">显示在导航栏、浏览器标题与页脚。</div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label" for="brandMode">显示方式</label>
+                        <select class="form-select" id="brandMode" name="site_brand_mode">
+                            <option value="icon_text" {if $settings.site_brand_mode == 'icon_text'}selected{/if}>图标 + 文字</option>
+                            <option value="image" {if $settings.site_brand_mode == 'image'}selected{/if}>仅品牌图片</option>
+                        </select>
+                        <div class="form-hint">“仅品牌图片”用于图片中已包含图标与名称的情况。</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">网站图标</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="logoPreview">
+                                {if $settings.site_logo}
+                                <img src="{$settings.site_logo}" alt="Logo" class="settings-logo-preview">
+                                {else}
+                                <span class="settings-logo-placeholder"><i class="ti ti-book-2"></i></span>
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="logoFile" name="logo" accept="image/*">
+                                <input type="text" class="form-control" id="logoUrl" name="logo_url" value="{$logoUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="logoUrl" data-preview="logoPreview" data-file="logoFile" data-remove="logo_remove">
+                                        <i class="ti ti-photo me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                </div>
+                                <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB；未设置时使用默认书本图标。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_logo}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="logo_remove" value="1">
+                            <span class="form-check-label">移除当前图标</span>
+                        </label>
+                        {/if}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">品牌图片</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="brandPreview">
+                                {if $settings.site_brand_image}
+                                <img src="{$settings.site_brand_image}" alt="品牌图片" class="settings-logo-preview">
+                                {else}
+                                <span class="settings-logo-placeholder"><i class="ti ti-photo"></i></span>
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="brandFile" name="brand_image" accept="image/*">
+                                <input type="text" class="form-control" id="brandUrl" name="brand_url" value="{$brandUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="brandUrl" data-preview="brandPreview" data-file="brandFile" data-remove="brand_remove">
+                                        <i class="ti ti-photo me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                </div>
+                                <div class="form-hint">建议使用透明背景、包含图标与名称的横版图片，最大 {$uploadCategories.image.max_mb} MB。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_brand_image}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="brand_remove" value="1">
+                            <span class="form-check-label">移除当前品牌图片</span>
+                        </label>
+                        {/if}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">浏览器标签图标</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="faviconPreview">
+                                {if $settings.site_favicon}
+                                <img src="{$settings.site_favicon}" alt="标签图标" class="settings-favicon-preview">
+                                {else}
+                                <img src="/favicon.svg" alt="默认标签图标" class="settings-favicon-preview">
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="faviconFile" name="favicon" accept="image/*,.ico">
+                                <input type="text" class="form-control" id="faviconUrl" name="favicon_url" value="{$faviconUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="faviconUrl" data-preview="faviconPreview" data-file="faviconFile" data-remove="favicon_remove">
+                                        <i class="ti ti-photo me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                </div>
+                                <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB；留空使用默认图标。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_favicon}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="favicon_remove" value="1">
+                            <span class="form-check-label">移除当前标签图标</span>
+                        </label>
+                        {/if}
+                        <div class="form-hint mt-1">显示在浏览器标签页与收藏夹中。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-layout-navbar me-1"></i>前台导航栏</h3>
+                <div class="card-actions">
+                    <span class="badge bg-secondary-lt text-secondary" id="navItemCount">{$navItems|count} 个菜单</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="navStyle">导航样式</label>
+                        <select class="form-select" id="navStyle" name="site_nav_style">
+                            <option value="top" {if $settings.site_nav_style == 'top'}selected{/if}>顶部通栏（默认）</option>
+                            <option value="floating" {if $settings.site_nav_style == 'floating'}selected{/if}>悬浮圆角</option>
+                        </select>
+                        <div class="form-hint">悬浮样式与页面顶部保持距离，并带有圆角与阴影。</div>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center">
+                        <label class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" name="site_nav_login" value="1" {if $settings.site_nav_login == '1'}checked{/if}>
+                            <span class="form-check-label">显示登录入口</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                        <div class="fw-semibold">导航菜单</div>
+                        <div class="text-secondary small">最多 12 个菜单；支持站内路径、锚点与 http(s) 外链，留空则使用默认导航。</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="navItemAdd">
+                        <i class="ti ti-plus me-1"></i>添加菜单
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-vcenter nav-items-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:26%">名称</th>
+                                <th>链接地址</th>
+                                <th style="width:20%">打开方式</th>
+                                <th style="width:60px"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="navItemsBody">
+                            {foreach $navItems as $item}
+                            <tr class="nav-item-row">
+                                <td><input type="text" class="form-control" name="nav[title][]" value="{$item.title}" maxlength="20" required></td>
+                                <td><input type="text" class="form-control font-monospace" name="nav[url][]" value="{$item.url}" maxlength="300" placeholder="/docs" required></td>
+                                <td>
+                                    <select class="form-select" name="nav[target][]">
+                                        <option value="_self" {if $item.target == '_self'}selected{/if}>当前窗口</option>
+                                        <option value="_blank" {if $item.target == '_blank'}selected{/if}>新窗口</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-icon btn-ghost-danger nav-item-remove" title="删除" aria-label="删除">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-secondary small mt-2">站内路径以 / 开头（如 /docs），锚点以 # 开头，外链需以 http:// 或 https:// 开头。</div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-home me-1"></i>首页内容</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="homeBadge">标签文字</label>
+                        <input type="text" class="form-control" id="homeBadge" name="home_badge" value="{$settings.site_home_badge}" maxlength="30" placeholder="{$home.defaults.badge}">
+                        <div class="form-hint">留空使用默认：{$home.defaults.badge}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="homeTitle">主标题</label>
+                        <input type="text" class="form-control" id="homeTitle" name="home_title" value="{$settings.site_home_title}" maxlength="60" placeholder="{$home.defaults.title}">
+                        <div class="form-hint">留空使用网站名称：{$home.defaults.title}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="homeIntro">介绍文字</label>
+                        <textarea class="form-control" id="homeIntro" name="home_intro" rows="3" maxlength="400" placeholder="{$home.defaults.intro}">{$settings.site_home_intro}</textarea>
+                        <div class="form-hint">留空使用默认介绍：{$home.defaults.intro}</div>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="homeNote">底部说明</label>
+                        <input type="text" class="form-control" id="homeNote" name="home_note" value="{$settings.site_home_note}" maxlength="100" placeholder="{$home.defaults.note}">
+                        <div class="form-hint">留空使用默认：{$home.defaults.note}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="homeTemplate">首页模板</label>
+                        <select class="form-select" id="homeTemplate" name="home_template">
+                            <option value="classic" {if $home.template == 'classic'}selected{/if}>经典居中</option>
+                            <option value="split" {if $home.template == 'split'}selected{/if}>双栏展示</option>
+                            <option value="minimal" {if $home.template == 'minimal'}selected{/if}>极简左对齐</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mt-4 mb-2">
+                    <div>
+                        <div class="fw-semibold">首页按钮</div>
+                        <div class="text-secondary small">最多 4 个按钮，全部删除后首页不显示按钮。</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="homeButtonAdd">
+                        <i class="ti ti-plus me-1"></i>添加按钮
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-vcenter mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:30%">按钮文字</th>
+                                <th>链接地址</th>
+                                <th style="width:22%">样式</th>
+                                <th style="width:60px"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="homeButtonsBody">
+                            {foreach $homeButtons as $button}
+                            <tr class="home-button-row">
+                                <td><input type="text" class="form-control" name="home_buttons[label][]" value="{$button.label}" maxlength="20" placeholder="浏览文档"></td>
+                                <td><input type="text" class="form-control font-monospace" name="home_buttons[url][]" value="{$button.url}" maxlength="300" placeholder="/docs"></td>
+                                <td>
+                                    <select class="form-select" name="home_buttons[style][]">
+                                        <option value="primary" {if $button.style == 'primary'}selected{/if}>主要按钮</option>
+                                        <option value="outline" {if $button.style == 'outline'}selected{/if}>描边按钮</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-icon btn-ghost-danger home-button-remove" title="删除" aria-label="删除">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-photo-video me-1"></i>首页背景</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label" for="homeBgType">背景类型</label>
+                        <select class="form-select" id="homeBgType" name="home_bg_type">
+                            <option value="none" {if $home.bgType == 'none'}selected{/if}>无背景</option>
+                            <option value="image" {if $home.bgType == 'image'}selected{/if}>图片背景</option>
+                            <option value="video" {if $home.bgType == 'video'}selected{/if}>视频背景（静音循环）</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label" for="homeOverlay">遮罩透明度 <span class="text-secondary" id="homeOverlayValue">{$home.overlay}%</span></label>
+                        <input type="range" class="form-range" id="homeOverlay" name="home_overlay" min="0" max="95" step="5" value="{$home.overlay}">
+                        <div class="form-hint">数值越大，背景越暗、文字越清晰。</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">背景图片</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="bgImagePreview">
+                                {if $settings.site_home_bg_image}
+                                <img src="{$settings.site_home_bg_image}" alt="背景图片" class="settings-logo-preview">
+                                {else}
+                                <span class="settings-logo-placeholder"><i class="ti ti-photo"></i></span>
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="bgImageFile" name="bg_image" accept="image/*">
+                                <input type="text" class="form-control" id="bgImageUrl" name="bg_image_url" value="{$bgImageUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="bgImageUrl" data-preview="bgImagePreview" data-file="bgImageFile" data-remove="bg_image_remove">
+                                        <i class="ti ti-photo me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                </div>
+                                <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB，建议使用宽幅横图。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_home_bg_image}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="bg_image_remove" value="1">
+                            <span class="form-check-label">移除当前背景图片</span>
+                        </label>
+                        {/if}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">背景视频</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="bgVideoPreview">
+                                {if $settings.site_home_bg_video}
+                                <video class="settings-video-preview" src="{$settings.site_home_bg_video}" muted loop playsinline preload="metadata"></video>
+                                {else}
+                                <span class="settings-logo-placeholder"><i class="ti ti-video"></i></span>
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="bgVideoFile" name="bg_video" accept="video/*">
+                                <input type="text" class="form-control" id="bgVideoUrl" name="bg_video_url" value="{$bgVideoUrl}" maxlength="500" placeholder="或填写在线视频链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="video" data-target="bgVideoUrl" data-preview="bgVideoPreview" data-file="bgVideoFile" data-remove="bg_video_remove">
+                                        <i class="ti ti-video me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新视频</span>
+                                </div>
+                                <div class="form-hint">支持 {$uploadCategories.video.ext}，最大 {$uploadCategories.video.max_mb} MB，播放时自动静音循环。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_home_bg_video}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="bg_video_remove" value="1">
+                            <span class="form-check-label">移除当前背景视频</span>
+                        </label>
+                        {/if}
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="ti ti-info-circle me-1"></i>背景仅作用于首页；未上传对应素材时自动回退为无背景。
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-login me-1"></i>登录页</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="loginTitle">登录标题</label>
+                        <input type="text" class="form-control" id="loginTitle" name="login_title" value="{$settings.site_login_title}" maxlength="40" placeholder="登录后台">
+                        <div class="form-hint">留空显示默认：登录后台</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="loginDesc">登录介绍</label>
+                        <input type="text" class="form-control" id="loginDesc" name="login_desc" value="{$settings.site_login_desc}" maxlength="100" placeholder="仅限超级管理员访问">
+                        <div class="form-hint">留空显示默认：仅限超级管理员访问</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">登录页图标</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="loginIconPreview">
+                                {if $settings.site_login_icon}
+                                <img src="{$settings.site_login_icon}" alt="登录页图标" class="settings-logo-preview">
+                                {else}
+                                <span class="settings-logo-placeholder"><i class="ti ti-user-shield"></i></span>
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="loginIconFile" name="login_icon" accept="image/*">
+                                <input type="text" class="form-control" id="loginIconUrl" name="login_icon_url" value="{$loginIconUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="loginIconUrl" data-preview="loginIconPreview" data-file="loginIconFile" data-remove="login_icon_remove">
+                                        <i class="ti ti-photo me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                </div>
+                                <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB；留空使用网站图标。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_login_icon}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="login_icon_remove" value="1">
+                            <span class="form-check-label">移除登录页图标</span>
+                        </label>
+                        {/if}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">登录页背景</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="nm-upload-preview" id="loginBgPreview">
+                                {if $settings.site_login_bg}
+                                <img src="{$settings.site_login_bg}" alt="登录页背景" class="settings-logo-preview">
+                                {else}
+                                <span class="settings-logo-placeholder"><i class="ti ti-photo"></i></span>
+                                {/if}
+                            </span>
+                            <div class="flex-fill min-width-0">
+                                <input type="file" class="d-none" id="loginBgFile" name="login_bg" accept="image/*">
+                                <input type="text" class="form-control" id="loginBgUrl" name="login_bg_url" value="{$loginBgUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="loginBgUrl" data-preview="loginBgPreview" data-file="loginBgFile" data-remove="login_bg_remove">
+                                        <i class="ti ti-photo me-1"></i>从附件库选择
+                                    </button>
+                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                </div>
+                                <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB，建议使用宽幅横图。</div>
+                            </div>
+                        </div>
+                        {if $settings.site_login_bg}
+                        <label class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="login_bg_remove" value="1">
+                            <span class="form-check-label">移除登录页背景</span>
+                        </label>
+                        {/if}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="loginOverlay">背景遮罩透明度 <span class="text-secondary" id="loginOverlayValue">{$login.overlay}%</span></label>
+                        <input type="range" class="form-range" id="loginOverlay" name="login_overlay" min="0" max="95" step="5" value="{$login.overlay}">
+                        <div class="form-hint">仅在设置登录页背景后生效，数值越大文字越清晰。</div>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="ti ti-info-circle me-1"></i>登录页标题、介绍与图标支持自定义；未设置背景时使用默认渐变背景。
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-palette me-1"></i>全局主题色</h3>
+            </div>
+            <div class="card-body">
+                <div class="theme-swatches">
+                    {foreach $themePresets as $key => $preset}
+                    <label class="theme-swatch{if $themeColor == $key} is-active{/if}">
+                        <input type="radio" name="site_theme_color" value="{$key}" {if $themeColor == $key}checked{/if}>
+                        <span class="theme-swatch-dot" style="background:{$preset.color}"></span>
+                        <span class="theme-swatch-label">{$preset.label}</span>
+                    </label>
+                    {/foreach}
+                </div>
+                <div class="form-hint mt-2">主题色作用于按钮、链接、选中文字、图标与聚焦光环，前台与后台同时生效。</div>
+            </div>
+            <div class="card-footer d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="ti ti-device-floppy me-1"></i>保存前台设置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-eye me-1"></i>显示预览</h3>
+            </div>
+            <div class="card-body">
+                <div class="appearance-preview">
+                    <div class="appearance-preview-nav">
+                        <span class="appearance-preview-brand">
+                            {if $settings.site_brand_mode == 'image' && $settings.site_brand_image}
+                            <img src="{$settings.site_brand_image}" alt="品牌图片" class="brand-image-preview">
+                            {else}
+                            {if $settings.site_logo}
+                            <img src="{$settings.site_logo}" alt="{$settings.site_name}" class="brand-logo">
+                            {else}
+                            <span class="brand-mark"><i class="ti ti-book-2"></i></span>
+                            {/if}
+                            <span class="fw-bold">{$settings.site_name}</span>
+                            {/if}
+                        </span>
+                        <span class="appearance-preview-links">
+                            {foreach $navItems as $navIndex=>$item}
+                            <span class="appearance-preview-link{if $navIndex == 0} is-active{/if}">{$item.title}</span>
+                            {/foreach}
+                        </span>
+                    </div>
+                </div>
+                <div class="text-secondary small mt-3">
+                    预览仅作样式参考，实际效果以发布后的前台页面为准。
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-home-analytics me-1"></i>首页预览</h3>
+            </div>
+            <div class="card-body">
+                <div class="home-preview home-preview-{$home.template}{if $home.bgType == 'image' && $settings.site_home_bg_image} has-image{/if}" {if $home.bgType == 'image' && $settings.site_home_bg_image}style="background-image:url('{$settings.site_home_bg_image}')"{/if}>
+                    {if $home.bgType == 'image' && $settings.site_home_bg_image}
+                    <span class="home-preview-overlay" style="opacity:{$home.overlayAlpha}"></span>
+                    {/if}
+                    {if $home.bgType == 'video' && $settings.site_home_bg_video}
+                    <video class="home-preview-video" src="{$settings.site_home_bg_video}" muted loop autoplay playsinline></video>
+                    <span class="home-preview-overlay" style="opacity:{$home.overlayAlpha}"></span>
+                    {/if}
+                    <div class="home-preview-inner">
+                        <span class="home-preview-badge">{$home.badge}</span>
+                        <div class="home-preview-title">{$home.title}</div>
+                        <div class="home-preview-text">{$home.intro}</div>
+                        <div class="home-preview-actions">
+                            {foreach $homeButtons as $button}
+                            <span class="btn btn-sm {if $button.style == 'outline'}btn-outline-primary{else}btn-primary{/if}">{$button.label}</span>
+                            {/foreach}
+                        </div>
+                        <div class="home-preview-note">{$home.note}</div>
+                    </div>
+                </div>
+                <div class="text-secondary small mt-3">预览在保存后刷新，实际效果以发布后的前台页面为准。</div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-login me-1"></i>登录页预览</h3>
+            </div>
+            <div class="card-body">
+                <div class="login-preview{if $login.bg} has-bg{/if}" {if $login.bg}style="background-image:url('{$login.bg}')"{/if}>
+                    {if $login.bg}
+                    <span class="login-preview-overlay" style="opacity:{$login.overlayAlpha}"></span>
+                    {/if}
+                    <div class="login-preview-inner">
+                        <div class="login-preview-brand">
+                            {if $login.icon}
+                            <img src="{$login.icon}" alt="登录页图标" class="login-preview-icon">
+                            {elseif $settings.site_logo}
+                            <img src="{$settings.site_logo}" alt="{$settings.site_name}" class="login-preview-icon">
+                            {else}
+                            <span class="brand-mark"><i class="ti ti-book-2"></i></span>
+                            {/if}
+                            <div class="fw-bold">{$settings.site_name}</div>
+                            <div class="login-preview-site-desc">{$settings.site_desc}</div>
+                        </div>
+                        <div class="login-preview-card">
+                            <div class="fw-bold">{$login.title}</div>
+                            <div class="login-preview-desc">{$login.desc}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-secondary small mt-3">预览在保存后刷新，实际效果以登录页为准。</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-info-circle me-1"></i>说明</h3>
+            </div>
+            <div class="card-body text-secondary small">
+                <ul class="mb-0 ps-3">
+                    <li class="mb-2">“品牌信息”包含网站图标与网站名称，均未修改时显示默认样式。</li>
+                    <li class="mb-2">选择“仅品牌图片”后，导航栏只显示上传的品牌图片；未上传图片时自动回退为图标 + 文字。</li>
+                    <li class="mb-2">导航菜单留空时显示“首页 / 浏览文档”默认菜单。</li>
+                    <li>登录入口仅在站点未登录时显示，登录后仍显示“进入后台”。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</form>
+
+<template id="homeButtonTemplate">
+    <tr class="home-button-row">
+        <td><input type="text" class="form-control" name="home_buttons[label][]" maxlength="20" placeholder="按钮文字"></td>
+        <td><input type="text" class="form-control font-monospace" name="home_buttons[url][]" maxlength="300" placeholder="/docs"></td>
+        <td>
+            <select class="form-select" name="home_buttons[style][]">
+                <option value="primary">主要按钮</option>
+                <option value="outline">描边按钮</option>
+            </select>
+        </td>
+        <td>
+            <button type="button" class="btn btn-icon btn-ghost-danger home-button-remove" title="删除" aria-label="删除">
+                <i class="ti ti-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<template id="navItemTemplate">
+    <tr class="nav-item-row">
+        <td><input type="text" class="form-control" name="nav[title][]" maxlength="20" placeholder="菜单名称" required></td>
+        <td><input type="text" class="form-control font-monospace" name="nav[url][]" maxlength="300" placeholder="/docs" required></td>
+        <td>
+            <select class="form-select" name="nav[target][]">
+                <option value="_self">当前窗口</option>
+                <option value="_blank">新窗口</option>
+            </select>
+        </td>
+        <td>
+            <button type="button" class="btn btn-icon btn-ghost-danger nav-item-remove" title="删除" aria-label="删除">
+                <i class="ti ti-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+{include file="common/footer" /}

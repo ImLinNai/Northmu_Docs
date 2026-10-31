@@ -1,0 +1,69 @@
+<div class="modal modal-blur fade" id="nmAttachmentModal" tabindex="-1" aria-labelledby="nmAttachmentModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="nmAttachmentModalTitle">附件管理</h5>
+                    <div class="text-secondary small" id="nmAttachSubtitle">仅显示图片附件，可从附件库选择或上传新图片</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <div class="nm-attach-toolbar">
+                    <div class="input-icon flex-fill">
+                        <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                        <input type="search" class="form-control" id="nmAttachSearch" placeholder="搜索文件名…" autocomplete="off">
+                    </div>
+                    <input type="file" id="nmAttachFileInput" class="d-none" accept="image/png,image/jpeg,image/gif,image/webp" multiple>
+                    <button type="button" class="btn btn-primary" id="nmAttachUploadBtn">
+                        <i class="ti ti-cloud-upload me-1"></i>上传图片
+                    </button>
+                </div>
+                <div class="nm-attach-status text-secondary small d-none" id="nmAttachStatus" role="status"></div>
+                <div class="progress d-none mt-2" id="nmAttachProgress" style="height:4px">
+                    <div class="progress-bar" style="width:0%"></div>
+                </div>
+
+                <div class="nm-attach-layout mt-3">
+                    <div class="nm-attach-list">
+                        <div class="nm-attach-loading text-center text-secondary py-5 d-none" id="nmAttachLoading">
+                            <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>正在加载附件…
+                        </div>
+                        <div class="nm-attach-grid" id="nmAttachGrid"></div>
+                        <div class="nm-attach-empty d-none" id="nmAttachEmpty">
+                            <i class="ti ti-photo-off"></i>
+                            <div class="mt-2" id="nmAttachEmptyText">附件库中还没有附件，点击「上传附件」添加。</div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="nmAttachMore">加载更多</button>
+                        </div>
+                    </div>
+                    <aside class="nm-attach-preview">
+                        <div class="nm-attach-preview-empty" id="nmAttachPreviewEmpty">
+                            <i class="ti ti-photo"></i>
+                            <div>选择附件后在此预览</div>
+                        </div>
+                        <div class="d-none" id="nmAttachPreviewBody">
+                            <div class="nm-attach-preview-media" id="nmAttachPreviewMedia"></div>
+                            <div class="fw-semibold text-truncate mt-3" id="nmAttachPreviewName"></div>
+                            <div class="text-secondary small mt-1" id="nmAttachPreviewMeta"></div>
+                            <div class="input-group input-group-sm mt-3">
+                                <input type="text" class="form-control font-monospace" id="nmAttachPreviewUrl" readonly>
+                                <button type="button" class="btn btn-outline-secondary" id="nmAttachCopy" title="复制链接">
+                                    <i class="ti ti-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-secondary small me-auto" id="nmAttachCount"></div>
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="nmAttachConfirm" disabled>
+                    <i class="ti ti-check me-1"></i>使用所选附件
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,128 @@
+{include file="common/header" /}
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-4">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">附件数量</div>
+                <div class="h3 mb-0">{$totalCount}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">占用空间</div>
+                <div class="h3 mb-0">{$totalSize}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="text-secondary small">上传限制</div>
+                <div class="d-flex flex-column gap-1 mt-1">
+                    {foreach $uploadCategories as $cat}
+                    <div class="d-flex justify-content-between gap-2 small">
+                        <span>{$cat.label}</span>
+                        <span class="text-secondary text-nowrap" title="{$cat.ext}">{$cat.max_mb} MB</span>
+                    </div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <div class="attachment-upload-icon"><i class="ti ti-cloud-upload"></i></div>
+            <div class="flex-fill min-width-0">
+                <div class="fw-semibold">上传附件</div>
+                <div class="text-secondary small">支持图片、文档、压缩包与视频；图片最大 {$uploadCategories.image.max_mb} MB、文件最大 {$uploadCategories.file.max_mb} MB、视频最大 {$uploadCategories.video.max_mb} MB。浏览器不支持拖拽时请点击按钮选择。</div>
+            </div>
+            <input type="file" id="attachmentInput" class="d-none" multiple>
+            <button type="button" class="btn btn-primary" id="attachmentUploadBtn">
+                <i class="ti ti-upload me-1"></i>选择文件上传
+            </button>
+            <button type="button" class="btn btn-outline-warning" id="attachmentCleanupBtn">
+                <i class="ti ti-broom me-1"></i>清理未引用文件
+            </button>
+        </div>
+        <div class="progress mt-3 d-none" id="attachmentProgress" style="height:4px">
+            <div class="progress-bar" style="width:0%"></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+            <tr>
+                <th class="w-1">预览</th>
+                <th>文件</th>
+                <th class="w-1">大小</th>
+                <th class="w-1">引用</th>
+                <th class="w-1">上传时间</th>
+                <th class="w-1 text-end">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {volist name="items" id="item"}
+            <tr>
+                <td>
+                    {if $item.is_image}
+                    <img src="{$item.url}" alt="{$item.original_name}" class="attachment-thumb" loading="lazy">
+                    {else}
+                    <span class="attachment-file-icon"><i class="ti ti-file"></i></span>
+                    {/if}
+                </td>
+                <td>
+                    <div class="fw-medium text-truncate" style="max-width:360px" title="{$item.original_name}">{$item.original_name}</div>
+                    <div class="text-secondary small font-monospace text-truncate" style="max-width:360px">{$item.url}</div>
+                </td>
+                <td class="text-secondary text-nowrap">{$item.size_text}</td>
+                <td>
+                    {if $item.ref_count > 0}
+                    <span class="badge bg-green-lt">{$item.ref_count} 处引用</span>
+                    {else}
+                    <span class="badge bg-yellow-lt">未引用</span>
+                    {/if}
+                </td>
+                <td class="text-secondary small text-nowrap">{$item.created_at}</td>
+                <td>
+                    <div class="btn-list flex-nowrap justify-content-end">
+                        <button type="button" class="btn btn-sm btn-ghost-secondary" data-copy-url="{$item.url}" title="复制链接">
+                            <i class="ti ti-copy"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-ghost-danger" data-delete-attachment="{$item.id}" title="删除">
+                            <i class="ti ti-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {/volist}
+            {empty name="items"}
+            <tr>
+                <td colspan="6">
+                    <div class="text-center text-secondary py-5">
+                        <i class="ti ti-paperclip-off" style="font-size:2rem;opacity:.5"></i>
+                        <div class="mt-2">还没有上传任何附件。</div>
+                    </div>
+                </td>
+            </tr>
+            {/empty}
+            </tbody>
+        </table>
+    </div>
+    {if $paginator->total() > 0}
+    <div class="card-footer d-flex align-items-center">
+        <div class="text-secondary small">共 {$paginator->total()} 个附件</div>
+        <div class="ms-auto">{$paginator->render()|raw}</div>
+    </div>
+    {/if}
+</div>
+
+{include file="common/footer" /}

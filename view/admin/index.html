@@ -1,0 +1,181 @@
+{include file="common/header" /}
+
+<div class="row row-deck row-cards mb-3">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-primary text-white avatar"><i class="ti ti-file-text"></i></span>
+                    </div>
+                    <div class="col">
+                        <div class="h1 mb-0 stat-value">{$docCount}</div>
+                        <div class="text-secondary">文档总数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-azure text-white avatar"><i class="ti ti-category"></i></span>
+                    </div>
+                    <div class="col">
+                        <div class="h1 mb-0 stat-value">{$catCount}</div>
+                        <div class="text-secondary">分类总数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-green text-white avatar"><i class="ti ti-tags"></i></span>
+                    </div>
+                    <div class="col">
+                        <div class="h1 mb-0 stat-value">{$tagCount}</div>
+                        <div class="text-secondary">标签总数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <span class="bg-orange text-white avatar"><i class="ti ti-eye"></i></span>
+                    </div>
+                    <div class="col">
+                        <div class="h1 mb-0 stat-value">{$totalViews}</div>
+                        <div class="text-secondary">累计阅读</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cards">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">最近更新</h3>
+                <div class="card-actions">
+                    <a href="/admin/documents" class="btn btn-sm btn-outline-secondary">全部文档</a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                {if $recentDocs}
+                <table class="table card-table table-vcenter">
+                    <thead>
+                        <tr>
+                            <th>文档</th>
+                            <th>分类</th>
+                            <th>状态</th>
+                            <th>可见性</th>
+                            <th class="text-end">更新时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {volist name="recentDocs" id="doc"}
+                        <tr>
+                            <td class="text-truncate" style="max-width:280px">
+                                <a href="/admin/documents/edit/{$doc.id}" class="text-reset text-decoration-none fw-medium">{$doc.title}</a>
+                                <div class="text-secondary small"><i class="ti ti-eye me-1"></i>{$doc.views}</div>
+                            </td>
+                            <td class="text-secondary">{$doc.category_name}</td>
+                            <td>
+                                {if $doc.status == 1}
+                                <span class="badge bg-success-lt text-success">已发布</span>
+                                {else /}
+                                <span class="badge bg-secondary-lt text-secondary">草稿</span>
+                                {/if}
+                            </td>
+                            <td>
+                                <span class="badge {$doc.visibility_class}">{$doc.visibility_label}</span>
+                            </td>
+                            <td class="text-end text-secondary small">{$doc.updated_at}</td>
+                        </tr>
+                        {/volist}
+                    </tbody>
+                </table>
+                {else /}
+                <div class="card-body">
+                    <div class="text-center text-secondary py-4">
+                        <i class="ti ti-file-off fs-1 d-block mb-2"></i>
+                        暂无文档，创建第一篇文档后这里会展示最近更新。
+                    </div>
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">快捷操作</h3>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/admin/documents/create" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="ti ti-file-plus text-primary me-2"></i>新建文档
+                    <i class="ti ti-chevron-right ms-auto text-secondary"></i>
+                </a>
+                <a href="/admin/categories" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="ti ti-folder-plus text-azure me-2"></i>管理分类
+                    <i class="ti ti-chevron-right ms-auto text-secondary"></i>
+                </a>
+                <a href="/admin/settings" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="ti ti-settings text-secondary me-2"></i>系统设置
+                    <i class="ti ti-chevron-right ms-auto text-secondary"></i>
+                </a>
+                <a href="/admin/backup" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="ti ti-database-export text-green me-2"></i>数据备份
+                    <i class="ti ti-chevron-right ms-auto text-secondary"></i>
+                </a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">系统环境</h3>
+            </div>
+            <div class="card-body">
+                <div class="datagrid">
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">PHP</div>
+                        <div class="datagrid-content">{$phpVersion}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">MySQL</div>
+                        <div class="datagrid-content">{$mysqlVersion}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">ThinkPHP</div>
+                        <div class="datagrid-content">{$tpVersion}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">上传限制</div>
+                        <div class="datagrid-content">{$uploadMax}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">服务器</div>
+                        <div class="datagrid-content text-truncate" title="{$serverSoft}">{$serverSoft}</div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">操作系统</div>
+                        <div class="datagrid-content">{$osInfo}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{include file="common/footer" /}

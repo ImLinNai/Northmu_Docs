@@ -1,0 +1,29 @@
+*.log
+.env
+composer.phar
+composer.lock
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/vendor
+/.settings
+/.buildpath
+/.project
+
+# 运行时与构建产物
+/runtime/*
+!/runtime/.gitignore
+/dist/
+/.devtools/
+/.assets_src/
+
+# 安装向导生成的数据库/Redis 配置与安装锁
+/data/database.php
+/data/redis.php
+/data/install.lock
+/data/backups/*
+
+# 用户上传内容
+/public/uploads/*
+!/public/uploads/.htaccess

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-bs-theme="light" data-theme-color="{$themeColor}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{$pageTitle} - {$siteName}</title>
+    <meta name="csrf-token" content="{:csrf_token()}">
+    <script>
+        (function () {
+            document.documentElement.classList.add('js');
+            try {
+                var t = localStorage.getItem('northmu-theme');
+                if (!t) {
+                    t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+                document.documentElement.setAttribute('data-bs-theme', t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="icon" href="{:site_favicon_url()}">
+    <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+    {$extraHead|default=''|raw}
+</head>
+<body>
+<div class="nm-boot" id="nmBoot" aria-hidden="true">
+    <div class="nm-boot-panel">
+        <div class="nm-skeleton nm-skeleton-brand"></div>
+        <div class="nm-skeleton nm-skeleton-line w-75"></div>
+        <div class="nm-skeleton nm-skeleton-line w-50"></div>
+    </div>
+</div>
+<div class="nm-loading-bar" id="nmLoadingBar"></div>
+<div class="page">
+    <aside class="navbar navbar-vertical navbar-expand-lg">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="展开菜单">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <h1 class="navbar-brand navbar-brand-autodark">
+                <a href="/admin" class="d-flex align-items-center gap-2 text-decoration-none">
+                    {if $siteLogo}
+                    <img src="{$siteLogo}" alt="{$siteName}" class="brand-logo">
+                    {else}
+                    <span class="brand-mark"><i class="ti ti-book-2"></i></span>
+                    {/if}
+                    <span>{$siteName}</span>
+                </a>
+            </h1>
+            <div class="collapse navbar-collapse" id="sidebar-menu">
+                <ul class="navbar-nav pt-lg-3">
+                    <li class="nav-item{if $active == 'dashboard'} active{/if}">
+                        <a class="nav-link" href="/admin">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-layout-dashboard"></i></span>
+                            <span class="nav-link-title">仪表盘</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'categories'} active{/if}">
+                        <a class="nav-link" href="/admin/categories">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-category"></i></span>
+                            <span class="nav-link-title">分类管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'documents'} active{/if}">
+                        <a class="nav-link" href="/admin/documents">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-file-text"></i></span>
+                            <span class="nav-link-title">文档管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'attachments'} active{/if}">
+                        <a class="nav-link" href="/admin/attachments">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-paperclip"></i></span>
+                            <span class="nav-link-title">附件管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'tags'} active{/if}">
+                        <a class="nav-link" href="/admin/tags">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-tags"></i></span>
+                            <span class="nav-link-title">标签管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'logs'} active{/if}">
+                        <a class="nav-link" href="/admin/logs">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-list-details"></i></span>
+                            <span class="nav-link-title">操作日志</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'appearance'} active{/if}">
+                        <a class="nav-link" href="/admin/appearance">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-layout-navbar"></i></span>
+                            <span class="nav-link-title">前台设置</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'settings'} active{/if}">
+                        <a class="nav-link" href="/admin/settings">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-settings"></i></span>
+                            <span class="nav-link-title">系统设置</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'cache'} active{/if}">
+                        <a class="nav-link" href="/admin/cache">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-database-cog"></i></span>
+                            <span class="nav-link-title">缓存管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item{if $active == 'backup'} active{/if}">
+                        <a class="nav-link" href="/admin/backup">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-database-export"></i></span>
+                            <span class="nav-link-title">数据备份</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="mt-auto pb-3 px-3 d-none d-lg-block">
+                    <div class="text-secondary small border-top pt-3">
+                        <i class="ti ti-lock me-1"></i>超级管理员模式
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="page-wrapper">
+        <header class="navbar navbar-expand-md d-print-none">
+            <div class="container-xl">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="展开菜单">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-nav flex-row order-md-last align-items-center gap-2 ms-auto">
+                    <button class="btn btn-icon btn-ghost-secondary" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
+                        <i class="ti ti-sun theme-icon-sun"></i>
+                        <i class="ti ti-moon theme-icon-moon"></i>
+                    </button>
+                    <a href="/" target="_blank" rel="noopener" class="btn btn-icon btn-ghost-secondary" title="查看站点">
+                        <i class="ti ti-external-link"></i>
+                    </a>
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="用户菜单">
+                            {if $admin.avatar}
+                            <img src="{$admin.avatar}" alt="{$admin.display_name}" class="admin-avatar-img">
+                            {else}
+                            <span class="admin-avatar">{$admin.initial}</span>
+                            {/if}
+                            <div class="d-none d-xl-block ps-2">
+                                <div>{$admin.display_name}</div>
+                                <div class="mt-1 small text-secondary">超级管理员</div>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                            <a href="/admin/settings#adminProfile" class="dropdown-item"><i class="ti ti-user-cog me-2"></i>管理员资料</a>
+                            <a href="/admin/settings" class="dropdown-item"><i class="ti ti-settings me-2"></i>系统设置</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="/admin/logout" class="dropdown-item text-danger"><i class="ti ti-logout me-2"></i>退出登录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <h2 class="page-title">{$pageTitle}</h2>
+                        <div class="text-secondary mt-1">{$pageDesc}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                {if $flash.message}
+                <div id="nmFlash" class="d-none" data-message="{$flash.message}" data-type="{$flash.type}"></div>
+                {/if}

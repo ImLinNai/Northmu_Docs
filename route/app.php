@@ -1,0 +1,88 @@
+<?php
+use think\facade\Route;
+
+// 前台
+Route::get('/', 'Index/index');
+
+// 访客文档
+Route::get('docs', 'Doc/index');
+Route::get('docs/search', 'Doc/search');
+Route::get('doc/:id', 'Doc/read')->pattern(['id' => '\d+']);
+Route::post('doc/:id/unlock', 'Doc/unlock')->pattern(['id' => '\d+']);
+
+// 安装向导
+Route::get('install', 'Install/index');
+Route::post('install/check', 'Install/check');
+Route::post('install/test-db', 'Install/testDatabase');
+Route::post('install/test-redis', 'Install/testRedis');
+Route::post('install/deploy', 'Install/deploy');
+
+// 后台登录
+Route::get('admin/login', 'admin.Login/index');
+Route::post('admin/login', 'admin.Login/doLogin');
+Route::get('admin/logout', 'admin.Login/logout');
+
+// 后台（需登录）
+Route::group('admin', function () {
+    Route::get('/', 'admin.Index/index');
+    Route::get('', 'admin.Index/index');
+
+    // 分类
+    Route::get('categories', 'admin.Category/index');
+    Route::post('categories/save', 'admin.Category/save');
+    Route::post('categories/delete', 'admin.Category/delete');
+
+    // 文档
+    Route::get('documents', 'admin.Document/index');
+    Route::get('documents/create', 'admin.Document/create');
+    Route::get('documents/edit/:id', 'admin.Document/edit')->pattern(['id' => '\d+']);
+    Route::get('documents/trash', 'admin.Document/trash');
+    Route::get('documents/versions/:id', 'admin.Document/versions')->pattern(['id' => '\d+']);
+    Route::post('documents/save', 'admin.Document/save');
+    Route::post('documents/delete', 'admin.Document/delete');
+    Route::post('documents/batch', 'admin.Document/batch');
+    Route::post('documents/restore', 'admin.Document/restore');
+    Route::post('documents/purge', 'admin.Document/purge');
+    Route::post('documents/rollback', 'admin.Document/rollback');
+    Route::post('documents/draft', 'admin.Document/saveDraft');
+    Route::post('documents/draft/discard', 'admin.Document/discardDraft');
+
+    // 标签
+    Route::get('tags', 'admin.Tag/index');
+    Route::post('tags/save', 'admin.Tag/save');
+    Route::post('tags/delete', 'admin.Tag/delete');
+    Route::post('tags/merge', 'admin.Tag/merge');
+
+    // 附件
+    Route::get('attachments', 'admin.Attachment/index');
+    Route::get('attachments/picker', 'admin.Attachment/picker');
+    Route::post('attachments/upload', 'admin.Attachment/upload');
+    Route::post('attachments/delete', 'admin.Attachment/delete');
+    Route::post('attachments/cleanup', 'admin.Attachment/cleanup');
+
+    // 前台设置
+    Route::get('appearance', 'admin.Appearance/index');
+    Route::post('appearance/save', 'admin.Appearance/save');
+
+    // 系统设置
+    Route::get('settings', 'admin.Settings/index');
+    Route::post('settings/save', 'admin.Settings/save');
+    Route::post('settings/password', 'admin.Settings/password');
+    Route::post('settings/profile', 'admin.Settings/profile');
+
+    // 操作日志
+    Route::get('logs', 'admin.AuditLog/index');
+    Route::post('logs/clear', 'admin.AuditLog/clear');
+    Route::get('logs/export', 'admin.AuditLog/export');
+
+    // 缓存管理
+    Route::get('cache', 'admin.Cache/index');
+    Route::post('cache/save', 'admin.Cache/save');
+    Route::post('cache/clear', 'admin.Cache/clear');
+    Route::post('cache/test', 'admin.Cache/test');
+
+    // 数据备份
+    Route::get('backup', 'admin.Backup/index');
+    Route::post('backup/create', 'admin.Backup/create');
+    Route::get('backup/download', 'admin.Backup/download');
+})->middleware(\app\middleware\AdminAuth::class);

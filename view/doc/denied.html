@@ -1,0 +1,30 @@
+{include file="common/public_header" /}
+
+<main class="denied-page">
+    <div class="container-xl">
+        <div class="card denied-card">
+            <div class="card-body">
+                <div class="denied-icon">
+                    {if $statusCode == 404}
+                    <i class="ti ti-error-404"></i>
+                    {else}
+                    <i class="ti ti-lock-off"></i>
+                    {/if}
+                </div>
+                <div class="denied-code">{$statusCode}</div>
+                <h1 class="denied-title">{$statusCode == 404 ? '页面不存在' : '无权访问'}</h1>
+                <p class="denied-message">{$message}</p>
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="/" class="btn btn-outline-secondary">
+                        <i class="ti ti-home me-1"></i>返回首页
+                    </a>
+                    <a href="/docs" class="btn btn-primary">
+                        <i class="ti ti-files me-1"></i>浏览公开文档
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{include file="common/public_footer" /}

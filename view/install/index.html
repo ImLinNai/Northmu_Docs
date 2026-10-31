@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>安装向导 - Northmu Docs</title>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('northmu-theme');
+                if (!t) {
+                    t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+                document.documentElement.setAttribute('data-bs-theme', t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="icon" href="{:site_favicon_url()}">
+    <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1030">
+    <button class="btn btn-icon btn-ghost-secondary" type="button" data-theme-toggle title="切换主题">
+        <i class="ti ti-sun theme-icon-sun"></i>
+        <i class="ti ti-moon theme-icon-moon"></i>
+    </button>
+</div>
+
+<div class="install-page">
+    <div class="install-shell">
+        <div class="text-center mb-4">
+            <div class="brand-mark brand-mark-lg mx-auto mb-3"><i class="ti ti-book-2"></i></div>
+            <h1 class="h2 mb-1">Northmu Docs 安装向导</h1>
+            <p class="text-secondary mb-0">跟随 7 个步骤完成环境检测、数据库配置与站点初始化</p>
+        </div>
+
+        <div class="card install-progress-card mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <div class="fw-semibold"><i class="ti ti-route me-1"></i>部署进度</div>
+                    <div class="text-secondary small"><span id="stepCounter">第 1 步 / 共 7 步</span> · <span id="stepPercent">0%</span></div>
+                </div>
+                <div class="progress progress-sm mb-3">
+                    <div class="progress-bar" id="stepProgress" style="width:0%"></div>
+                </div>
+                <ol class="install-steps" id="installSteps">
+                    <li data-step="1" class="is-current"><span class="install-step-dot">1</span><span class="install-step-label">欢迎</span></li>
+                    <li data-step="2"><span class="install-step-dot">2</span><span class="install-step-label">环境检测</span></li>
+                    <li data-step="3"><span class="install-step-dot">3</span><span class="install-step-label">数据库</span></li>
+                    <li data-step="4"><span class="install-step-dot">4</span><span class="install-step-label">Redis</span></li>
+                    <li data-step="5"><span class="install-step-dot">5</span><span class="install-step-label">账号设置</span></li>
+                    <li data-step="6"><span class="install-step-dot">6</span><span class="install-step-label">开始部署</span></li>
+                    <li data-step="7"><span class="install-step-dot">7</span><span class="install-step-label">完成</span></li>
+                </ol>
+            </div>
+        </div>
+
+        <form id="installForm" method="post" action="/install/deploy" autocomplete="off" novalidate
+              data-env-passed="{if $canInstall}1{else /}0{/if}">
+            {:csrf_field()}
+
+            <section class="card install-panel" data-step="1">
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 1 步</div>
+                        <h2 class="card-title mb-0">欢迎使用</h2>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Northmu Docs 是一个面向个人使用的文档与笔记管理系统，基于 ThinkPHP 8 与 MySQL 5.7 构建。</p>
+                    <div class="install-feature-grid">
+                        <div class="install-feature">
+                            <i class="ti ti-file-text"></i>
+                            <div><div class="fw-semibold">文档编辑</div><div class="text-secondary small">富文本与 Markdown 双模式，支持版本历史与草稿。</div></div>
+                        </div>
+                        <div class="install-feature">
+                            <i class="ti ti-lock"></i>
+                            <div><div class="fw-semibold">可见性控制</div><div class="text-secondary small">公开、加密、私有三种级别，分类自动继承。</div></div>
+                        </div>
+                        <div class="install-feature">
+                            <i class="ti ti-database"></i>
+                            <div><div class="fw-semibold">附件与备份</div><div class="text-secondary small">附件库统一管理，支持数据库与附件打包备份。</div></div>
+                        </div>
+                        <div class="install-feature">
+                            <i class="ti ti-bolt"></i>
+                            <div><div class="fw-semibold">可选 Redis 缓存</div><div class="text-secondary small">启用后站点数据与文档内容将缓存加速。</div></div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="ti ti-info-circle me-1"></i>
+                        安装前请准备好 MySQL 数据库账号（或允许程序自动创建数据库），并确认 Web 运行目录指向 <code>public</code>。
+                    </div>
+                </div>
+                <div class="card-footer install-panel-actions">
+                    <div class="text-secondary small">预计 1-2 分钟完成</div>
+                    <button type="button" class="btn btn-primary" data-install-next>
+                        开始安装 <i class="ti ti-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section class="card install-panel" data-step="2" hidden>
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 2 步</div>
+                        <h2 class="card-title mb-0">环境检测</h2>
+                    </div>
+                    <div class="card-actions"><span id="envBadge" class="badge {if $canInstall}bg-success-lt text-success{else /}bg-danger-lt text-danger{/if}">{if $canInstall}全部通过{else /}存在未通过项{/if}</span></div>
+                </div>
+                <div class="card-body">
+                    <div id="envAlert" class="alert {if $canInstall}alert-success{else /}alert-danger{/if}">
+                        {if $canInstall}
+                        <i class="ti ti-circle-check me-1"></i>当前环境已满足安装条件，可以继续下一步。
+                        {else /}
+                        <i class="ti ti-alert-circle me-1"></i>存在未通过的环境项，请解决后点击「重新检测」。
+                        {/if}
+                    </div>
+                    <div class="check-list" id="envChecks">
+                        {volist name="checks" id="check"}
+                        <div class="check-item">
+                            {if $check.ok}<i class="ti ti-circle-check text-success"></i>{else /}<i class="ti ti-circle-x text-danger"></i>{/if}
+                            <div class="check-label" title="{$check.tip}">{$check.label}</div>
+                            <div class="check-value">{$check.value}</div>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+                <div class="card-footer install-panel-actions">
+                    <button type="button" class="btn btn-outline-secondary" data-step-go="1">
+                        <i class="ti ti-arrow-left me-1"></i>上一步
+                    </button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-primary" id="envRefresh">
+                            <i class="ti ti-refresh me-1"></i>重新检测
+                        </button>
+                        <button type="button" class="btn btn-primary" data-install-next id="envNext" {if $canInstall == false}disabled{/if}>
+                            下一步 <i class="ti ti-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card install-panel" data-step="3" hidden>
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 3 步</div>
+                        <h2 class="card-title mb-0">数据库配置</h2>
+                    </div>
+                    <div class="card-actions"><span class="badge bg-azure-lt text-azure">必填</span></div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label required">数据库地址</label>
+                            <input type="text" class="form-control" name="db_host" value="{$old.db_host}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">端口</label>
+                            <input type="text" class="form-control" name="db_port" value="{$old.db_port}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">数据库名</label>
+                            <input type="text" class="form-control" name="db_name" value="{$old.db_name}" required>
+                            <small class="form-hint">不存在时程序会尝试自动创建；仅允许字母、数字、下划线</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">数据库用户名</label>
+                            <input type="text" class="form-control" name="db_user" value="{$old.db_user}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">数据库密码</label>
+                            <input type="password" class="form-control" name="db_pass" value="" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div id="dbResult" class="alert d-none mt-3" role="status"></div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="ti ti-info-circle me-1"></i>请确保数据库用户拥有建表权限；若数据库不存在，程序会尝试自动创建。
+                    </div>
+                </div>
+                <div class="card-footer install-panel-actions">
+                    <button type="button" class="btn btn-outline-secondary" data-step-go="2">
+                        <i class="ti ti-arrow-left me-1"></i>上一步
+                    </button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-primary" id="dbTest">
+                            <i class="ti ti-plug me-1"></i>测试连接
+                        </button>
+                        <button type="button" class="btn btn-primary" data-install-next id="dbNext">
+                            测试并继续 <i class="ti ti-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card install-panel" data-step="4" hidden>
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 4 步</div>
+                        <h2 class="card-title mb-0">Redis 缓存</h2>
+                    </div>
+                    <div class="card-actions"><span class="badge bg-azure-lt text-azure">可跳过</span></div>
+                </div>
+                <div class="card-body">
+                    <label class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="redisEnable" name="redis_enable" value="1" {if $old.redis_enable == '1'}checked{/if}>
+                        <span class="form-check-label">启用 Redis 缓存</span>
+                    </label>
+                    <div class="text-secondary small mb-3">不启用时站点直接读取数据库，可随时在后台「缓存管理」中开启。启用后站点设置、分类树与文档内容会写入 Redis 加速访问。</div>
+                    <div id="redisFields" class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Redis 地址</label>
+                            <input type="text" class="form-control" name="redis_host" value="{$old.redis_host}" maxlength="120">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">端口</label>
+                            <input type="number" class="form-control" name="redis_port" value="{$old.redis_port}" min="1" max="65535">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" name="redis_password" value="" autocomplete="new-password" placeholder="无密码可留空">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">数据库编号</label>
+                            <input type="number" class="form-control" name="redis_database" value="{$old.redis_database}" min="0" max="15">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">缓存有效期（秒）</label>
+                            <input type="number" class="form-control" name="redis_ttl" value="{$old.redis_ttl}" min="60" max="86400">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">键前缀</label>
+                            <input type="text" class="form-control font-monospace" name="redis_prefix" value="{$old.redis_prefix}" maxlength="40">
+                            <small class="form-hint">仅影响本站缓存键，清空缓存不会误删其他应用数据。</small>
+                        </div>
+                    </div>
+                    <div id="redisResult" class="alert d-none mt-3" role="status"></div>
+                </div>
+                <div class="card-footer install-panel-actions">
+                    <button type="button" class="btn btn-outline-secondary" data-step-go="3">
+                        <i class="ti ti-arrow-left me-1"></i>上一步
+                    </button>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary" data-step-go="5">跳过并下一步 <i class="ti ti-arrow-right ms-1"></i></button>
+                        <button type="button" class="btn btn-outline-primary" id="redisTest">
+                            <i class="ti ti-plug me-1"></i>测试连接
+                        </button>
+                        <button type="button" class="btn btn-primary" data-install-next id="redisNext">下一步 <i class="ti ti-arrow-right ms-1"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card install-panel" data-step="5" hidden>
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 5 步</div>
+                        <h2 class="card-title mb-0">站点与管理员账号</h2>
+                    </div>
+                    <div class="card-actions"><span class="badge bg-azure-lt text-azure">必填</span></div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">站点名称</label>
+                            <input type="text" class="form-control" name="site_name" value="{$old.site_name}" maxlength="50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">管理员账号</label>
+                            <input type="text" class="form-control" name="admin_user" value="{$old.admin_user}" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]+">
+                            <small class="form-hint">3-30 位字母、数字或下划线</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">登录密码</label>
+                            <input type="password" class="form-control" name="admin_pass" value="" required minlength="6" maxlength="64" autocomplete="new-password">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">确认密码</label>
+                            <input type="password" class="form-control" name="admin_pass2" value="" required minlength="6" maxlength="64" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div id="accountResult" class="alert d-none mt-3" role="status"></div>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="ti ti-shield-lock me-1"></i>安装完成后请妥善保管管理员密码，并保持登录验证码开启。
+                    </div>
+                </div>
+                <div class="card-footer install-panel-actions">
+                    <button type="button" class="btn btn-outline-secondary" data-step-go="4">
+                        <i class="ti ti-arrow-left me-1"></i>上一步
+                    </button>
+                    <button type="button" class="btn btn-primary" data-install-next>
+                        下一步 <i class="ti ti-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section class="card install-panel" data-step="6" hidden>
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 6 步</div>
+                        <h2 class="card-title mb-0">确认并开始部署</h2>
+                    </div>
+                    <div class="card-actions"><span class="badge bg-warning-lt text-warning">最后确认</span></div>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary">请核对以下配置。点击「开始部署」后将创建数据表并写入初始数据，请勿中途关闭页面。</p>
+                    <div class="install-summary" id="deploySummary"></div>
+
+                    <div class="install-deploy-stages" id="deployStages">
+                        <div class="install-deploy-stage" data-stage="validate">
+                            <span class="install-deploy-icon"><i class="ti ti-clock"></i></span>
+                            <div><div class="fw-semibold">校验配置</div><div class="text-secondary small">检查表单与运行环境</div></div>
+                            <span class="install-deploy-status">等待中</span>
+                        </div>
+                        <div class="install-deploy-stage" data-stage="database">
+                            <span class="install-deploy-icon"><i class="ti ti-clock"></i></span>
+                            <div><div class="fw-semibold">连接数据库</div><div class="text-secondary small">连接 MySQL 并按需创建数据库</div></div>
+                            <span class="install-deploy-status">等待中</span>
+                        </div>
+                        <div class="install-deploy-stage" data-stage="schema">
+                            <span class="install-deploy-icon"><i class="ti ti-clock"></i></span>
+                            <div><div class="fw-semibold">创建数据表</div><div class="text-secondary small">导入 database/schema.sql</div></div>
+                            <span class="install-deploy-status">等待中</span>
+                        </div>
+                        <div class="install-deploy-stage" data-stage="data">
+                            <span class="install-deploy-icon"><i class="ti ti-clock"></i></span>
+                            <div><div class="fw-semibold">写入初始数据</div><div class="text-secondary small">管理员、设置、标签与欢迎文档</div></div>
+                            <span class="install-deploy-status">等待中</span>
+                        </div>
+                        <div class="install-deploy-stage" data-stage="config">
+                            <span class="install-deploy-icon"><i class="ti ti-clock"></i></span>
+                            <div><div class="fw-semibold">生成配置文件</div><div class="text-secondary small">写入数据库、Redis 配置与安装锁</div></div>
+                            <span class="install-deploy-status">等待中</span>
+                        </div>
+                        <div class="install-deploy-stage" data-stage="done">
+                            <span class="install-deploy-icon"><i class="ti ti-clock"></i></span>
+                            <div><div class="fw-semibold">完成部署</div><div class="text-secondary small">安装锁已生效</div></div>
+                            <span class="install-deploy-status">等待中</span>
+                        </div>
+                    </div>
+
+                    <div id="deployResult" class="alert d-none mt-3" role="status"></div>
+                </div>
+                <div class="card-footer install-panel-actions">
+                    <button type="button" class="btn btn-outline-secondary" data-step-go="5" id="deployBack">
+                        <i class="ti ti-arrow-left me-1"></i>上一步
+                    </button>
+                    <button type="button" class="btn btn-primary" id="deployBtn">
+                        <i class="ti ti-rocket me-1"></i>开始部署
+                    </button>
+                </div>
+            </section>
+
+            <section class="card install-panel" data-step="7" hidden>
+                <div class="card-header">
+                    <div>
+                        <div class="install-step-kicker">第 7 步</div>
+                        <h2 class="card-title mb-0">部署完成</h2>
+                    </div>
+                    <div class="card-actions"><span class="badge bg-success-lt text-success">安装成功</span></div>
+                </div>
+                <div class="card-body">
+                    <div class="install-success text-center mb-4">
+                        <div class="install-success-icon"><i class="ti ti-circle-check"></i></div>
+                        <h3 class="mb-1">Northmu Docs 已成功安装</h3>
+                        <p class="text-secondary mb-0">配置文件与安装锁已生成，现在可以进入前台或登录后台。</p>
+                    </div>
+                    <div class="install-summary" id="doneSummary"></div>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="ti ti-shield-lock me-1"></i>请保留 <code>data</code> 目录下的配置文件与 <code>install.lock</code>；如需重装，请先备份并删除安装锁与数据库。
+                    </div>
+                </div>
+                <div class="card-footer install-panel-actions install-panel-actions-end">
+                    <a href="/" class="btn btn-outline-primary">
+                        <i class="ti ti-home me-1"></i>进入前台
+                    </a>
+                    <a href="/admin/login" class="btn btn-primary">
+                        <i class="ti ti-login me-1"></i>登录后台
+                    </a>
+                </div>
+            </section>
+        </form>
+
+        <div class="text-center text-secondary small mt-4">Northmu Docs · ThinkPHP 8 · MySQL 5.7</div>
+    </div>
+</div>
+
+<script src="/static/vendor/tabler/js/tabler.min.js"></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/install.js"></script>
+</body>
+</html>
