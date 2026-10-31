@@ -2,7 +2,7 @@
 
 个人文档 / 笔记管理系统，基于 **ThinkPHP 8 + MySQL 5.7**，采用「唯一超级管理员 + 访客」两种角色的轻量设计。前台面向访客展示公开文档，后台提供完整的文档、分类、标签、附件、版本、回收站、前台设置、系统设置与数据备份能力，并可选启用 Redis 缓存。
 
-当前版本：**v1.4.0**。
+当前版本：**v1.4.1**。
 
 > 宝塔 / Nginx / Apache 部署步骤见 [DEPLOY.md](DEPLOY.md)。
 
@@ -44,6 +44,7 @@
 - 前端：Tabler 1.0、Tabler Icons、WangEditor 5、marked、highlight.js、diff2html、turndown
 - 缓存：Redis（可选，Predis 客户端已附带），未启用时数据库直读
 - 所有静态资源已本地化，**无 CDN 依赖**
+- Tabler Icons 按项目实际用到的 103 个图标做字体子集化，字体文件约 21 KB（原约 845 KB），图标 CSS 约 4 KB（原约 238 KB），首次安装与前台首屏不再等待大字体下载
 - `vendor/` 已随包提供，部署时**不需要** Composer、Node.js 或 npm
 
 ## 运行环境

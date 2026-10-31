@@ -93,6 +93,24 @@ location / {
 
 宝塔默认的 PHP 处理规则会把 `.php` 请求交给 PHP-FPM，无需额外配置。
 
+### 静态资源压缩与缓存（推荐）
+
+字体、样式与脚本都存放在 `public/static/`，开启 gzip 与浏览器长缓存可进一步加快首次安装和前台首屏。在站点「设置 → 配置文件」中加入：
+
+```nginx
+gzip on;
+gzip_comp_level 5;
+gzip_min_length 1024;
+gzip_types text/css application/javascript application/json image/svg+xml;
+
+location ~* ^/static/ {
+    expires 30d;
+    add_header Cache-Control "public, max-age=2592000, immutable";
+}
+```
+
+`.woff2` 本身已压缩，无需再加入 gzip 列表。请确认 Nginx 的 `mime.types` 包含 `font/woff2 woff2;`（宝塔默认包含），否则图标字体可能因 MIME 类型不正确而加载失败。
+
 > 如果使用「网站目录直接指向 public、项目文件放在上一级」的方式，宝塔的防跨站 `open_basedir` 可能限制程序写入上级 `data/`、`runtime/`。此时请在站点「PHP 设置 → 配置修改」中把项目根目录加入 `open_basedir`，或关闭该站点的防跨站攻击。
 
 ## 5. 目录权限
@@ -220,6 +238,7 @@ location ~* ^/uploads/.*\.(php|php[0-9]?|phtml|phar)$ {
 4. 删除 `runtime/cache/` 下的缓存文件，访问后台确认运行正常。
 5. 从 v1.2.x 升级到 v1.3.0 无需修改数据库结构；覆盖文件后清理一次缓存即可。新增的登录页、favicon 与在线图片链接设置直接保存在现有 `settings` 表中。
 6. v1.4.0 同样无需修改数据库结构：七步安装向导只影响新安装流程，上传限制改为文件 / 图片 / 视频三类分别配置，旧版 `upload_ext` / `upload_max_mb` 设置会自动兼容，覆盖文件后清理一次缓存即可。
+7. v1.4.1 无需修改数据库结构：Tabler Icons 改为字体子集（约 21 KB），并修复 4 个不存在的图标类名。覆盖 `public/static/vendor/tabler-icons/` 后清理一次缓存；若 CDN 或浏览器仍使用旧字体，请强制刷新或先删除该目录再上传新文件。
 
 ## 11. Apache 部署（可选）
 
@@ -255,6 +274,7 @@ location ~* ^/uploads/.*\.(php|php[0-9]?|phtml|phar)$ {
 | 编辑器上传图片后看不到 | 图片会先上传到附件库并自动刷新列表、选中预览；若列表未更新，检查上传接口是否返回成功及 `public/uploads/` 写入权限 |
 | 私密内容被访客看到 | 检查文档与所属分类的可见性（子分类继承父级限制，取最严格一档）；私有内容直接访问返回 404 |
 | 加密文档输入密码后仍无法查看 | 解锁状态与会话绑定，清理 Cookie 或更换浏览器后需重新输入；连续失败会临时锁定 10 分钟 |
+| 安装页 / 前台图标不显示或加载很慢 | 确认使用的是 v1.4.1 及以上版本的 `public/static/vendor/tabler-icons/`（字体约 21 KB）；检查 `fonts/tabler-icons-subset.woff2` 是否 404、Nginx 是否以 `font/woff2` 返回；CDN / 浏览器缓存旧字体时强制刷新 |
 | 备份下载 302 回登录页 | 下载必须登录后台；登录态过期后重新登录再下载 |
 
 ## 13. 交付清单
