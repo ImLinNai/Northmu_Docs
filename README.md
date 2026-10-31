@@ -6,6 +6,16 @@
 
 > 宝塔 / Nginx / Apache 部署步骤见 [DEPLOY.md](DEPLOY.md)。
 
+## 界面展示
+
+> 以下为本地演示环境截图，实际界面取决于站点配置。
+
+| 安装向导 | 前台首页 |
+| :---: | :---: |
+| ![安装向导](docs/screenshots/installer.jpg) | ![前台首页](docs/screenshots/home.jpg) |
+| **后台管理** | **登录页** |
+| ![后台管理](docs/screenshots/admin.jpg) | ![登录页](docs/screenshots/login.jpg) |
+
 ## 功能概览
 
 ### 访客前台
