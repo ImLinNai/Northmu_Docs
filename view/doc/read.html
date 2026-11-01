@@ -1,95 +1,83 @@
 {include file="common/public_header" /}
 
 <main class="doc-page">
-    <div class="container-xl">
-        <div class="doc-shell{if !$doc.show_toc} no-toc{/if}" data-doc-id="{$doc.id}">
-            <aside class="doc-sidebar" data-doc-sidebar>
-                {include file="doc/sidebar" /}
-            </aside>
-            <div class="doc-sidebar-backdrop"></div>
+    <div class="doc-shell{if !$doc.show_toc} no-toc{/if}" data-doc-id="{$doc.id}">
+        <aside class="doc-sidebar" data-doc-sidebar>
+            {include file="doc/sidebar" /}
+        </aside>
+        <div class="doc-sidebar-backdrop"></div>
 
-            <section class="doc-main">
-                <div class="doc-mobile-bar d-md-none">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-sidebar-toggle>
-                        <i class="ti ti-menu-2 me-1"></i>分类
+        <section class="doc-main">
+            <div class="doc-mobile-bar d-md-none">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-sidebar-toggle>
+                    <i class="ti ti-menu-2 me-1"></i>分类
+                </button>
+                <span class="doc-mobile-title text-truncate">{$doc.title}</span>
+            </div>
+
+            <article class="doc-article nm-reveal">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb doc-breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">首页</a></li>
+                        <li class="breadcrumb-item"><a href="/docs">文档</a></li>
+                        {volist name="catPath" id="cat"}
+                        <li class="breadcrumb-item"><a href="/docs?cat={$cat.id}">{$cat.name}</a></li>
+                        {/volist}
+                    </ol>
+                </nav>
+
+                <h1 class="doc-title">{$doc.title}</h1>
+                <div class="doc-meta">
+                    <span class="doc-meta-item doc-author">
+                        {if $author.avatar}
+                        <img src="{$author.avatar}" alt="{$author.display_name}" class="doc-author-avatar">
+                        {else}
+                        <span class="doc-author-avatar doc-author-avatar-fallback">{$author.initial}</span>
+                        {/if}
+                        <span>{$author.display_name}</span>
+                    </span>
+                    <span class="doc-meta-item"><i class="ti ti-clock"></i>更新于 {$doc.updated_full}</span>
+                    <span class="doc-meta-item"><i class="ti ti-eye"></i>{$doc.views} 次浏览</span>
+                    <span class="doc-meta-item"><i class="ti ti-folder"></i>{$doc.category_name}</span>
+                    <button type="button" class="doc-meta-item doc-toc-toggle" data-toc-toggle aria-pressed="{if $doc.show_toc}true{else}false{/if}">
+                        <i class="ti ti-layout-sidebar-right"></i><span data-toc-toggle-text>{if $doc.show_toc}隐藏目录{else}显示目录{/if}</span>
                     </button>
-                    <span class="doc-mobile-title text-truncate">{$doc.title}</span>
+                    {if $doc.tags}
+                    <span class="doc-tags">
+                        {volist name="doc.tags" id="tag"}
+                        <span class="doc-tag">{$tag}</span>
+                        {/volist}
+                    </span>
+                    {/if}
                 </div>
 
-                <article class="card doc-article nm-reveal">
-                    <div class="card-body doc-article-inner">
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb doc-breadcrumb">
-                                <li class="breadcrumb-item"><a href="/">首页</a></li>
-                                <li class="breadcrumb-item"><a href="/docs">文档</a></li>
-                                {volist name="catPath" id="cat"}
-                                <li class="breadcrumb-item"><a href="/docs?cat={$cat.id}">{$cat.name}</a></li>
-                                {/volist}
-                            </ol>
-                        </nav>
+                <hr class="doc-divider">
 
-                        <h1 class="doc-title">{$doc.title}</h1>
-                        <div class="doc-meta">
-                            <span class="doc-meta-item doc-author">
-                                {if $author.avatar}
-                                <img src="{$author.avatar}" alt="{$author.display_name}" class="doc-author-avatar">
-                                {else}
-                                <span class="doc-author-avatar doc-author-avatar-fallback">{$author.initial}</span>
-                                {/if}
-                                <span>{$author.display_name}</span>
-                            </span>
-                            <span class="doc-meta-item"><i class="ti ti-clock"></i>更新于 {$doc.updated_full}</span>
-                            <span class="doc-meta-item"><i class="ti ti-eye"></i>{$doc.views} 次浏览</span>
-                            <span class="doc-meta-item"><i class="ti ti-folder"></i>{$doc.category_name}</span>
-                            <button type="button" class="doc-meta-item doc-toc-toggle" data-toc-toggle aria-pressed="{if $doc.show_toc}true{else}false{/if}">
-                                <i class="ti ti-layout-sidebar-right"></i><span data-toc-toggle-text>{if $doc.show_toc}隐藏目录{else}显示目录{/if}</span>
-                            </button>
-                            {if $doc.tags}
-                            <span class="doc-tags">
-                                {volist name="doc.tags" id="tag"}
-                                <span class="doc-tag">{$tag}</span>
-                                {/volist}
-                            </span>
-                            {/if}
-                        </div>
+                <div class="article-body" data-article-body>{$contentHtml|raw}</div>
 
-                        <hr class="doc-divider">
-
-                        <div class="article-body" data-article-body>{$contentHtml|raw}</div>
-
-                        <div class="doc-article-footer">
-                            <a href="/docs?cat={$doc.category_id}" class="btn btn-outline-secondary btn-sm">
-                                <i class="ti ti-folder me-1"></i>查看该分类
-                            </a>
-                            <a href="/docs" class="btn btn-primary btn-sm">
-                                <i class="ti ti-list me-1"></i>返回文档列表
-                            </a>
-                        </div>
-                    </div>
-                </article>
-            </section>
-
-            <aside class="doc-toc">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="ti ti-list-details me-1"></i>本文目录</h3>
-                    </div>
-                    <div class="card-body">
-                        <nav class="doc-toc-nav" data-doc-toc>
-                            <div class="text-secondary small" data-toc-empty>本文暂无标题</div>
-                            <div class="d-none" data-toc-list></div>
-                        </nav>
-                    </div>
+                <div class="doc-article-footer">
+                    <a href="/docs?cat={$doc.category_id}" class="btn btn-outline-secondary btn-sm">
+                        <i class="ti ti-folder me-1"></i>查看该分类
+                    </a>
+                    <a href="/docs" class="btn btn-primary btn-sm">
+                        <i class="ti ti-list me-1"></i>返回文档列表
+                    </a>
                 </div>
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-back-top>
-                            <i class="ti ti-arrow-up me-1"></i>回到顶部
-                        </button>
-                    </div>
-                </div>
-            </aside>
-        </div>
+            </article>
+        </section>
+
+        <aside class="doc-toc">
+            <div class="doc-toc-head">
+                <span class="doc-toc-title"><i class="ti ti-list-details"></i>本文目录</span>
+                <button type="button" class="doc-toc-hide" data-toc-toggle aria-pressed="{if $doc.show_toc}true{else}false{/if}" title="隐藏目录" aria-label="隐藏目录">
+                    <i class="ti ti-layout-sidebar-right"></i>
+                </button>
+            </div>
+            <nav class="doc-toc-nav" data-doc-toc>
+                <div class="text-secondary small" data-toc-empty>本文暂无标题</div>
+                <div class="d-none" data-toc-list></div>
+            </nav>
+        </aside>
     </div>
 </main>
 

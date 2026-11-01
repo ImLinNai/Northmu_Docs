@@ -15,6 +15,30 @@
     </footer>
     {/if}
 </div>
+
+<div class="nm-search-modal" id="nmSearchModal" aria-hidden="true">
+    <div class="nm-search-backdrop" data-search-close></div>
+    <div class="nm-search-dialog" role="dialog" aria-modal="true" aria-label="搜索公开文档">
+        <form class="nm-search-form" action="/docs/search" method="get" role="search">
+            <i class="ti ti-search nm-search-form-icon"></i>
+            <input type="search" name="q" id="nmSearchInput" value="{$searchKeyword|default=''}" placeholder="快速搜索问题、主题或关键字..." maxlength="100" autocomplete="off" aria-label="搜索公开文档">
+            <button type="button" class="nm-search-close" data-search-close aria-label="关闭搜索">
+                <i class="ti ti-x"></i>
+            </button>
+            <button type="submit" class="visually-hidden">搜索</button>
+        </form>
+        <div class="nm-search-hint">
+            <span><kbd>Enter</kbd> 回车搜索</span>
+            <span><kbd>Esc</kbd> 关闭</span>
+            <span class="nm-search-brand">Northmu Docs</span>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="nm-back-top" data-back-top aria-label="回到顶部" title="回到顶部">
+    <i class="ti ti-arrow-up"></i>
+</button>
+
 {$extraScripts|raw}
 <script src="/static/vendor/tabler/js/tabler.min.js"></script>
 <script src="/static/js/app.js"></script>

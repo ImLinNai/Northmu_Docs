@@ -1,29 +1,26 @@
-<div class="card sidebar-card">
-    <div class="card-header sidebar-card-header">
-        <h3 class="card-title"><i class="ti ti-folders me-1"></i>文档分类</h3>
-        <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary d-md-none" data-sidebar-close aria-label="关闭分类面板">
+<div class="doc-panel">
+    <div class="doc-panel-head">
+        <div class="doc-panel-title"><i class="ti ti-folders"></i>文档分类</div>
+        <button type="button" class="doc-panel-close d-md-none" data-sidebar-close aria-label="关闭分类面板">
             <i class="ti ti-x"></i>
         </button>
     </div>
-    <div class="p-2 pb-0 d-md-none">
-        <form action="/docs/search" method="get" role="search">
-            <div class="input-icon">
-                <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-                <input class="form-control form-control-sm" type="search" name="q" value="{$searchKeyword|default=''}" placeholder="搜索公开文档…" maxlength="100" aria-label="搜索公开文档">
-            </div>
-        </form>
-    </div>
-    <div class="card-body p-2">
+    <button type="button" class="doc-panel-search" data-search-open aria-label="搜索公开文档（Ctrl+K）">
+        <i class="ti ti-search"></i>
+        <span>搜索文档...</span>
+        <kbd>Ctrl K</kbd>
+    </button>
+    <nav class="doc-cat-nav">
         <a class="cat-all{if $allActive} active{/if}" href="/docs">
             <i class="ti ti-layout-list"></i><span>全部文档</span>
         </a>
         {if $catTreeHtml}
         <div class="cat-tree-wrap">{$catTreeHtml|raw}</div>
         {else}
-        <div class="text-secondary small px-2 py-3">暂无公开分类</div>
+        <div class="doc-cat-empty">暂无公开分类</div>
         {/if}
-    </div>
-    <div class="card-footer sidebar-card-footer">
-        <i class="ti ti-lock me-1"></i>仅展示公开与加密分类，私有内容不可访问
+    </nav>
+    <div class="doc-panel-foot">
+        <i class="ti ti-lock"></i>仅展示公开与加密分类
     </div>
 </div>

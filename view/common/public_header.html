@@ -88,10 +88,11 @@
                 <a class="nav-link{if $item.active} active{/if}" href="{$item.url}"{if $item.target == '_blank'} target="_blank" rel="noopener"{/if}>{$item.title}</a>
                 {/foreach}
             </nav>
-            <form class="front-search ms-auto d-none d-md-block" action="/docs/search" method="get" role="search">
+            <button type="button" class="nm-search-trigger ms-auto d-none d-md-flex" data-search-open aria-label="搜索公开文档（Ctrl+K）">
                 <i class="ti ti-search"></i>
-                <input type="search" name="q" value="{$searchKeyword|default=''}" placeholder="搜索公开文档…" maxlength="100" aria-label="搜索公开文档">
-            </form>
+                <span class="nm-search-trigger-text">快速搜索问题、主题或关键字...</span>
+                <kbd class="nm-search-trigger-kbd">Ctrl K</kbd>
+            </button>
             <nav class="navbar-nav flex-row align-items-center ms-auto ms-md-3 gap-1">
                 <div class="dropdown d-sm-none">
                     <button class="btn btn-icon btn-ghost-secondary" type="button" data-bs-toggle="dropdown" aria-label="导航菜单">
@@ -103,9 +104,9 @@
                         {/foreach}
                     </div>
                 </div>
-                <a class="btn btn-icon btn-ghost-secondary d-md-none" href="/docs/search" title="搜索" aria-label="搜索">
+                <button class="btn btn-icon btn-ghost-secondary d-md-none" type="button" data-search-open title="搜索" aria-label="搜索">
                     <i class="ti ti-search"></i>
-                </a>
+                </button>
                 <button class="btn btn-icon btn-ghost-secondary" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
                     <i class="ti ti-sun theme-icon-sun"></i>
                     <i class="ti ti-moon theme-icon-moon"></i>

@@ -123,7 +123,45 @@
         setTimeout(function () { boot.remove(); }, 450);
     }
 
+    function initAdminSidebar() {
+        var root = document.documentElement;
+        var toggles = document.querySelectorAll('[data-admin-sidebar-toggle]');
+        if (!toggles.length) return;
+        var key = 'northmu-admin-sidebar';
+
+        function apply(collapsed) {
+            root.classList.toggle('nm-admin-sidebar-collapsed', collapsed);
+            toggles.forEach(function (btn) {
+                var text = collapsed ? '展开菜单' : '收起菜单';
+                btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                btn.setAttribute('title', text);
+                btn.setAttribute('aria-label', text);
+                var icon = btn.querySelector('[data-admin-sidebar-icon]');
+                if (icon) icon.className = 'ti ' + (collapsed ? 'ti-arrow-right' : 'ti-arrow-left');
+                var label = btn.querySelector('[data-admin-sidebar-label]');
+                if (label) label.textContent = text;
+            });
+            document.querySelectorAll('.nm-admin-sidebar [data-title]').forEach(function (link) {
+                if (collapsed) link.setAttribute('title', link.getAttribute('data-title'));
+                else link.removeAttribute('title');
+            });
+        }
+
+        var collapsed = false;
+        try { collapsed = localStorage.getItem(key) === '0'; } catch (e) { }
+        apply(collapsed);
+
+        toggles.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var next = !root.classList.contains('nm-admin-sidebar-collapsed');
+                apply(next);
+                try { localStorage.setItem(key, next ? '0' : '1'); } catch (e) { }
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+        initAdminSidebar();
         var flash = document.getElementById('nmFlash');
         if (flash) {
             toast(flash.getAttribute('data-message'), flash.getAttribute('data-type'));

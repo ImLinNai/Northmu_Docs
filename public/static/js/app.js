@@ -120,6 +120,7 @@
         initLightbox();
         initCategoryCollapse();
         initBackTop();
+        initSearchModal();
         if (window.hljs) {
             document.querySelectorAll('[data-article-body] pre code').forEach(function (block) {
                 if (!block.classList.contains('hljs')) {
@@ -127,6 +128,7 @@
                 }
             });
         }
+        initCodeCopy();
     });
 
     if (document.readyState === 'complete') {
@@ -163,8 +165,8 @@
 
     function initTocToggle() {
         var shell = document.querySelector('.doc-shell[data-doc-id]');
-        var button = document.querySelector('[data-toc-toggle]');
-        if (!shell || !button) return;
+        var buttons = document.querySelectorAll('[data-toc-toggle]');
+        if (!shell || !buttons.length) return;
         var key = 'northmu-toc-' + shell.getAttribute('data-doc-id');
         var stored = null;
         try { stored = localStorage.getItem(key); } catch (e) { }
@@ -173,24 +175,200 @@
 
         function sync() {
             var hidden = shell.classList.contains('no-toc');
-            button.setAttribute('aria-pressed', hidden ? 'false' : 'true');
-            var label = button.querySelector('[data-toc-toggle-text]');
-            if (label) label.textContent = hidden ? '显示目录' : '隐藏目录';
+            buttons.forEach(function (button) {
+                button.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+                var label = button.querySelector('[data-toc-toggle-text]');
+                if (label) label.textContent = hidden ? '显示目录' : '隐藏目录';
+                if (button.classList.contains('doc-toc-hide')) {
+                    button.setAttribute('title', hidden ? '显示目录' : '隐藏目录');
+                    button.setAttribute('aria-label', hidden ? '显示目录' : '隐藏目录');
+                }
+            });
         }
 
         sync();
-        button.addEventListener('click', function () {
-            var hidden = shell.classList.toggle('no-toc');
-            try { localStorage.setItem(key, hidden ? '0' : '1'); } catch (e) { }
-            sync();
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var hidden = shell.classList.toggle('no-toc');
+                try { localStorage.setItem(key, hidden ? '0' : '1'); } catch (e) { }
+                sync();
+            });
         });
     }
 
     function initBackTop() {
-        document.querySelectorAll('[data-back-top]').forEach(function (btn) {
+        var buttons = document.querySelectorAll('[data-back-top]');
+        if (!buttons.length) return;
+        var ticking = false;
+
+        function update() {
+            var show = window.scrollY > 200;
+            buttons.forEach(function (btn) {
+                btn.classList.toggle('is-visible', show);
+            });
+            ticking = false;
+        }
+
+        buttons.forEach(function (btn) {
             btn.addEventListener('click', function () {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
+        });
+
+        window.addEventListener('scroll', function () {
+            if (!ticking) {
+                ticking = true;
+                window.requestAnimationFrame(update);
+            }
+        }, { passive: true });
+        update();
+    }
+
+    function initSearchModal() {
+        var modal = document.getElementById('nmSearchModal');
+        if (!modal) return;
+        var input = modal.querySelector('#nmSearchInput');
+        var triggers = document.querySelectorAll('[data-search-open]');
+        var closers = modal.querySelectorAll('[data-search-close]');
+        var lastFocus = null;
+
+        function isOpen() {
+            return modal.classList.contains('is-open');
+        }
+
+        function open() {
+            lastFocus = document.activeElement;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('nm-search-open');
+            if (input) {
+                setTimeout(function () {
+                    input.focus();
+                    var length = input.value.length;
+                    try { input.setSelectionRange(length, length); } catch (e) { }
+                }, 60);
+            }
+        }
+
+        function close() {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('nm-search-open');
+            if (lastFocus && typeof lastFocus.focus === 'function') {
+                lastFocus.focus();
+            }
+        }
+
+        triggers.forEach(function (trigger) {
+            trigger.addEventListener('click', function (event) {
+                event.preventDefault();
+                if (isOpen()) close();
+                else open();
+            });
+        });
+
+        closers.forEach(function (closer) {
+            closer.addEventListener('click', function (event) {
+                event.preventDefault();
+                close();
+            });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            var key = event.key || '';
+            if ((event.ctrlKey || event.metaKey) && (key === 'k' || key === 'K')) {
+                event.preventDefault();
+                open();
+                return;
+            }
+            if (!isOpen()) return;
+            if (key === 'Escape') {
+                event.preventDefault();
+                close();
+                return;
+            }
+            if (key === 'Tab') {
+                var items = modal.querySelectorAll('input, button, a[href]');
+                if (!items.length) return;
+                var first = items[0];
+                var last = items[items.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+    }
+
+    function copyText(text, done) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(function () {
+                done(true);
+            }, function () {
+                fallbackCopy(text, done);
+            });
+            return;
+        }
+        fallbackCopy(text, done);
+    }
+
+    function fallbackCopy(text, done) {
+        var area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { }
+        area.remove();
+        done(ok);
+    }
+
+    function initCodeCopy() {
+        document.querySelectorAll('[data-article-body] pre').forEach(function (pre) {
+            if (pre.parentElement && pre.parentElement.classList.contains('nm-code-wrap')) return;
+
+            var wrap = document.createElement('div');
+            wrap.className = 'nm-code-wrap';
+
+            var head = document.createElement('div');
+            head.className = 'nm-code-head';
+
+            var lang = document.createElement('span');
+            lang.className = 'nm-code-lang';
+            var code = pre.querySelector('code');
+            var match = code ? (code.className || '').match(/(?:language|lang)-([\w+#-]+)/) : null;
+            lang.textContent = match ? match[1].toUpperCase() : 'CODE';
+
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'nm-code-copy';
+            button.setAttribute('aria-label', '复制代码');
+            button.innerHTML = '<i class="ti ti-copy"></i><span>复制</span>';
+            button.addEventListener('click', function () {
+                copyText(pre.innerText, function (ok) {
+                    button.classList.toggle('is-copied', ok);
+                    button.innerHTML = ok
+                        ? '<i class="ti ti-check"></i><span>已复制</span>'
+                        : '<i class="ti ti-x"></i><span>复制失败</span>';
+                    clearTimeout(button._copyTimer);
+                    button._copyTimer = setTimeout(function () {
+                        button.classList.remove('is-copied');
+                        button.innerHTML = '<i class="ti ti-copy"></i><span>复制</span>';
+                    }, 1800);
+                });
+            });
+
+            head.appendChild(lang);
+            head.appendChild(button);
+            pre.parentNode.insertBefore(wrap, pre);
+            wrap.appendChild(head);
+            wrap.appendChild(pre);
         });
     }
 
@@ -254,8 +432,9 @@
         var empty = tocNav.querySelector('[data-toc-empty]');
         if (!headings.length) {
             if (empty) empty.classList.remove('d-none');
-            var toggle = document.querySelector('[data-toc-toggle]');
-            if (toggle) toggle.classList.add('d-none');
+            document.querySelectorAll('[data-toc-toggle]').forEach(function (toggle) {
+                toggle.classList.add('d-none');
+            });
             return;
         }
         if (empty) empty.classList.add('d-none');
