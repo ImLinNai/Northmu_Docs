@@ -12,7 +12,7 @@ class AppService extends Service
 {
     public function register()
     {
-        // 服务注册
+        $this->app->bind(\think\Paginator::class, \app\support\Pagination::class);
     }
 
     public function boot()

@@ -128,7 +128,7 @@
     </div>
     {if $paginator->total() > 0}
     <div class="card-footer d-flex align-items-center">
-        <div class="text-secondary small">第 {$paginator->currentPage()} / {$paginator->lastPage()} 页</div>
+        <div class="text-secondary small">共 {$paginator->total()} 条</div>
         <div class="ms-auto">{$paginator->render()|raw}</div>
     </div>
     {/if}
