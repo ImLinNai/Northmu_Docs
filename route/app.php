@@ -3,11 +3,13 @@ use think\facade\Route;
 
 // 前台
 Route::get('/', 'Index/index');
+Route::get('sitemap.xml', 'Seo/sitemap');
+Route::get('robots.txt', 'Seo/robots');
 
 // 访客文档
 Route::get('docs', 'Doc/index');
 Route::get('docs/search', 'Doc/search');
-Route::get('doc/:id', 'Doc/read')->pattern(['id' => '\d+']);
+Route::get('doc/:id', 'Doc/read')->pattern(['id' => '\d+(?:\.html)?']);
 Route::post('doc/:id/unlock', 'Doc/unlock')->pattern(['id' => '\d+']);
 
 // 安装向导
@@ -44,6 +46,7 @@ Route::group('admin', function () {
     Route::post('documents/restore', 'admin.Document/restore');
     Route::post('documents/purge', 'admin.Document/purge');
     Route::post('documents/rollback', 'admin.Document/rollback');
+    Route::post('documents/push/:id', 'admin.Document/push')->pattern(['id' => '\d+']);
     Route::post('documents/draft', 'admin.Document/saveDraft');
     Route::post('documents/draft/discard', 'admin.Document/discardDraft');
 

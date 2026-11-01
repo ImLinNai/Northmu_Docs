@@ -15,14 +15,22 @@ class Settings extends Base
             $settings[$row['name']] = $row['value'];
         }
         $settings += [
-            'site_name'          => 'Northmu Docs',
-            'site_desc'          => '个人文档与笔记管理系统',
-            'site_logo'          => '',
-            'site_icp'           => '',
-            'site_copyright'     => '',
-            'captcha_on'         => '1',
-            'login_fail_limit'   => '5',
-            'login_lock_minutes' => '10',
+            'site_name'           => 'Northmu Docs',
+            'site_desc'           => '个人文档与笔记管理系统',
+            'site_url'            => '',
+            'site_logo'           => '',
+            'site_icp'            => '',
+            'site_copyright'      => '',
+            'site_seo_title'      => '',
+            'site_seo_keywords'   => '',
+            'site_seo_description'=> '',
+            'baidu_auto_push'     => '0',
+            'baidu_common_push'   => '1',
+            'baidu_quick_push'    => '0',
+            'baidu_token'         => '',
+            'captcha_on'          => '1',
+            'login_fail_limit'    => '5',
+            'login_lock_minutes'  => '10',
         ];
         $uploadCategories = upload_categories();
         foreach ($uploadCategories as $key => $category) {
@@ -30,12 +38,23 @@ class Settings extends Base
             $settings['upload_' . $key . '_max_mb'] = (string) $category['max_mb'];
         }
 
-        $view = $this->viewData('系统设置', '站点信息、上传限制、登录安全与管理员资料', 'settings') + [
+        $view = $this->viewData('系统设置', '站点信息、SEO 优化、上传限制、登录安全与管理员资料', 'settings') + [
             'settings'         => $settings,
             'siteLogo'         => (string) ($settings['site_logo'] ?? ''),
+            'siteUrl'          => (string) ($settings['site_url'] ?? ''),
+            'siteSeoTitle'     => (string) ($settings['site_seo_title'] ?? ''),
+            'siteSeoKeywords'  => (string) ($settings['site_seo_keywords'] ?? ''),
+            'siteSeoDescription' => (string) ($settings['site_seo_description'] ?? ''),
+            'baiduToken'       => (string) ($settings['baidu_token'] ?? ''),
+            'baiduConfigured'  => baidu_seo_config()['configured'],
             'auditCount'       => Db::name('audit_logs')->count(),
             'uploadCategories' => $uploadCategories,
             'phpUploadMax'     => (string) ini_get('upload_max_filesize'),
+        ];
+        $view['seoPreview'] = [
+            'url'         => ($view['siteUrl'] !== '' ? $view['siteUrl'] : site_base_url()) . '/',
+            'title'       => $view['siteSeoTitle'] !== '' ? $view['siteSeoTitle'] : $settings['site_name'],
+            'description' => $view['siteSeoDescription'] !== '' ? $view['siteSeoDescription'] : (string) $settings['site_desc'],
         ];
         $view['logoUrl'] = preg_match('#^https?://#i', (string) ($settings['site_logo'] ?? '')) ? (string) $settings['site_logo'] : '';
         $view['avatarUrl'] = preg_match('#^https?://#i', (string) ($view['admin']['avatar'] ?? '')) ? (string) $view['admin']['avatar'] : '';
@@ -47,8 +66,16 @@ class Settings extends Base
     {
         $siteName = trim((string) $this->request->post('site_name', ''));
         $siteDesc = trim((string) $this->request->post('site_desc', ''));
+        $siteUrl = normalize_site_url((string) $this->request->post('site_url', ''));
         $siteIcp = trim((string) $this->request->post('site_icp', ''));
         $siteCopyright = trim((string) $this->request->post('site_copyright', ''));
+        $seoTitle = seo_clean_text((string) $this->request->post('site_seo_title', ''), 120);
+        $seoKeywords = seo_clean_keywords((string) $this->request->post('site_seo_keywords', ''));
+        $seoDescription = seo_clean_text((string) $this->request->post('site_seo_description', ''), 300);
+        $baiduAuto = (int) $this->request->post('baidu_auto_push', 0) === 1 ? '1' : '0';
+        $baiduCommon = (int) $this->request->post('baidu_common_push', 0) === 1 ? '1' : '0';
+        $baiduQuick = (int) $this->request->post('baidu_quick_push', 0) === 1 ? '1' : '0';
+        $baiduToken = trim((string) $this->request->post('baidu_token', ''));
         $captchaOn = (int) $this->request->post('captcha_on', 0) === 1 ? '1' : '0';
         $failLimit = (int) $this->request->post('login_fail_limit', 5);
         $lockMinutes = (int) $this->request->post('login_lock_minutes', 10);
@@ -58,6 +85,28 @@ class Settings extends Base
         if ($siteName === '') {
             admin_flash('站点名称不能为空', 'danger');
             return redirect('/admin/settings');
+        }
+        if ($siteUrl === null) {
+            admin_flash('站点地址格式不正确，请填写 https://docs.example.com 形式的站点根地址', 'danger');
+            return redirect('/admin/settings');
+        }
+        if ($baiduToken !== '' && !preg_match('/^[A-Za-z0-9_-]{6,100}$/', $baiduToken)) {
+            admin_flash('百度准入密钥 Token 格式不正确，请从百度搜索资源平台复制', 'danger');
+            return redirect('/admin/settings');
+        }
+        if ($baiduAuto === '1') {
+            if ($baiduToken === '') {
+                admin_flash('启用全站自动提交前请先填写百度准入密钥 Token', 'danger');
+                return redirect('/admin/settings');
+            }
+            if ($baiduCommon !== '1' && $baiduQuick !== '1') {
+                admin_flash('启用全站自动提交时，请至少开启普通收录或快速收录其中一项', 'danger');
+                return redirect('/admin/settings');
+            }
+            if ($siteUrl === '') {
+                admin_flash('启用百度自动收录前请先填写站点地址，用于生成提交链接', 'danger');
+                return redirect('/admin/settings');
+            }
         }
         if ($logoUrl === null) {
             admin_flash('Logo 在线链接格式不正确，请填写 http(s) 链接或以 /uploads/ 开头的站内路径', 'danger');
@@ -129,13 +178,21 @@ class Settings extends Base
         }
 
         $data = [
-            'site_name'          => $siteName,
-            'site_desc'          => $siteDesc,
-            'site_icp'           => $siteIcp,
-            'site_copyright'     => $siteCopyright,
-            'captcha_on'         => $captchaOn,
-            'login_fail_limit'   => (string) $failLimit,
-            'login_lock_minutes' => (string) $lockMinutes,
+            'site_name'           => $siteName,
+            'site_desc'           => $siteDesc,
+            'site_url'            => $siteUrl,
+            'site_icp'            => $siteIcp,
+            'site_copyright'      => $siteCopyright,
+            'site_seo_title'      => $seoTitle,
+            'site_seo_keywords'   => mb_substr($seoKeywords, 0, 255),
+            'site_seo_description'=> mb_substr($seoDescription, 0, 300),
+            'baidu_auto_push'     => $baiduAuto,
+            'baidu_common_push'   => $baiduCommon,
+            'baidu_quick_push'    => $baiduQuick,
+            'baidu_token'         => $baiduToken,
+            'captcha_on'          => $captchaOn,
+            'login_fail_limit'    => (string) $failLimit,
+            'login_lock_minutes'  => (string) $lockMinutes,
         ] + $uploadData;
 
         if ($newLogo !== null) {
@@ -152,12 +209,13 @@ class Settings extends Base
             save_setting($name, $value);
         }
         cache_forget('site:settings');
+        cache_forget('site:sitemap');
 
         if ($oldLogo !== (string) ($data['site_logo'] ?? $oldLogo)) {
             $this->deleteLogo($oldLogo);
         }
 
-        audit_log('setting', 'update', '更新系统设置（站点信息/上传设置/登录安全）');
+        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/上传设置/登录安全）');
         admin_flash('系统设置已保存');
         return redirect('/admin/settings');
     }

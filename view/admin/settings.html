@@ -57,6 +57,91 @@
                     </div>
                 </div>
             </div>
+            <div class="card-header border-top" id="siteSeo">
+                <h3 class="card-title"><i class="ti ti-search me-1"></i>SEO 优化</h3>
+                <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="siteUrl">站点地址</label>
+                        <input type="url" class="form-control" id="siteUrl" name="site_url" value="{$siteUrl}" maxlength="255" placeholder="https://docs.northmu.cn">
+                        <div class="form-hint">用于生成 canonical、Sitemap 与百度推送链接；留空时按当前访问域名自动推断，建议填写固定域名。</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="siteSeoTitle">SEO 标题</label>
+                        <input type="text" class="form-control" id="siteSeoTitle" name="site_seo_title" value="{$siteSeoTitle}" maxlength="120" placeholder="{$settings.site_name}">
+                        <div class="form-hint">显示在浏览器标签与搜索结果的首页标题，留空则使用站点名称。</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="siteSeoKeywords">SEO 关键词</label>
+                        <input type="text" class="form-control" id="siteSeoKeywords" name="site_seo_keywords" value="{$siteSeoKeywords}" maxlength="255" placeholder="北牧视界,北牧网络,北牧博客">
+                        <div class="form-hint">多个关键词用英文逗号分隔，最多 20 个。</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="siteSeoDescription">SEO 描述</label>
+                        <textarea class="form-control" id="siteSeoDescription" name="site_seo_description" rows="2" maxlength="300" placeholder="牧一方思绪 观百态日常">{$siteSeoDescription}</textarea>
+                        <div class="form-hint">建议 80-160 字，用于首页摘要与分享卡片描述；留空则使用站点描述。</div>
+                    </div>
+                </div>
+                <div class="nm-seo-preview mt-3" id="siteSeoPreview">
+                    <div class="nm-seo-preview-url" id="siteSeoPreviewUrl" data-default="{$seoPreview.url}">{$seoPreview.url}</div>
+                    <div class="nm-seo-preview-title" id="siteSeoPreviewTitle">{$seoPreview.title}</div>
+                    <div class="nm-seo-preview-desc" id="siteSeoPreviewDesc">{$seoPreview.description}</div>
+                </div>
+            </div>
+            <div class="card-header border-top" id="baiduSeo">
+                <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>百度收录</h3>
+                <div class="card-actions">
+                    {if $baiduConfigured}
+                    <span class="badge bg-green-lt text-green">已配置</span>
+                    {else}
+                    <span class="badge bg-yellow-lt text-yellow">待配置</span>
+                    {/if}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info py-2 px-3 small mb-3">
+                    <i class="ti ti-info-circle me-1"></i>通过百度搜索资源平台主动推送链接，加快新文档收录。请先在
+                    <a href="https://ziyuan.baidu.com/college/courseinfo?id=267&amp;page=2#h2_article_title12" target="_blank" rel="noopener">官方文档</a>
+                    了解规则，并在
+                    <a href="https://zn.baidu.com/linksubmit" target="_blank" rel="noopener">百度准入密钥页面</a>
+                    获取 Token（需先验证站点归属）。
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="baidu_auto_push" value="1" id="baiduAutoPush" {if $settings.baidu_auto_push == '1'}checked{/if}>
+                            <span class="form-check-label">全站链接自动提交</span>
+                        </label>
+                        <div class="form-hint">新建并发布公开文档时自动提交一次。</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="baidu_common_push" value="1" id="baiduCommonPush" {if $settings.baidu_common_push == '1'}checked{/if}>
+                            <span class="form-check-label">百度普通收录</span>
+                        </label>
+                        <div class="form-hint">常规推送通道，配额较高。</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="baidu_quick_push" value="1" id="baiduQuickPush" {if $settings.baidu_quick_push == '1'}checked{/if}>
+                            <span class="form-check-label">百度快速收录</span>
+                        </label>
+                        <div class="form-hint">配额较少，账号未开通时会返回错误，不影响普通收录。</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="baiduToken">百度准入密钥 Token</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control font-monospace" id="baiduToken" name="baidu_token" value="{$baiduToken}" maxlength="100" autocomplete="off" placeholder="粘贴百度搜索资源平台提供的 Token">
+                            <button type="button" class="btn btn-outline-secondary" id="baiduTokenToggle" aria-label="显示或隐藏 Token">
+                                <i class="ti ti-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-hint">Token 仅保存在站点数据库中，用于调用百度主动推送接口，不会出现在前台页面。</div>
+                    </div>
+                </div>
+            </div>
             <div class="card-header border-top">
                 <h3 class="card-title"><i class="ti ti-upload me-1"></i>上传设置</h3>
                 <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全局生效</span></div>
@@ -209,5 +294,50 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function () {
+        'use strict';
+        var tokenInput = document.getElementById('baiduToken');
+        var toggle = document.getElementById('baiduTokenToggle');
+        if (tokenInput && toggle) {
+            toggle.addEventListener('click', function () {
+                var show = tokenInput.type === 'password';
+                tokenInput.type = show ? 'text' : 'password';
+                toggle.innerHTML = '<i class="ti ' + (show ? 'ti-eye-off' : 'ti-eye') + '"></i>';
+            });
+        }
+
+        var autoCheck = document.getElementById('baiduAutoPush');
+        var commonCheck = document.getElementById('baiduCommonPush');
+        if (autoCheck && commonCheck) {
+            autoCheck.addEventListener('change', function () {
+                if (autoCheck.checked && !commonCheck.checked && !(document.getElementById('baiduQuickPush') || {}).checked) {
+                    commonCheck.checked = true;
+                }
+            });
+        }
+
+        var nameInput = document.getElementById('siteName');
+        var descInput = document.getElementById('siteDesc');
+        var urlInput = document.getElementById('siteUrl');
+        var titleInput = document.getElementById('siteSeoTitle');
+        var descSeoInput = document.getElementById('siteSeoDescription');
+        var previewUrl = document.getElementById('siteSeoPreviewUrl');
+        var previewTitle = document.getElementById('siteSeoPreviewTitle');
+        var previewDesc = document.getElementById('siteSeoPreviewDesc');
+
+        function refreshPreview() {
+            if (!previewUrl || !previewTitle || !previewDesc) return;
+            var base = (urlInput && urlInput.value.trim()) || previewUrl.getAttribute('data-default') || (window.location.origin + '/');
+            previewUrl.textContent = base.replace(/\/+$/, '') + '/';
+            previewTitle.textContent = (titleInput && titleInput.value.trim()) || (nameInput && nameInput.value.trim()) || '';
+            previewDesc.textContent = (descSeoInput && descSeoInput.value.trim()) || (descInput && descInput.value.trim()) || '';
+        }
+        [nameInput, descInput, urlInput, titleInput, descSeoInput].forEach(function (input) {
+            if (input) input.addEventListener('input', refreshPreview);
+        });
+    })();
+</script>
 
 {include file="common/footer" /}

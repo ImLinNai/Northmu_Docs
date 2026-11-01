@@ -14,6 +14,17 @@ class Index extends BaseController
         $copyright = sys_setting('site_copyright', '© ' . date('Y') . ' ' . $siteName);
         $front = site_front_config();
         $home = site_home_config();
+        $seoGlobal = seo_global_config();
+        $seo = seo_meta([
+            'title'       => $seoGlobal['title'],
+            'description' => $seoGlobal['description'],
+            'keywords'    => $seoGlobal['keywords'],
+            'canonical'   => $seoGlobal['url'] !== '' ? $seoGlobal['url'] . '/' : '',
+            'robots'      => 'index,follow',
+            'type'        => 'website',
+            'image'       => $seoGlobal['logo'],
+            'json_ld'     => seo_json_encode(seo_website_json_ld()),
+        ]);
 
         return View::fetch('index/index', [
             'siteName'    => $siteName,
@@ -21,7 +32,7 @@ class Index extends BaseController
             'siteDesc'    => $siteDesc,
             'siteIcp'     => sys_setting('site_icp', ''),
             'copyright'   => $copyright,
-            'pageTitle'   => $siteName,
+            'pageTitle'   => $seoGlobal['title'],
             'navActive'   => 'home',
             'navItems'    => front_nav_items(),
             'siteBrandMode'  => $front['brandMode'],
@@ -38,6 +49,6 @@ class Index extends BaseController
             'searchKeyword' => '',
             'extraHead'   => '',
             'extraScripts'=> '',
-        ]);
+        ] + $seo);
     }
 }

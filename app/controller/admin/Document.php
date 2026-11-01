@@ -77,18 +77,22 @@ class Document extends Base
     public function create()
     {
         return $this->renderEditor([
-            'id'            => 0,
-            'title'         => '',
-            'category_id'   => 0,
-            'content'       => '',
-            'content_type'  => 'html',
-            'status'        => 1,
-            'visibility'    => 'public',
-            'password_hash' => '',
-            'show_toc'      => 1,
-            'is_top'        => 0,
-            'top_at'        => null,
-            'published_at'  => null,
+            'id'              => 0,
+            'title'           => '',
+            'category_id'     => 0,
+            'content'         => '',
+            'content_type'    => 'html',
+            'status'          => 1,
+            'visibility'      => 'public',
+            'password_hash'   => '',
+            'seo_title'       => '',
+            'seo_keywords'    => '',
+            'seo_description' => '',
+            'baidu_push'      => null,
+            'show_toc'        => 1,
+            'is_top'          => 0,
+            'top_at'          => null,
+            'published_at'    => null,
         ], true);
     }
 
@@ -126,6 +130,53 @@ class Document extends Base
         $hasPassword = trim((string) ($doc['password_hash'] ?? '')) !== '';
         unset($doc['password_hash']);
 
+        $selectedTagNames = [];
+        foreach ($allTags as $tag) {
+            if ($tag['checked']) {
+                $selectedTagNames[] = (string) $tag['name'];
+            }
+        }
+        $categoryName = '';
+        foreach ($flat as $category) {
+            if ((int) $category['id'] === (int) $doc['category_id']) {
+                $categoryName = (string) $category['name'];
+                break;
+            }
+        }
+        $seoGlobal = seo_global_config();
+        $seoDefaults = document_seo_defaults($doc, $selectedTagNames, $categoryName);
+        $customSeo = [
+            'title'       => (string) ($doc['seo_title'] ?? ''),
+            'keywords'    => (string) ($doc['seo_keywords'] ?? ''),
+            'description' => (string) ($doc['seo_description'] ?? ''),
+        ];
+        $seoPreview = [
+            'title'       => $customSeo['title'] !== '' ? $customSeo['title'] : $seoDefaults['title'],
+            'keywords'    => $customSeo['keywords'] !== '' ? $customSeo['keywords'] : $seoDefaults['keywords'],
+            'description' => $customSeo['description'] !== '' ? $customSeo['description'] : $seoDefaults['description'],
+            'url'         => $isNew ? site_base_url() . '/doc/1.html' : document_url((int) $doc['id'], true),
+        ];
+        $docAccess = document_access($doc, $categories);
+        $docPublic = $docAccess['visibility'] === 'public';
+        $docPublished = (int) $doc['status'] === 1;
+        $canPush = !$isNew && $docPublic && $docPublished;
+        $baiduConfig = baidu_seo_config();
+        $pushStatus = baidu_push_status($doc['baidu_push'] ?? null);
+        $pushRows = [];
+        foreach (['common' => '普通收录', 'quick' => '快速收录'] as $channelKey => $channelLabel) {
+            if (isset($pushStatus['channels'][$channelKey])) {
+                $row = $pushStatus['channels'][$channelKey];
+                $pushRows[] = [
+                    'key'     => $channelKey,
+                    'label'   => $channelLabel,
+                    'ok'      => (bool) $row['ok'],
+                    'message' => (string) $row['message'],
+                    'at'      => (string) $row['at'],
+                ];
+            }
+        }
+        $pushTriggerLabel = $pushStatus['trigger'] === 'auto' ? '自动提交' : '手动提交';
+
         $adminId = (int) current_admin()['id'];
         $draft = Db::name('document_drafts')
             ->where('admin_id', $adminId)
@@ -138,6 +189,25 @@ class Document extends Base
             'content'      => (string) $doc['content'],
             'contentType'  => (string) $doc['content_type'],
             'uploadUrl'    => '/admin/attachments/upload',
+            'seo'          => [
+                'defaults' => $seoDefaults,
+                'custom'   => $customSeo,
+                'global'   => [
+                    'title'       => $seoGlobal['title'],
+                    'keywords'    => $seoGlobal['keywords'],
+                    'description' => $seoGlobal['description'],
+                ],
+                'url'      => $seoPreview['url'],
+                'baidu'    => [
+                    'configured' => $baiduConfig['configured'],
+                    'auto'       => $baiduConfig['auto'],
+                    'common'     => $baiduConfig['common'],
+                    'quick'      => $baiduConfig['quick'],
+                    'status'     => $pushStatus,
+                    'pushUrl'    => $isNew ? '' : '/admin/documents/push/' . (int) $doc['id'],
+                    'canPush'    => $canPush,
+                ],
+            ],
             'draft'        => $draft ? [
                 'title'        => (string) $draft['title'],
                 'category_id'  => (int) $draft['category_id'],
@@ -153,14 +223,24 @@ class Document extends Base
             $isNew ? '支持富文本与 Markdown 双模式编辑' : '修改内容、可见性、分类与标签',
             'documents'
         ) + [
-            'doc'            => $doc,
-            'isNew'          => $isNew,
-            'categories'     => $flat,
-            'allTags'        => $allTags,
-            'selectedTagIds' => $selectedTagIds,
-            'hasPassword'    => $hasPassword,
-            'hasDraft'       => (bool) $draft,
-            'editorData'     => $editorData,
+            'doc'             => $doc,
+            'isNew'           => $isNew,
+            'categories'      => $flat,
+            'allTags'         => $allTags,
+            'selectedTagIds'  => $selectedTagIds,
+            'hasPassword'     => $hasPassword,
+            'hasDraft'        => (bool) $draft,
+            'editorData'      => $editorData,
+            'seoDefaults'     => $seoDefaults,
+            'seoPreview'      => $seoPreview,
+            'baiduConfigured' => $baiduConfig['configured'],
+            'baiduAuto'       => $baiduConfig['auto'],
+            'baiduStatus'     => $pushStatus,
+            'pushRows'        => $pushRows,
+            'pushTriggerLabel'=> $pushTriggerLabel,
+            'docPublic'       => $docPublic,
+            'docPublished'    => $docPublished,
+            'canPush'         => $canPush,
         ];
         $view['editorDataJson'] = json_encode(
             $editorData,
@@ -188,6 +268,9 @@ class Document extends Base
         $status = (int) $this->request->post('status', 1) === 1 ? 1 : 0;
         $visibility = normalize_visibility($this->request->post('visibility', 'public'));
         $password = (string) $this->request->post('password', '');
+        $seoTitle = seo_clean_text((string) $this->request->post('seo_title', ''), 200);
+        $seoKeywords = seo_clean_keywords((string) $this->request->post('seo_keywords', ''));
+        $seoDescription = seo_clean_text((string) $this->request->post('seo_description', ''), 500);
         $showToc = (int) $this->request->post('show_toc', 0) === 1 ? 1 : 0;
         $isTop = (int) $this->request->post('is_top', 0) === 1 ? 1 : 0;
         $tagIds = (array) $this->request->post('tag_ids/a', []);
@@ -222,15 +305,18 @@ class Document extends Base
         $now = date('Y-m-d H:i:s');
         $adminId = (int) current_admin()['id'];
         $data = [
-            'title'        => $title,
-            'category_id'  => $categoryId,
-            'content'      => $content,
-            'content_type' => $contentType,
-            'status'       => $status,
-            'visibility'   => $visibility,
-            'show_toc'     => $showToc,
-            'is_top'       => $isTop,
-            'updated_at'   => $now,
+            'title'           => $title,
+            'category_id'     => $categoryId,
+            'content'         => $content,
+            'content_type'    => $contentType,
+            'status'          => $status,
+            'visibility'      => $visibility,
+            'seo_title'       => $seoTitle,
+            'seo_keywords'    => mb_substr($seoKeywords, 0, 255),
+            'seo_description' => mb_substr($seoDescription, 0, 500),
+            'show_toc'        => $showToc,
+            'is_top'          => $isTop,
+            'updated_at'      => $now,
         ];
 
         if ($visibility === 'encrypted') {
@@ -280,7 +366,6 @@ class Document extends Base
             $id = (int) Db::name('documents')->insertGetId($data);
             $this->recordVersion(array_merge($data, ['id' => $id]));
             audit_log('document', 'create', '创建文档「' . $title . '」，可见性：' . visibility_label($visibility), 'document', $id);
-            admin_flash('文档已创建');
         }
 
         $this->syncDocumentTags($id, $tagIds);
@@ -288,10 +373,65 @@ class Document extends Base
 
         cache_forget_content();
 
+        if ($existing === null) {
+            $pushMessage = '';
+            $pushType = 'success';
+            $pushConfig = baidu_seo_config();
+            if ($pushConfig['auto']) {
+                if (!$pushConfig['configured']) {
+                    $pushMessage = '百度收录未推送：请先在系统设置中配置 Token 与收录通道';
+                    $pushType = 'warning';
+                } elseif ($status === 1) {
+                    $savedDoc = Db::name('documents')->where('id', $id)->find();
+                    $access = document_access((array) $savedDoc);
+                    if ($access['visibility'] === 'public') {
+                        $pushResult = baidu_push_document((array) $savedDoc, 'auto');
+                        if (!empty($pushResult['payload'])) {
+                            Db::name('documents')->where('id', $id)->update([
+                                'baidu_push' => baidu_push_store_json($pushResult['payload']),
+                            ]);
+                        }
+                        $pushMessage = ($pushResult['ok'] ? '百度收录已提交：' : '百度收录提交未成功：') . $pushResult['message'];
+                        $pushType = $pushResult['ok'] ? 'success' : 'warning';
+                    }
+                }
+            }
+            admin_flash($pushMessage !== '' ? '文档已创建；' . $pushMessage : '文档已创建', $pushType);
+        }
+
         if ($after === 'list') {
             return redirect('/admin/documents');
         }
         return redirect('/admin/documents/edit/' . $id);
+    }
+
+    public function push(int $id)
+    {
+        $doc = Db::name('documents')->where('id', $id)->whereNull('deleted_at')->find();
+        if (!$doc) {
+            return $this->fail('文档不存在或已在回收站中');
+        }
+        $config = baidu_seo_config();
+        if (!$config['configured']) {
+            return $this->fail('百度收录尚未配置，请先在系统设置中填写 Token 并启用收录通道');
+        }
+        if ((int) $doc['status'] !== 1) {
+            return $this->fail('文档尚未发布，无法提交百度收录');
+        }
+        $access = document_access($doc);
+        if ($access['visibility'] !== 'public') {
+            return $this->fail('仅公开文档可以提交百度收录');
+        }
+
+        $result = baidu_push_document($doc, 'manual');
+        if (empty($result['payload'])) {
+            return $this->fail($result['message'] !== '' ? $result['message'] : '百度收录提交失败');
+        }
+        $raw = baidu_push_store_json($result['payload']);
+        Db::name('documents')->where('id', $id)->update(['baidu_push' => $raw]);
+        audit_log('document', 'push', '向百度提交文档「' . $doc['title'] . '」收录', 'document', $id);
+
+        return $this->ok($result['message'], ['status' => baidu_push_status($raw)]);
     }
 
     public function delete()

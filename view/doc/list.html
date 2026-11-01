@@ -38,7 +38,7 @@
                     <article class="card doc-card nm-reveal">
                         <div class="card-body">
                             <div class="doc-card-head">
-                                <a class="doc-card-title" href="/doc/{$doc.id}">{$doc.title}</a>
+                                <a class="doc-card-title" href="/doc/{$doc.id}.html">{$doc.title}</a>
                                 {if $doc.is_top}
                                 <span class="doc-badge-top"><i class="ti ti-pin"></i>置顶</span>
                                 {/if}
@@ -66,7 +66,7 @@
                                     {/volist}
                                 </span>
                                 {/if}
-                                <a class="doc-read-link ms-auto" href="/doc/{$doc.id}">
+                                <a class="doc-read-link ms-auto" href="/doc/{$doc.id}.html">
                                     {if $doc.is_locked}输入密码<i class="ti ti-lock"></i>{else}阅读<i class="ti ti-arrow-right"></i>{/if}
                                 </a>
                             </div>

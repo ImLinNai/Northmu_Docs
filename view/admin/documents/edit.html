@@ -92,9 +92,9 @@
                 <div class="card-body">
                     <label class="form-label" for="docCategory">所属分类</label>
                     <select class="form-select" id="docCategory" name="category_id">
-                        <option value="0" data-visibility="public"{if $doc.category_id == 0} selected{/if}>未分类</option>
+                        <option value="0" data-visibility="public" data-name="未分类"{if $doc.category_id == 0} selected{/if}>未分类</option>
                         {volist name="categories" id="category"}
-                        <option value="{$category.id}" data-visibility="{$category.effective_visibility}"{if $doc.category_id == $category.id} selected{/if}>{$category.option_label}</option>
+                        <option value="{$category.id}" data-visibility="{$category.effective_visibility}" data-name="{$category.name}"{if $doc.category_id == $category.id} selected{/if}>{$category.option_label}</option>
                         {/volist}
                     </select>
                     <div class="form-hint mt-2" id="categoryVisibilityHint">分类的可见性会继承给文档，与文档自身设置取更严格的一项。</div>
@@ -143,6 +143,104 @@
                         </label>
                         <div class="form-hint">支持同时置顶多篇文档，按各自置顶时间排序。</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="card mt-3" id="docSeoCard">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-search me-1"></i>SEO 优化</h3>
+                    <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">留空自动生成</span></div>
+                </div>
+                <div class="card-body">
+                    <div class="nm-seo-preview">
+                        <div class="nm-seo-preview-url" id="seoPreviewUrl">{$seoPreview.url}</div>
+                        <div class="nm-seo-preview-title" id="seoPreviewTitle">{$seoPreview.title}</div>
+                        <div class="nm-seo-preview-desc" id="seoPreviewDesc">{$seoPreview.description}</div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <label class="form-label mb-1" for="docSeoTitle">SEO 标题</label>
+                            <span class="text-secondary small" id="seoTitleCount">0/200</span>
+                        </div>
+                        <input type="text" class="form-control" id="docSeoTitle" name="seo_title" value="{$doc.seo_title}" maxlength="200" placeholder="{$seoDefaults.title}">
+                        <div class="form-hint">留空时使用「{$seoDefaults.title}」。</div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label mb-1" for="docSeoKeywords">SEO 关键词</label>
+                        <input type="text" class="form-control" id="docSeoKeywords" name="seo_keywords" value="{$doc.seo_keywords}" maxlength="255" placeholder="{$seoDefaults.keywords}">
+                        <div class="form-hint">多个关键词用英文逗号分隔；留空自动使用标签与分类。</div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <label class="form-label mb-1" for="docSeoDescription">SEO 描述</label>
+                            <span class="text-secondary small" id="seoDescriptionCount">0/500</span>
+                        </div>
+                        <textarea class="form-control" id="docSeoDescription" name="seo_description" rows="3" maxlength="500" placeholder="{$seoDefaults.description}">{$doc.seo_description}</textarea>
+                        <div class="form-hint">建议 80-160 字；留空自动截取正文摘要。</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-ghost-secondary w-100 mt-3" id="seoResetBtn">
+                        <i class="ti ti-refresh me-1"></i>清空自定义，恢复自动生成
+                    </button>
+                </div>
+            </div>
+
+            <div class="card mt-3" id="baiduPushCard">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>百度收录</h3>
+                    <div class="card-actions">
+                        {if $baiduConfigured}
+                        <span class="badge bg-green-lt text-green">已配置</span>
+                        {else}
+                        <span class="badge bg-yellow-lt text-yellow">待配置</span>
+                        {/if}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {if $isNew}
+                    <div class="text-secondary small">
+                        {if $baiduConfigured && $baiduAuto}
+                        <i class="ti ti-info-circle me-1"></i>已开启全站自动提交，保存并发布这篇公开文档后会立即推送百度收录。
+                        {else}
+                        <i class="ti ti-info-circle me-1"></i>保存文档后，可在编辑页手动提交百度收录；如需新建自动推送，请先在系统设置中开启。
+                        {/if}
+                    </div>
+                    {elseif !$baiduConfigured}
+                    <div class="alert alert-warning py-2 px-3 small mb-2">
+                        <i class="ti ti-info-circle me-1"></i>尚未配置百度准入密钥或收录通道，暂时无法提交。
+                    </div>
+                    <a href="/admin/settings#baiduSeo" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="ti ti-settings me-1"></i>前往百度收录设置
+                    </a>
+                    {elseif !$canPush}
+                    <div class="alert alert-secondary py-2 px-3 small mb-0">
+                        <i class="ti ti-lock me-1"></i>{if !$docPublished}文档尚未发布，发布后才能提交百度收录。{else}仅公开文档可以提交百度收录，当前文档受可见性设置保护。{/if}
+                    </div>
+                    {else}
+                    <div id="baiduPushStatus" class="nm-push-status">
+                        {if $pushRows}
+                        <div class="nm-push-meta">
+                            <span>{$pushTriggerLabel}</span>
+                            <span>{$baiduStatus.at}</span>
+                        </div>
+                        {volist name="pushRows" id="row"}
+                        <div class="nm-push-channel">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="nm-push-dot {if $row.ok}is-ok{else}is-fail{/if}"></span>
+                                <span class="fw-semibold small">{$row.label}</span>
+                                <span class="badge {if $row.ok}bg-green-lt text-green{else}bg-red-lt text-red{/if} ms-auto">{if $row.ok}成功{else}失败{/if}</span>
+                            </div>
+                            <div class="nm-push-message small text-secondary mt-1">{$row.message}</div>
+                            {if $row.at}<div class="nm-push-time small text-secondary">{$row.at}</div>{/if}
+                        </div>
+                        {/volist}
+                        {else}
+                        <div class="text-secondary small">尚未提交过百度收录。</div>
+                        {/if}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2" id="baiduPushBtn" data-url="/admin/documents/push/{$doc.id}">
+                        <i class="ti ti-refresh me-1"></i>重新提交收录
+                    </button>
+                    {/if}
                 </div>
             </div>
 

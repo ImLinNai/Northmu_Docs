@@ -26,8 +26,15 @@ class Doc extends BaseController
         }
 
         $catName = '全部文档';
+        $activeCategory = null;
         if ($catId > 0) {
             $catName = $this->categoryName($allCategories, $catId);
+            foreach ($allCategories as $category) {
+                if ((int) $category['id'] === $catId) {
+                    $activeCategory = $category;
+                    break;
+                }
+            }
         }
 
         $docs = cache_remember('docs:list:' . $catId, cache_ttl(), function () use ($publicIds, $catId, $publicCategories, $allCategories) {
@@ -58,6 +65,26 @@ class Doc extends BaseController
         }
         $this->decorateDocs($docs, $allCategories);
 
+        $seoGlobal = seo_global_config();
+        $catVisibility = $catId > 0 ? category_effective_visibility($catId, $allCategories) : 'public';
+        $categoryDescription = trim((string) ($activeCategory['description'] ?? ''));
+        $description = $categoryDescription !== ''
+            ? seo_clean_text($categoryDescription, 300)
+            : $seoGlobal['description'];
+        $keywords = $seoGlobal['keywords'];
+        if ($catId > 0 && $catName !== '未分类') {
+            $keywords = seo_clean_keywords($catName . ($keywords !== '' ? ',' . $keywords : ''));
+        }
+        $canonical = site_base_url() . '/docs' . ($catId > 0 ? '?cat=' . $catId : '');
+        $seo = seo_meta([
+            'title'       => $catName,
+            'description' => $description,
+            'keywords'    => $keywords,
+            'canonical'   => $canonical,
+            'robots'      => $catVisibility === 'public' ? 'index,follow' : 'noindex,follow',
+            'type'        => 'website',
+        ]);
+
         $view = $this->baseViewData($catName, 'docs');
         $view += [
             'mode'          => 'list',
@@ -70,6 +97,7 @@ class Doc extends BaseController
             'listTitle'     => $catName,
             'listSubtitle'  => '共 ' . count($docs) . ' 篇文档',
         ];
+        $view = array_merge($view, $seo);
 
         return view('doc/list', $view);
     }
@@ -141,6 +169,15 @@ class Doc extends BaseController
             'listTitle'     => '搜索：' . $keyword,
             'listSubtitle'  => '找到 ' . count($docs) . ' 篇文档',
         ];
+        $seoGlobal = seo_global_config();
+        $view = array_merge($view, seo_meta([
+            'title'       => '搜索：' . $keyword,
+            'description' => $seoGlobal['description'],
+            'keywords'    => $seoGlobal['keywords'],
+            'canonical'   => '',
+            'robots'      => 'noindex,follow',
+            'type'        => 'website',
+        ]));
 
         return view('doc/list', $view);
     }
@@ -148,6 +185,11 @@ class Doc extends BaseController
     public function read()
     {
         $id = (int) $this->request->param('id', 0);
+        $requestPath = (string) parse_url((string) $this->request->server('REQUEST_URI', ''), PHP_URL_PATH);
+        if ($id > 0 && !str_ends_with(strtolower($requestPath), '.html')) {
+            return redirect('/doc/' . $id . '.html', 301);
+        }
+
         $doc = $id > 0 ? cache_remember('doc:' . $id, cache_ttl(), function () use ($id) {
             $row = Db::name('documents')->where('id', $id)->whereNull('deleted_at')->find();
             if (!$row) {
@@ -183,8 +225,12 @@ class Doc extends BaseController
 
         $catPath = category_breadcrumb((int) $doc['category_id'], $allCategories);
         $contentHtml = document_content_html($doc);
+        $canonical = document_url((int) $doc['id'], true);
+        $robots = $access['visibility'] === 'public' ? 'index,follow' : 'noindex,nofollow';
+        $seo = document_seo_meta($doc, $doc['tags'], $doc['category_name'], $canonical, $robots);
 
         $view = $this->baseViewData((string) $doc['title'], 'docs');
+        $view['pageTitle'] = $seo['pageTitle'];
         $view['extraHead'] = '<link id="hljs-light" rel="stylesheet" href="/static/vendor/highlight/styles/github.min.css">'
             . '<link id="hljs-dark" rel="stylesheet" href="/static/vendor/highlight/styles/github-dark.min.css" disabled>';
         $view['extraScripts'] = '<script src="/static/vendor/highlight/highlight.min.js"></script>';
@@ -198,6 +244,7 @@ class Doc extends BaseController
             'allActive'     => false,
             'searchKeyword' => '',
         ];
+        $view = array_merge($view, $seo);
 
         return view('doc/read', $view);
     }
@@ -216,10 +263,10 @@ class Doc extends BaseController
             return $this->denied('文档不存在或已被删除。', 404);
         }
         if ($access['visibility'] !== 'encrypted') {
-            return redirect('/doc/' . $id);
+            return redirect('/doc/' . $id . '.html');
         }
         if ($this->docUnlocked($id, $access)) {
-            return redirect('/doc/' . $id);
+            return redirect('/doc/' . $id . '.html');
         }
 
         $password = (string) $this->request->post('password', '');
@@ -240,7 +287,7 @@ class Doc extends BaseController
 
         Cache::delete($failKey);
         Session::set($this->unlockSessionKey($id), $this->unlockFingerprint($access['password_hash']));
-        return redirect('/doc/' . $id);
+        return redirect('/doc/' . $id . '.html');
     }
 
     protected function renderUnlock(array $doc, array $allCategories, string $error = '')
@@ -266,6 +313,15 @@ class Doc extends BaseController
             'allActive'     => false,
             'searchKeyword' => '',
         ];
+        $seoGlobal = seo_global_config();
+        $view = array_merge($view, seo_meta([
+            'title'       => (string) $doc['title'],
+            'description' => $seoGlobal['description'],
+            'keywords'    => '',
+            'canonical'   => '',
+            'robots'      => 'noindex,nofollow',
+            'type'        => 'article',
+        ]));
         return view('doc/unlock', $view);
     }
 
@@ -376,9 +432,10 @@ class Doc extends BaseController
     protected function baseViewData(string $title, string $navActive = 'docs'): array
     {
         $siteName = sys_setting('site_name', 'Northmu Docs');
+        $seoGlobal = seo_global_config();
         $front = site_front_config();
         return [
-            'pageTitle'   => $title === '' ? $siteName : $title . ' - ' . $siteName,
+            'pageTitle'   => $title === '' ? $seoGlobal['title'] : $title . ' - ' . $seoGlobal['title'],
             'navActive'   => $navActive,
             'siteName'    => $siteName,
             'siteLogo'    => (string) sys_setting('site_logo', ''),
@@ -396,7 +453,13 @@ class Doc extends BaseController
             'author'      => site_author(),
             'extraHead'   => '',
             'extraScripts'=> '',
-        ];
+        ] + seo_meta([
+            'title'       => $title,
+            'description' => $seoGlobal['description'],
+            'keywords'    => $seoGlobal['keywords'],
+            'canonical'   => '',
+            'robots'      => 'index,follow',
+        ]);
     }
 
     protected function denied(string $message, int $statusCode)
@@ -404,6 +467,14 @@ class Doc extends BaseController
         $view = $this->baseViewData($statusCode === 404 ? '页面不存在' : '无权访问', 'docs');
         $view['statusCode'] = $statusCode;
         $view['message'] = $message;
+        $seoGlobal = seo_global_config();
+        $view = array_merge($view, seo_meta([
+            'title'       => $statusCode === 404 ? '页面不存在' : '无权访问',
+            'description' => $seoGlobal['description'],
+            'keywords'    => '',
+            'canonical'   => '',
+            'robots'      => 'noindex,nofollow',
+        ]));
         return view('doc/denied', $view, $statusCode);
     }
 }

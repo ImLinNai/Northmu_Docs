@@ -4,7 +4,41 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{$pageTitle}</title>
-    <meta name="description" content="{$siteDesc}">
+    <meta name="description" content="{$seoDescription}">
+    {if $seoKeywords}
+    <meta name="keywords" content="{$seoKeywords}">
+    {/if}
+    <meta name="robots" content="{$seoRobots}">
+    <meta name="author" content="{$author.display_name|default='管理员'}">
+    {if $seoCanonical}
+    <link rel="canonical" href="{$seoCanonical}">
+    {/if}
+    <meta property="og:type" content="{$seoType}">
+    <meta property="og:title" content="{$seoTitle}">
+    <meta property="og:description" content="{$seoDescription}">
+    {if $seoCanonical}
+    <meta property="og:url" content="{$seoCanonical}">
+    {/if}
+    <meta property="og:site_name" content="{$seoSiteName}">
+    <meta property="og:locale" content="{$seoLocale}">
+    {if $seoImage}
+    <meta property="og:image" content="{$seoImage}">
+    {/if}
+    {if $seoType == 'article' && $seoPublished}
+    <meta property="article:published_time" content="{$seoPublished}">
+    {/if}
+    {if $seoType == 'article' && $seoModified}
+    <meta property="article:modified_time" content="{$seoModified}">
+    {/if}
+    <meta name="twitter:card" content="{if $seoImage}summary_large_image{else}summary{/if}">
+    <meta name="twitter:title" content="{$seoTitle}">
+    <meta name="twitter:description" content="{$seoDescription}">
+    {if $seoImage}
+    <meta name="twitter:image" content="{$seoImage}">
+    {/if}
+    {if $seoJsonLd}
+    <script type="application/ld+json">{$seoJsonLd|raw}</script>
+    {/if}
     <meta name="theme-color" content="#f8fafc">
     <script>
         (function () {

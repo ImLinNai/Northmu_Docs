@@ -223,6 +223,7 @@ function cache_forget_content(): void
     cache_forget_prefix('doc');
     cache_forget_prefix('site:document_tags');
     cache_forget_prefix('admin:');
+    cache_forget('site:sitemap');
 }
 
 /**
@@ -527,6 +528,594 @@ function site_login_config(): array
         'overlay'      => $overlay,
         'overlayAlpha' => number_format($overlay / 100, 2, '.', ''),
     ];
+}
+
+/**
+ * 清理 SEO 标题/描述文本
+ */
+function seo_clean_text(string $input, int $maxLength = 300): string
+{
+    $text = strip_tags($input);
+    $text = trim(preg_replace('/\s+/u', ' ', $text) ?? '');
+    if ($text === '') {
+        return '';
+    }
+    return mb_substr($text, 0, max(1, $maxLength));
+}
+
+/**
+ * 规范化 SEO 关键词：统一分隔符并去重
+ */
+function seo_clean_keywords(string $input, int $maxLength = 255): string
+{
+    $input = strip_tags($input);
+    $input = str_replace(['，', '、', '；', ';', '|', "\r", "\n", "\t"], ',', $input);
+    $parts = preg_split('/,/', $input) ?: [];
+    $keywords = [];
+    foreach ($parts as $part) {
+        $part = trim(preg_replace('/\s+/u', ' ', $part) ?? '');
+        $part = mb_substr($part, 0, 50);
+        if ($part === '' || in_array($part, $keywords, true)) {
+            continue;
+        }
+        $keywords[] = $part;
+        if (count($keywords) >= 20) {
+            break;
+        }
+    }
+    return mb_substr(implode(',', $keywords), 0, max(1, $maxLength));
+}
+
+/**
+ * 校验站点地址：仅接受 http(s) 站点根地址
+ */
+function normalize_site_url(string $url): ?string
+{
+    $url = trim($url);
+    if ($url === '') {
+        return '';
+    }
+    if (mb_strlen($url) > 255 || !preg_match('#^https?://#i', $url)) {
+        return null;
+    }
+    $parts = parse_url($url);
+    if (!is_array($parts) || empty($parts['host'])) {
+        return null;
+    }
+    if (isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])) {
+        return null;
+    }
+    $path = (string) ($parts['path'] ?? '');
+    if ($path !== '' && $path !== '/') {
+        return null;
+    }
+    $scheme = strtolower((string) ($parts['scheme'] ?? 'https')) === 'http' ? 'http' : 'https';
+    $host = strtolower((string) $parts['host']);
+    $port = isset($parts['port']) ? ':' . (int) $parts['port'] : '';
+    return $scheme . '://' . $host . $port;
+}
+
+/**
+ * 站点根地址：优先使用后台配置，未配置时按当前请求推断
+ */
+function site_base_url(): string
+{
+    static $base = null;
+    if ($base !== null) {
+        return $base;
+    }
+    $configured = normalize_site_url((string) sys_setting('site_url', ''));
+    if (is_string($configured) && $configured !== '') {
+        return $base = $configured;
+    }
+    try {
+        $base = rtrim((string) request()->domain(), '/');
+    } catch (\Throwable $e) {
+        $base = '';
+    }
+    return $base;
+}
+
+function site_absolute_url(string $url): string
+{
+    $url = trim($url);
+    if ($url === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $url)) {
+        return $url;
+    }
+    $base = site_base_url();
+    if ($base === '') {
+        return $url;
+    }
+    return $base . '/' . ltrim($url, '/');
+}
+
+/**
+ * 全站 SEO 配置
+ */
+function seo_global_config(): array
+{
+    $siteName = (string) sys_setting('site_name', 'Northmu Docs');
+    $title = seo_clean_text((string) sys_setting('site_seo_title', ''), 120);
+    $keywords = seo_clean_keywords((string) sys_setting('site_seo_keywords', ''));
+    $description = seo_clean_text((string) sys_setting('site_seo_description', ''), 300);
+    $siteDesc = seo_clean_text((string) sys_setting('site_desc', ''), 300);
+    if ($title === '') {
+        $title = $siteName;
+    }
+    if ($description === '') {
+        $description = $siteDesc;
+    }
+    return [
+        'site_name'   => $siteName,
+        'title'       => $title,
+        'keywords'    => $keywords,
+        'description' => $description,
+        'url'         => site_base_url(),
+        'logo'        => site_absolute_url((string) sys_setting('site_logo', '')),
+    ];
+}
+
+function seo_iso_time($value): string
+{
+    if (empty($value)) {
+        return '';
+    }
+    $timestamp = strtotime((string) $value);
+    return $timestamp ? date('c', $timestamp) : '';
+}
+
+function seo_json_encode(array $data): string
+{
+    $json = json_encode(
+        $data,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    );
+    return is_string($json) ? $json : '';
+}
+
+/**
+ * 生成前台 head 所需的 SEO 变量
+ */
+function seo_meta(array $options = []): array
+{
+    $global = seo_global_config();
+    $title = trim((string) ($options['title'] ?? ''));
+    $description = trim((string) ($options['description'] ?? ''));
+    $keywords = trim((string) ($options['keywords'] ?? ''));
+    $canonical = trim((string) ($options['canonical'] ?? ''));
+    $robots = (string) ($options['robots'] ?? 'index,follow');
+    $type = ($options['type'] ?? 'website') === 'article' ? 'article' : 'website';
+    $image = site_absolute_url((string) ($options['image'] ?? ''));
+    $jsonLd = (string) ($options['json_ld'] ?? '');
+
+    if ($title === '') {
+        $title = $global['title'];
+    }
+    if ($description === '') {
+        $description = $global['description'];
+    }
+    if ($keywords === '') {
+        $keywords = $global['keywords'];
+    }
+    if ($image === '') {
+        $image = $global['logo'];
+    }
+    if (!preg_match('/^[a-z]+(?:,[a-z]+)?$/', $robots)) {
+        $robots = 'index,follow';
+    }
+
+    return [
+        'seoTitle'       => $title,
+        'seoKeywords'    => $keywords,
+        'seoDescription' => mb_substr($description, 0, 300),
+        'seoCanonical'   => $canonical,
+        'seoRobots'      => $robots,
+        'seoType'        => $type,
+        'seoImage'       => $image,
+        'seoSiteName'    => $global['site_name'],
+        'seoLocale'      => 'zh_CN',
+        'seoPublished'   => (string) ($options['published'] ?? ''),
+        'seoModified'    => (string) ($options['modified'] ?? ''),
+        'seoJsonLd'      => $jsonLd,
+    ];
+}
+
+function document_url(int $id, bool $absolute = false): string
+{
+    $path = '/doc/' . max(0, $id) . '.html';
+    return $absolute ? site_base_url() . $path : $path;
+}
+
+/**
+ * 文档自动 SEO 默认值：标题、标签/分类关键词与正文摘要
+ */
+function document_seo_defaults(array $doc, array $tagNames = [], string $categoryName = ''): array
+{
+    $global = seo_global_config();
+    $title = seo_clean_text((string) ($doc['title'] ?? ''), 200);
+    $autoTitle = $title === ''
+        ? $global['title']
+        : ($global['title'] !== '' ? $title . ' - ' . $global['title'] : $title);
+
+    $keywords = [];
+    foreach ($tagNames as $tag) {
+        $tag = seo_clean_text((string) $tag, 50);
+        if ($tag !== '' && !in_array($tag, $keywords, true)) {
+            $keywords[] = $tag;
+        }
+        if (count($keywords) >= 10) {
+            break;
+        }
+    }
+    $categoryName = seo_clean_text($categoryName, 50);
+    if ($categoryName !== '' && $categoryName !== '未分类' && !in_array($categoryName, $keywords, true)) {
+        $keywords[] = $categoryName;
+    }
+    $autoKeywords = $keywords ? implode(',', $keywords) : $global['keywords'];
+    if ($autoKeywords === '') {
+        $autoKeywords = $global['title'];
+    }
+
+    $excerpt = document_excerpt($doc);
+    if ($excerpt === '暂无摘要') {
+        $excerpt = $global['description'];
+    }
+
+    return [
+        'title'       => $autoTitle,
+        'keywords'    => seo_clean_keywords($autoKeywords),
+        'description' => seo_clean_text($excerpt, 160),
+    ];
+}
+
+function document_first_image(string $html): string
+{
+    if ($html === '') {
+        return '';
+    }
+    if (preg_match('/<img\b[^>]*\bsrc\s*=\s*["\']([^"\']+)["\']/i', $html, $matches)) {
+        return trim($matches[1]);
+    }
+    if (preg_match('/!\[[^\]]*\]\(([^)\s]+)/', $html, $matches)) {
+        return trim($matches[1]);
+    }
+    return '';
+}
+
+function seo_website_json_ld(): array
+{
+    $global = seo_global_config();
+    $data = [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'WebSite',
+        'name'        => $global['site_name'],
+        'url'         => $global['url'] !== '' ? $global['url'] . '/' : '',
+        'description' => $global['description'],
+        'inLanguage'  => 'zh-CN',
+    ];
+    if ($global['url'] !== '') {
+        $data['potentialAction'] = [
+            '@type'       => 'SearchAction',
+            'target'      => $global['url'] . '/docs/search?q={search_term_string}',
+            'query-input' => 'required name=search_term_string',
+        ];
+    }
+    return $data;
+}
+
+function seo_article_json_ld(array $doc, string $canonical, string $description, string $image = ''): array
+{
+    $global = seo_global_config();
+    $author = site_author();
+    $published = seo_iso_time($doc['published_at'] ?? ($doc['created_at'] ?? ''));
+    $modified = seo_iso_time($doc['updated_at'] ?? '');
+    $image = site_absolute_url($image);
+    if ($image === '') {
+        $image = $global['logo'];
+    }
+
+    $data = [
+        '@context'         => 'https://schema.org',
+        '@type'            => 'Article',
+        'headline'         => seo_clean_text((string) ($doc['title'] ?? ''), 200),
+        'description'      => $description,
+        'url'              => $canonical,
+        'mainEntityOfPage' => $canonical,
+        'datePublished'    => $published,
+        'dateModified'     => $modified,
+        'inLanguage'       => 'zh-CN',
+        'author'           => [
+            '@type' => 'Person',
+            'name'  => (string) ($author['display_name'] ?? '管理员'),
+        ],
+        'publisher'        => [
+            '@type' => 'Organization',
+            'name'  => $global['site_name'],
+        ],
+    ];
+    if ($image !== '') {
+        $data['image'] = $image;
+        $data['publisher']['logo'] = ['@type' => 'ImageObject', 'url' => $image];
+    }
+    if ($published === '') {
+        unset($data['datePublished']);
+    }
+    if ($modified === '') {
+        unset($data['dateModified']);
+    }
+    return $data;
+}
+
+/**
+ * 文档页 SEO：手动字段优先，留空时使用自动生成值
+ */
+function document_seo_meta(
+    array $doc,
+    array $tagNames,
+    string $categoryName,
+    string $canonical,
+    string $robots = 'index,follow'
+): array {
+    $global = seo_global_config();
+    $defaults = document_seo_defaults($doc, $tagNames, $categoryName);
+    $customTitle = seo_clean_text((string) ($doc['seo_title'] ?? ''), 120);
+    $customKeywords = seo_clean_keywords((string) ($doc['seo_keywords'] ?? ''));
+    $customDescription = seo_clean_text((string) ($doc['seo_description'] ?? ''), 300);
+
+    $pageTitle = $customTitle !== '' ? $customTitle : $defaults['title'];
+    $keywords = $customKeywords !== '' ? $customKeywords : $defaults['keywords'];
+    $description = $customDescription !== '' ? $customDescription : $defaults['description'];
+    if ($description === '') {
+        $description = $global['description'];
+    }
+
+    $image = document_first_image(document_content_html($doc));
+    $jsonLd = '';
+    if (str_starts_with($robots, 'index') && $canonical !== '') {
+        $jsonLd = seo_json_encode(seo_article_json_ld($doc, $canonical, $description, $image));
+    }
+
+    $meta = seo_meta([
+        'title'       => $pageTitle,
+        'description' => $description,
+        'keywords'    => $keywords,
+        'canonical'   => $canonical,
+        'robots'      => $robots,
+        'type'        => 'article',
+        'image'       => $image,
+        'published'   => seo_iso_time($doc['published_at'] ?? ($doc['created_at'] ?? '')),
+        'modified'    => seo_iso_time($doc['updated_at'] ?? ''),
+        'json_ld'     => $jsonLd,
+    ]);
+    $meta['pageTitle'] = $pageTitle;
+    return $meta;
+}
+
+/**
+ * 百度收录配置
+ */
+function baidu_seo_config(): array
+{
+    $token = trim((string) sys_setting('baidu_token', ''));
+    $common = (string) sys_setting('baidu_common_push', '1') === '1';
+    $quick = (string) sys_setting('baidu_quick_push', '0') === '1';
+    return [
+        'auto'       => (string) sys_setting('baidu_auto_push', '0') === '1',
+        'common'     => $common,
+        'quick'      => $quick,
+        'token'      => $token,
+        'site'       => site_base_url(),
+        'configured' => $token !== '' && ($common || $quick) && site_base_url() !== '',
+    ];
+}
+
+/**
+ * 调用百度主动推送接口；普通与快速收录共用同一接口，快速收录附加 type=quick
+ */
+function baidu_submit_urls(array $urls, string $type = 'common'): array
+{
+    $config = baidu_seo_config();
+    $result = [
+        'ok'      => false,
+        'message' => '',
+        'success' => null,
+        'remain'  => null,
+        'http'    => 0,
+        'at'      => date('Y-m-d H:i:s'),
+    ];
+    if ($config['token'] === '') {
+        $result['message'] = '未配置百度准入密钥 Token';
+        return $result;
+    }
+    if ($config['site'] === '') {
+        $result['message'] = '未配置站点地址';
+        return $result;
+    }
+    $urls = array_values(array_unique(array_filter(array_map('trim', $urls), function ($url) {
+        return is_string($url) && $url !== '';
+    })));
+    if (!$urls) {
+        $result['message'] = '没有可提交的链接';
+        return $result;
+    }
+
+    $type = $type === 'quick' ? 'quick' : 'common';
+    $endpoint = 'https://data.zz.baidu.com/urls?site=' . rawurlencode($config['site'])
+        . '&token=' . rawurlencode($config['token']);
+    if ($type === 'quick') {
+        $endpoint .= '&type=quick';
+    }
+    $payload = implode("\n", array_slice($urls, 0, 2000));
+    $body = '';
+    $httpCode = 0;
+    $caFile = dirname(__DIR__) . '/extend/certs/cacert.pem';
+    if (!is_file($caFile)) {
+        $iniCa = (string) ini_get('curl.cainfo');
+        $caFile = $iniCa !== '' && is_file($iniCa) ? $iniCa : '';
+    }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_HTTPHEADER     => ['Content-Type: text/plain; charset=utf-8'],
+            CURLOPT_USERAGENT      => 'NorthmuDocs/1.4.2',
+            CURLOPT_SSL_VERIFYPEER => true,
+            // 百度 data.zz.baidu.com 证书仅覆盖 *.baidu.com，无法通过主机名校验；官方接口使用 http，这里保留 TLS 加密与证书链校验。
+            CURLOPT_SSL_VERIFYHOST => 0,
+        ]);
+        if ($caFile !== '') {
+            curl_setopt($ch, CURLOPT_CAINFO, $caFile);
+        }
+        $body = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = (string) curl_error($ch);
+        curl_close($ch);
+        if ($body === false) {
+            $result['message'] = '网络请求失败：' . ($error !== '' ? $error : '未知错误');
+            return $result;
+        }
+    } else {
+        $context = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => "Content-Type: text/plain; charset=utf-8\r\nUser-Agent: NorthmuDocs/1.4.2",
+                'content'       => $payload,
+                'timeout'       => 10,
+                'ignore_errors' => true,
+            ],
+            'ssl' => [
+                'verify_peer'      => true,
+                'verify_peer_name' => false,
+            ] + ($caFile !== '' ? ['cafile' => $caFile] : []),
+        ]);
+        $body = @file_get_contents($endpoint, false, $context);
+        if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $matches)) {
+            $httpCode = (int) $matches[1];
+        }
+        if ($body === false) {
+            $result['message'] = '网络请求失败，请检查服务器网络与 OpenSSL 扩展';
+            return $result;
+        }
+    }
+
+    $result['http'] = $httpCode;
+    $body = trim((string) $body);
+    $json = json_decode($body, true);
+    if (is_array($json)) {
+        if (!empty($json['error'])) {
+            $result['message'] = '错误 ' . $json['error'] . '：' . (string) ($json['message'] ?? '未知错误');
+            return $result;
+        }
+        $result['ok'] = $httpCode >= 200 && $httpCode < 300;
+        $result['success'] = isset($json['success']) ? (int) $json['success'] : null;
+        $result['remain'] = isset($json['remain']) ? (int) $json['remain'] : null;
+        $parts = [];
+        if ($result['success'] !== null) {
+            $parts[] = '成功提交 ' . $result['success'] . ' 条';
+        }
+        if ($result['remain'] !== null) {
+            $parts[] = '今日剩余 ' . $result['remain'] . ' 条';
+        }
+        if (!empty($json['not_same_site']) && is_array($json['not_same_site'])) {
+            $parts[] = '非本站 ' . count($json['not_same_site']) . ' 条';
+        }
+        if (!empty($json['not_valid']) && is_array($json['not_valid'])) {
+            $parts[] = '无效 ' . count($json['not_valid']) . ' 条';
+        }
+        $result['message'] = $parts ? implode('，', $parts) : ($result['ok'] ? '提交成功' : '提交失败');
+        return $result;
+    }
+
+    $snippet = mb_substr(preg_replace('/\s+/u', ' ', $body) ?? '', 0, 120);
+    $result['message'] = $httpCode > 0
+        ? 'HTTP ' . $httpCode . ($snippet !== '' ? '：' . $snippet : '')
+        : ($snippet !== '' ? $snippet : '百度接口返回内容无法解析');
+    return $result;
+}
+
+/**
+ * 按启用通道推送单篇文档，返回可写入 documents.baidu_push 的结果
+ */
+function baidu_push_document(array $doc, string $trigger = 'manual'): array
+{
+    $config = baidu_seo_config();
+    $url = document_url((int) ($doc['id'] ?? 0), true);
+    $channels = [];
+    if ($config['common']) {
+        $channels['common'] = baidu_submit_urls([$url], 'common');
+    }
+    if ($config['quick']) {
+        $channels['quick'] = baidu_submit_urls([$url], 'quick');
+    }
+    if (!$channels) {
+        return ['ok' => false, 'message' => '请先启用百度普通收录或快速收录', 'payload' => null];
+    }
+
+    $ok = false;
+    $messages = [];
+    foreach ($channels as $channel => $result) {
+        if (!empty($result['ok'])) {
+            $ok = true;
+        }
+        $label = $channel === 'quick' ? '快速收录' : '普通收录';
+        $messages[] = $label . '：' . (string) ($result['message'] ?? '');
+    }
+
+    return [
+        'ok'      => $ok,
+        'message' => implode('；', $messages),
+        'payload' => [
+            'trigger'  => $trigger === 'auto' ? 'auto' : 'manual',
+            'url'      => $url,
+            'at'       => date('Y-m-d H:i:s'),
+            'channels' => $channels,
+        ],
+    ];
+}
+
+function baidu_push_store_json(array $payload): string
+{
+    $json = json_encode(
+        $payload,
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    );
+    return is_string($json) ? $json : '';
+}
+
+function baidu_push_status(?string $raw): array
+{
+    $status = ['at' => '', 'trigger' => '', 'url' => '', 'channels' => []];
+    if ($raw === null || trim($raw) === '') {
+        return $status;
+    }
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        return $status;
+    }
+    $status['at'] = (string) ($decoded['at'] ?? '');
+    $status['trigger'] = (string) ($decoded['trigger'] ?? '');
+    $status['url'] = (string) ($decoded['url'] ?? '');
+    foreach (['common', 'quick'] as $key) {
+        if (isset($decoded['channels'][$key]) && is_array($decoded['channels'][$key])) {
+            $row = $decoded['channels'][$key];
+            $status['channels'][$key] = [
+                'ok'      => !empty($row['ok']),
+                'message' => (string) ($row['message'] ?? ''),
+                'at'      => (string) ($row['at'] ?? ''),
+                'success' => isset($row['success']) ? (int) $row['success'] : null,
+                'remain'  => isset($row['remain']) ? (int) $row['remain'] : null,
+            ];
+        }
+    }
+    return $status;
 }
 
 /**

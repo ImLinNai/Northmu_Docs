@@ -239,6 +239,13 @@ location ~* ^/uploads/.*\.(php|php[0-9]?|phtml|phar)$ {
 5. 从 v1.2.x 升级到 v1.3.0 无需修改数据库结构；覆盖文件后清理一次缓存即可。新增的登录页、favicon 与在线图片链接设置直接保存在现有 `settings` 表中。
 6. v1.4.0 同样无需修改数据库结构：七步安装向导只影响新安装流程，上传限制改为文件 / 图片 / 视频三类分别配置，旧版 `upload_ext` / `upload_max_mb` 设置会自动兼容，覆盖文件后清理一次缓存即可。
 7. v1.4.1 无需修改数据库结构：Tabler Icons 改为字体子集（约 21 KB），并修复 4 个不存在的图标类名。覆盖 `public/static/vendor/tabler-icons/` 后清理一次缓存；若 CDN 或浏览器仍使用旧字体，请强制刷新或先删除该目录再上传新文件。
+8. v1.4.2 需要执行数据库升级脚本（新增文档 SEO 与百度推送字段）：
+
+   ```bash
+   mysql -u数据库用户 -p 数据库名 < database/upgrade_v1.4.2.sql
+   ```
+
+   随后覆盖程序文件（包含新增的 `extend/certs/` 目录），保留 `data/` 与 `public/uploads/`，清理 `runtime/cache/*`。升级后可在「系统设置 → SEO 优化 / 百度收录」配置全局 SEO 与收录 Token；文档地址将统一为 `/doc/1.html`，旧地址会自动 301 跳转。
 
 ## 11. Apache 部署（可选）
 
@@ -281,7 +288,7 @@ location ~* ^/uploads/.*\.(php|php[0-9]?|phtml|phar)$ {
 
 压缩包内应包含：
 
-- 完整源码：`app/`、`config/`、`database/`、`route/`、`view/`、`public/`
+- 完整源码：`app/`、`config/`、`database/`、`route/`、`view/`、`public/`、`extend/`
 - 依赖：`vendor/`（含 ThinkPHP、Parsedown、think-captcha 等）
 - 本地化静态资源：`public/static/vendor/`（Tabler、WangEditor、marked、highlight.js、diff2html、turndown）
 - 安装脚本：`database/schema.sql` + `/install` 向导
