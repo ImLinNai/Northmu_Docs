@@ -121,6 +121,8 @@
         initCategoryCollapse();
         initBackTop();
         initSearchModal();
+        initContextMenu();
+        initCopyProtection();
         if (window.hljs) {
             document.querySelectorAll('[data-article-body] pre code').forEach(function (block) {
                 if (!block.classList.contains('hljs')) {
@@ -259,6 +261,8 @@
             }
         }
 
+        window.NorthmuSearch = { open: open, close: close };
+
         triggers.forEach(function (trigger) {
             trigger.addEventListener('click', function (event) {
                 event.preventDefault();
@@ -301,6 +305,235 @@
                 }
             }
         });
+    }
+
+    function showCopyHint(message, type) {
+        if (!message) return;
+        var hint = document.getElementById('nmCopyHint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'nmCopyHint';
+            hint.className = 'nm-copy-hint';
+            hint.setAttribute('role', 'status');
+            hint.setAttribute('aria-live', 'polite');
+            document.body.appendChild(hint);
+        }
+        var icons = {
+            info: 'ti-info-circle',
+            success: 'ti-circle-check',
+            warning: 'ti-alert-triangle',
+            error: 'ti-circle-x'
+        };
+        type = icons[type] ? type : 'info';
+        hint.className = 'nm-copy-hint is-' + type;
+        hint.innerHTML = '';
+        var icon = document.createElement('i');
+        icon.className = 'ti ' + icons[type];
+        var text = document.createElement('span');
+        text.textContent = message;
+        hint.appendChild(icon);
+        hint.appendChild(text);
+        void hint.offsetWidth;
+        hint.classList.add('show');
+        clearTimeout(hint._timer);
+        hint._timer = setTimeout(function () {
+            hint.classList.remove('show');
+        }, 2400);
+    }
+
+    function isCopyProtectedDoc() {
+        var article = document.querySelector('[data-article-body]');
+        return !!(article && article.getAttribute('data-copy-protected') === '1');
+    }
+
+    function selectionInside(article) {
+        var selection = window.getSelection ? window.getSelection() : null;
+        if (!selection || !selection.rangeCount) return false;
+        var node = selection.getRangeAt(0).commonAncestorContainer;
+        return article.contains(node.nodeType === 3 ? node.parentNode : node);
+    }
+
+    function initCopyProtection() {
+        var article = document.querySelector('[data-article-body][data-copy-protected="1"]');
+        if (!article) return;
+        article.classList.add('is-copy-protected');
+
+        var lastShown = 0;
+        function block(event) {
+            event.preventDefault();
+            if (event.stopPropagation) event.stopPropagation();
+            var now = Date.now();
+            if (now - lastShown > 1200) {
+                lastShown = now;
+                showCopyHint('本文档已开启复制保护，无法复制内容', 'warning');
+            }
+        }
+
+        document.addEventListener('copy', function (event) {
+            if (selectionInside(article)) block(event);
+        }, true);
+
+        document.addEventListener('cut', function (event) {
+            if (selectionInside(article) || article.contains(event.target)) block(event);
+        }, true);
+
+        document.addEventListener('dragstart', function (event) {
+            if (article.contains(event.target)) block(event);
+        }, true);
+
+        document.addEventListener('selectstart', function (event) {
+            if (article.contains(event.target)) event.preventDefault();
+        }, true);
+
+        document.addEventListener('keydown', function (event) {
+            if (!(event.ctrlKey || event.metaKey)) return;
+            var key = (event.key || '').toLowerCase();
+            if (key !== 'c' && key !== 'x' && key !== 'a') return;
+            var active = document.activeElement;
+            if (active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable)) return;
+            block(event);
+        }, true);
+    }
+
+    function initContextMenu() {
+        var meta = document.querySelector('meta[name="nm-context-menu"]');
+        var mode = meta ? meta.getAttribute('content') : 'default';
+        if (mode !== 'disabled' && mode !== 'custom') return;
+
+        if (mode === 'disabled') {
+            document.addEventListener('contextmenu', function (event) {
+                event.preventDefault();
+            });
+            return;
+        }
+
+        var menu = document.createElement('div');
+        menu.className = 'nm-context-menu';
+        menu.setAttribute('role', 'menu');
+        menu.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(menu);
+        var isOpen = false;
+
+        function close() {
+            if (!isOpen) return;
+            isOpen = false;
+            menu.classList.remove('is-open');
+            menu.setAttribute('aria-hidden', 'true');
+        }
+
+        function addItem(icon, label, action, shortcut) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'nm-context-item';
+            button.setAttribute('role', 'menuitem');
+            var glyph = document.createElement('i');
+            glyph.className = 'ti ' + icon;
+            var text = document.createElement('span');
+            text.textContent = label;
+            button.appendChild(glyph);
+            button.appendChild(text);
+            if (shortcut) {
+                var kbd = document.createElement('kbd');
+                kbd.textContent = shortcut;
+                button.appendChild(kbd);
+            }
+            button.addEventListener('click', function () {
+                close();
+                action();
+            });
+            menu.appendChild(button);
+        }
+
+        function addSeparator() {
+            var sep = document.createElement('div');
+            sep.className = 'nm-context-sep';
+            menu.appendChild(sep);
+        }
+
+        function openAt(x, y) {
+            menu.style.left = '0px';
+            menu.style.top = '0px';
+            menu.classList.add('is-open');
+            menu.setAttribute('aria-hidden', 'false');
+            isOpen = true;
+            var rect = menu.getBoundingClientRect();
+            var left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
+            var top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+        }
+
+        function build(event) {
+            menu.innerHTML = '';
+            var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+            var selection = window.getSelection ? String(window.getSelection()).trim() : '';
+            var protectedDoc = isCopyProtectedDoc();
+
+            if (link) {
+                addItem('ti-external-link', '在新标签页打开', function () {
+                    window.open(link.href, '_blank', 'noopener');
+                });
+                addItem('ti-copy', '复制链接地址', function () {
+                    copyText(link.href, function (ok) {
+                        showCopyHint(ok ? '链接已复制' : '复制失败', ok ? 'success' : 'error');
+                    });
+                });
+                addSeparator();
+            }
+
+            if (selection !== '' && !protectedDoc) {
+                addItem('ti-copy', '复制选中文字', function () {
+                    copyText(selection, function (ok) {
+                        showCopyHint(ok ? '已复制选中文字' : '复制失败', ok ? 'success' : 'error');
+                    });
+                });
+                addSeparator();
+            }
+
+            if (window.history.length > 1 || document.referrer) {
+                addItem('ti-arrow-left', '返回上一页', function () {
+                    window.history.back();
+                });
+            }
+            addItem('ti-refresh', '刷新页面', function () {
+                window.location.reload();
+            });
+            addItem('ti-copy', '复制页面链接', function () {
+                copyText(window.location.href, function (ok) {
+                    showCopyHint(ok ? '页面链接已复制' : '复制失败', ok ? 'success' : 'error');
+                });
+            });
+            addSeparator();
+            addItem('ti-search', '搜索文档', function () {
+                if (window.NorthmuSearch) window.NorthmuSearch.open();
+            }, 'Ctrl K');
+            addItem('ti-moon', '切换主题', function () {
+                if (window.NorthmuTheme) window.NorthmuTheme.toggle();
+            });
+            if (window.scrollY > 200) {
+                addItem('ti-arrow-up', '回到顶部', function () {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        }
+
+        document.addEventListener('contextmenu', function (event) {
+            if (event.defaultPrevented) return;
+            event.preventDefault();
+            build(event);
+            openAt(event.clientX, event.clientY);
+        });
+
+        document.addEventListener('mousedown', function (event) {
+            if (isOpen && !menu.contains(event.target)) close();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') close();
+        });
+
+        window.addEventListener('scroll', close, { passive: true });
+        window.addEventListener('resize', close);
     }
 
     function copyText(text, done) {
@@ -348,9 +581,20 @@
             var button = document.createElement('button');
             button.type = 'button';
             button.className = 'nm-code-copy';
-            button.setAttribute('aria-label', '复制代码');
-            button.innerHTML = '<i class="ti ti-copy"></i><span>复制</span>';
+            var protectedDoc = !!pre.closest('[data-copy-protected="1"]');
+            if (protectedDoc) {
+                button.classList.add('is-protected');
+                button.setAttribute('aria-label', '本文档禁止复制');
+                button.innerHTML = '<i class="ti ti-lock"></i><span>禁止复制</span>';
+            } else {
+                button.setAttribute('aria-label', '复制代码');
+                button.innerHTML = '<i class="ti ti-copy"></i><span>复制</span>';
+            }
             button.addEventListener('click', function () {
+                if (protectedDoc) {
+                    showCopyHint('本文档已开启复制保护，无法复制内容', 'warning');
+                    return;
+                }
                 copyText(pre.innerText, function (ok) {
                     button.classList.toggle('is-copied', ok);
                     button.innerHTML = ok
@@ -409,7 +653,7 @@
             if (!target) return;
             var stored = null;
             try { stored = localStorage.getItem('northmu-cat-' + id); } catch (e) { }
-            if (stored === '0') {
+            if (stored === '0' && !target.querySelector('.active')) {
                 target.classList.add('d-none');
                 btn.classList.add('collapsed');
             }

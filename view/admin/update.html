@@ -1,0 +1,109 @@
+{include file="common/header" /}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-cloud-download me-1"></i>版本检测</h3>
+                <div class="card-actions">
+                    <span class="badge bg-secondary-lt text-secondary">GitHub 优先 · Gitee 备选</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="nm-update-hero" id="nmUpdateHero">
+                    <div class="nm-update-icon" id="nmUpdateIcon"><span class="nm-update-spinner"></span></div>
+                    <div class="flex-fill min-width-0">
+                        <div class="nm-update-version" id="nmUpdateTitle">正在检测更新…</div>
+                        <div class="nm-update-meta" id="nmUpdateMeta">正在通过 GitHub 获取最新发行版，失败时自动切换 Gitee</div>
+                    </div>
+                    <span class="nm-update-source d-none" id="nmUpdateSource"></span>
+                </div>
+
+                <div class="btn-list mt-3">
+                    <button type="button" class="btn btn-outline-primary" id="nmUpdateCheck">
+                        <i class="ti ti-refresh me-1"></i>重新检测
+                    </button>
+                    <a class="btn btn-primary d-none" id="nmUpdateDownload" href="#" target="_blank" rel="noopener">
+                        <i class="ti ti-download me-1"></i>立即下载
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary d-none" id="nmUpdateSkip">
+                        <i class="ti ti-history me-1"></i>跳过此版本
+                    </button>
+                    <a class="btn btn-ghost-secondary" id="nmUpdateRelease" href="{$githubUrl}" target="_blank" rel="noopener">
+                        <i class="ti ti-external-link me-1"></i>打开发行版页面
+                    </a>
+                </div>
+
+                <div class="text-secondary small mt-3" id="nmUpdateHint">
+                    稍候片刻，检测结果会自动展示在这里。
+                </div>
+            </div>
+            <div class="card-footer text-secondary small">
+                检测顺序：先请求 GitHub Releases API，响应缓慢或失败时自动切换 Gitee；成功结果缓存 10 分钟，点击「重新检测」可立即刷新。
+            </div>
+        </div>
+
+        <div class="card mt-3 d-none" id="nmUpdateNotesCard">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-file-text me-1"></i>发行版说明</h3>
+                <div class="card-actions">
+                    <span class="text-secondary small" id="nmUpdateNotesVersion"></span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="nm-update-notes" id="nmUpdateNotes"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-info-circle me-1"></i>当前状态</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <span class="text-secondary">当前版本</span>
+                    <span class="fw-semibold font-monospace">v{$currentVersion}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <span class="text-secondary">已跳过版本</span>
+                    <span class="fw-semibold font-monospace" id="nmSkippedVersion">{$skippedVersion ?: '无'}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <span class="text-secondary">下载方式</span>
+                    <span class="fw-semibold">发行版直链</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-bulb me-1"></i>说明</h3>
+            </div>
+            <div class="card-body text-secondary small">
+                <ul class="mb-0 ps-3">
+                    <li>「立即下载」直接获取发行版附件，不在服务器中转。</li>
+                    <li>「跳过此版本」仅忽略当前最新版，后续版本仍会正常提示。</li>
+                    <li>升级前请备份数据库与 <code>public/uploads/</code>，并按发行版说明执行数据库升级脚本。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-route me-1"></i>发行版主页</h3>
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a class="btn btn-outline-secondary btn-sm" href="{$githubUrl}" target="_blank" rel="noopener">
+                    <i class="ti ti-git-compare me-1"></i>GitHub Releases
+                </a>
+                <a class="btn btn-outline-secondary btn-sm" href="{$giteeUrl}" target="_blank" rel="noopener">
+                    <i class="ti ti-git-merge me-1"></i>Gitee Releases
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{include file="common/footer" /}

@@ -28,6 +28,7 @@ class Settings extends Base
             'baidu_common_push'   => '1',
             'baidu_quick_push'    => '0',
             'baidu_token'         => '',
+            'context_menu_mode'   => 'default',
             'captcha_on'          => '1',
             'login_fail_limit'    => '5',
             'login_lock_minutes'  => '10',
@@ -76,6 +77,10 @@ class Settings extends Base
         $baiduCommon = (int) $this->request->post('baidu_common_push', 0) === 1 ? '1' : '0';
         $baiduQuick = (int) $this->request->post('baidu_quick_push', 0) === 1 ? '1' : '0';
         $baiduToken = trim((string) $this->request->post('baidu_token', ''));
+        $contextMenuMode = (string) $this->request->post('context_menu_mode', 'default');
+        if (!in_array($contextMenuMode, ['default', 'disabled', 'custom'], true)) {
+            $contextMenuMode = 'default';
+        }
         $captchaOn = (int) $this->request->post('captcha_on', 0) === 1 ? '1' : '0';
         $failLimit = (int) $this->request->post('login_fail_limit', 5);
         $lockMinutes = (int) $this->request->post('login_lock_minutes', 10);
@@ -190,6 +195,7 @@ class Settings extends Base
             'baidu_common_push'   => $baiduCommon,
             'baidu_quick_push'    => $baiduQuick,
             'baidu_token'         => $baiduToken,
+            'context_menu_mode'   => $contextMenuMode,
             'captcha_on'          => $captchaOn,
             'login_fail_limit'    => (string) $failLimit,
             'login_lock_minutes'  => (string) $lockMinutes,
@@ -215,7 +221,7 @@ class Settings extends Base
             $this->deleteLogo($oldLogo);
         }
 
-        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/上传设置/登录安全）');
+        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/上传设置/登录安全）');
         admin_flash('系统设置已保存');
         return redirect('/admin/settings');
     }

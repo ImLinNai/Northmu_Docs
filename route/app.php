@@ -88,4 +88,9 @@ Route::group('admin', function () {
     Route::get('backup', 'admin.Backup/index');
     Route::post('backup/create', 'admin.Backup/create');
     Route::get('backup/download', 'admin.Backup/download');
+
+    // 检测更新
+    Route::get('update', 'admin.Update/index');
+    Route::get('update/check', 'admin.Update/check');
+    Route::post('update/skip', 'admin.Update/skip');
 })->middleware(\app\middleware\AdminAuth::class);

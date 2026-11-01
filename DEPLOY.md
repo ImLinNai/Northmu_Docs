@@ -246,6 +246,13 @@ location ~* ^/uploads/.*\.(php|php[0-9]?|phtml|phar)$ {
    ```
 
    随后覆盖程序文件（包含新增的 `extend/certs/` 目录），保留 `data/` 与 `public/uploads/`，清理 `runtime/cache/*`。升级后可在「系统设置 → SEO 优化 / 百度收录」配置全局 SEO 与收录 Token；文档地址将统一为 `/doc/1.html`，旧地址会自动 301 跳转。
+9. v1.4.3 需要执行数据库升级脚本（新增文档禁止复制字段）：
+
+   ```bash
+   mysql -u数据库用户 -p 数据库名 < database/upgrade_v1.4.3.sql
+   ```
+
+   随后覆盖程序文件，保留 `data/` 与 `public/uploads/`，清理 `runtime/cache/*`。升级后可在「系统设置 → 前台交互」选择右键菜单模式，在文档编辑页「发布设置」中按文档开启禁止复制；后台「检测更新」可检查 GitHub / Gitee 发行版。
 
 ## 11. Apache 部署（可选）
 

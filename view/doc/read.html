@@ -53,7 +53,7 @@
 
                 <hr class="doc-divider">
 
-                <div class="article-body" data-article-body>{$contentHtml|raw}</div>
+                <div class="article-body{if !empty($doc.copy_protected)} is-copy-protected{/if}" data-article-body data-copy-protected="{$doc.copy_protected|default='0'}">{$contentHtml|raw}</div>
 
                 <div class="doc-article-footer">
                     <a href="/docs?cat={$doc.category_id}" class="btn btn-outline-secondary btn-sm">

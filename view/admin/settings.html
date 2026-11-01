@@ -142,6 +142,30 @@
                     </div>
                 </div>
             </div>
+            <div class="card-header border-top" id="frontInteraction">
+                <h3 class="card-title"><i class="ti ti-layout-navbar me-1"></i>前台交互</h3>
+                <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="contextMenuMode">右键菜单</label>
+                        <select class="form-select" id="contextMenuMode" name="context_menu_mode">
+                            <option value="default" {if $settings.context_menu_mode == 'default'}selected{/if}>默认（浏览器右键菜单）</option>
+                            <option value="disabled" {if $settings.context_menu_mode == 'disabled'}selected{/if}>禁止右键菜单</option>
+                            <option value="custom" {if $settings.context_menu_mode == 'custom'}selected{/if}>新版右键菜单（替换浏览器菜单）</option>
+                        </select>
+                        <div class="form-hint">新版菜单提供返回、刷新、复制链接、复制选中文字、搜索文档、切换主题与回到顶部等快捷操作，不会展示浏览器默认菜单。</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">禁止复制</label>
+                        <div class="form-hint mb-2">按文档独立控制，在文档编辑页「发布设置」中开启；开启后将拦截 Ctrl+C、右键复制与拖拽选取，并显示提示。</div>
+                        <div class="alert alert-info py-2 px-3 small mb-0">
+                            <i class="ti ti-shield-lock me-1"></i>禁止复制仅对访客端生效，管理员后台不受影响。
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card-header border-top">
                 <h3 class="card-title"><i class="ti ti-upload me-1"></i>上传设置</h3>
                 <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全局生效</span></div>

@@ -5,6 +5,14 @@ use think\facade\Db;
 use think\facade\Session;
 
 /**
+ * 当前程序版本
+ */
+function app_version(): string
+{
+    return '1.4.3';
+}
+
+/**
  * Redis 配置（data/redis.php），未安装或未启用时返回默认配置
  */
 function redis_config(): array
@@ -365,6 +373,15 @@ function site_front_config(): array
         'navStyle'   => in_array($navStyle, ['top', 'floating'], true) ? $navStyle : 'top',
         'navLogin'   => (string) sys_setting('site_nav_login', '1') === '1',
     ];
+}
+
+/**
+ * 前台右键菜单模式：默认 / 禁止 / 新版菜单
+ */
+function site_context_menu_mode(): string
+{
+    $mode = (string) sys_setting('context_menu_mode', 'default');
+    return in_array($mode, ['default', 'disabled', 'custom'], true) ? $mode : 'default';
 }
 
 /**
@@ -966,7 +983,7 @@ function baidu_submit_urls(array $urls, string $type = 'common'): array
             CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_TIMEOUT        => 10,
             CURLOPT_HTTPHEADER     => ['Content-Type: text/plain; charset=utf-8'],
-            CURLOPT_USERAGENT      => 'NorthmuDocs/1.4.2',
+            CURLOPT_USERAGENT      => 'NorthmuDocs/' . app_version(),
             CURLOPT_SSL_VERIFYPEER => true,
             // 百度 data.zz.baidu.com 证书仅覆盖 *.baidu.com，无法通过主机名校验；官方接口使用 http，这里保留 TLS 加密与证书链校验。
             CURLOPT_SSL_VERIFYHOST => 0,
@@ -986,7 +1003,7 @@ function baidu_submit_urls(array $urls, string $type = 'common'): array
         $context = stream_context_create([
             'http' => [
                 'method'        => 'POST',
-                'header'        => "Content-Type: text/plain; charset=utf-8\r\nUser-Agent: NorthmuDocs/1.4.2",
+                'header'        => "Content-Type: text/plain; charset=utf-8\r\nUser-Agent: NorthmuDocs/" . app_version(),
                 'content'       => $payload,
                 'timeout'       => 10,
                 'ignore_errors' => true,
@@ -1676,24 +1693,27 @@ function document_excerpt(array $doc): string
 /**
  * 渲染公开分类树（无限级，仅传入已过滤的公开分类）
  */
-function render_category_tree(array $tree, int $activeId = 0): string
+function render_category_tree(array $tree, int $activeId = 0, array $docsByCategory = [], int $activeDocId = 0): string
 {
     if (!$tree) {
         return '';
     }
-    return '<ul class="cat-tree list-unstyled mb-0">' . render_category_nodes($tree, $activeId) . '</ul>';
+    return '<ul class="cat-tree list-unstyled mb-0">'
+        . render_category_nodes($tree, $activeId, $docsByCategory, $activeDocId) . '</ul>';
 }
 
-function render_category_nodes(array $nodes, int $activeId): string
+function render_category_nodes(array $nodes, int $activeId, array $docsByCategory = [], int $activeDocId = 0): string
 {
     $html = '';
     foreach ($nodes as $node) {
         $id = (int) $node['id'];
         $hasChildren = !empty($node['children']);
+        $docs = $docsByCategory[$id] ?? [];
+        $hasDocs = !empty($docs);
         $isActive = $id === $activeId;
         $html .= '<li class="cat-item">';
         $html .= '<div class="cat-row' . ($isActive ? ' active' : '') . '">';
-        if ($hasChildren) {
+        if ($hasChildren || $hasDocs) {
             $html .= '<button type="button" class="cat-toggle" data-cat-toggle="' . $id . '" aria-label="展开或折叠分类"><i class="ti ti-chevron-down"></i></button>';
         } else {
             $html .= '<span class="cat-toggle cat-toggle-empty"></span>';
@@ -1703,11 +1723,27 @@ function render_category_nodes(array $nodes, int $activeId): string
         $html .= '<a class="cat-link' . ($isActive ? ' active' : '') . '" href="/docs?cat=' . $id . '">'
             . '<i class="ti ti-folder"></i><span class="text-truncate">' . e($node['name']) . '</span>' . $lock . '</a>';
         $html .= '</div>';
-        if ($hasChildren) {
+        if ($hasDocs || $hasChildren) {
             $html .= '<ul class="cat-children list-unstyled" id="cat-children-' . $id . '">'
-                . render_category_nodes($node['children'], $activeId) . '</ul>';
+                . render_category_documents($docs, $activeDocId)
+                . ($hasChildren ? render_category_nodes($node['children'], $activeId, $docsByCategory, $activeDocId) : '')
+                . '</ul>';
         }
         $html .= '</li>';
+    }
+    return $html;
+}
+
+function render_category_documents(array $docs, int $activeDocId = 0): string
+{
+    $html = '';
+    foreach ($docs as $doc) {
+        $id = (int) $doc['id'];
+        $isActive = $id === $activeDocId;
+        $lock = !empty($doc['is_encrypted']) ? '<i class="ti ti-lock cat-lock" title="加密文档"></i>' : '';
+        $html .= '<li class="cat-doc-item"><a class="cat-doc-link' . ($isActive ? ' active' : '') . '" href="/doc/' . $id . '.html"'
+            . ($isActive ? ' aria-current="page"' : '') . '>'
+            . '<i class="ti ti-file-text"></i><span>' . e((string) $doc['title']) . '</span>' . $lock . '</a></li>';
     }
     return $html;
 }

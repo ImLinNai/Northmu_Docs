@@ -3913,10 +3913,6 @@ body.nm-search-open {
     box-shadow: inset 0 -1px 0 0 var(--tblr-border-color);
 }
 
-.nm-admin-topbar-toggle {
-    margin-right: .25rem;
-}
-
 @media (min-width: 992px) {
     html.nm-admin-sidebar-collapsed .page > .navbar-vertical.nm-admin-sidebar {
         width: 4.75rem;
@@ -3960,5 +3956,364 @@ body.nm-search-open {
 
     html.nm-admin-sidebar-collapsed .nm-admin-collapse-btn {
         padding: .5rem 0;
+    }
+}
+
+
+/* ============================================================
+   v1.4.3 界面修复与新功能
+   ============================================================ */
+
+/* 全站隐藏滚动条但保留滚动能力 */
+html,
+body,
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}
+
+/* 后台内容区域填满可用宽度，避免折叠侧栏后两侧留白 */
+.nm-admin-page .nm-admin-topbar .container-xl,
+.nm-admin-page .page-header .container-xl,
+.nm-admin-page .page-body > .container-xl,
+.nm-admin-page .footer .container-xl {
+    max-width: none;
+}
+
+/* 目录隐藏后正文靠左，不再随剩余宽度居中 */
+.doc-shell.no-toc .doc-main {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* 左侧分类树中的文档链接 */
+.cat-doc-list {
+    margin: 0;
+    padding: .1rem 0 .3rem;
+}
+
+.cat-doc-list-root {
+    margin-bottom: .35rem;
+    padding-left: 1.9rem;
+}
+
+.cat-doc-item {
+    list-style: none;
+}
+
+.cat-doc-link {
+    display: flex;
+    align-items: center;
+    gap: .42rem;
+    min-width: 0;
+    padding: .32rem .5rem;
+    border-radius: .45rem;
+    color: var(--tblr-secondary);
+    font-size: .8rem;
+    line-height: 1.4;
+    text-decoration: none;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.cat-doc-link > i {
+    flex: 0 0 auto;
+    font-size: .9rem;
+    color: var(--tblr-secondary);
+}
+
+.cat-doc-link > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cat-doc-link:hover {
+    background: var(--tblr-bg-surface-secondary);
+    color: var(--tblr-primary);
+}
+
+.cat-doc-link:hover > i {
+    color: var(--tblr-primary);
+}
+
+.cat-doc-link.active {
+    background: var(--tblr-primary-lt);
+    color: var(--tblr-primary);
+    font-weight: 600;
+}
+
+.cat-doc-link.active > i {
+    color: var(--tblr-primary);
+}
+
+.cat-doc-link .cat-lock {
+    margin-left: auto;
+    font-size: .78rem;
+    opacity: .75;
+}
+
+/* 文档禁止复制 */
+.article-body.is-copy-protected {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.article-body.is-copy-protected img {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+.nm-code-copy.is-protected {
+    color: var(--tblr-secondary);
+    cursor: not-allowed;
+}
+
+.nm-copy-hint {
+    position: fixed;
+    left: 50%;
+    bottom: 2rem;
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    max-width: min(92vw, 460px);
+    padding: .6rem 1rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 999px;
+    background: var(--tblr-bg-surface);
+    color: var(--tblr-body-color);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .18);
+    font-size: .82rem;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translate(-50%, 8px);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.nm-copy-hint.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.nm-copy-hint i {
+    flex: 0 0 auto;
+    color: var(--tblr-primary);
+    font-size: 1rem;
+}
+
+.nm-copy-hint.is-warning i {
+    color: #f59f00;
+}
+
+.nm-copy-hint.is-error i {
+    color: #d63939;
+}
+
+/* 新版右键菜单 */
+.nm-context-menu {
+    position: fixed;
+    z-index: 1400;
+    min-width: 216px;
+    padding: .35rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .7rem;
+    background: var(--tblr-bg-surface);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, .2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px) scale(.98);
+    transform-origin: top left;
+    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+}
+
+.nm-context-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.nm-context-item {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    width: 100%;
+    padding: .46rem .55rem;
+    border: 0;
+    border-radius: .45rem;
+    background: transparent;
+    color: var(--tblr-body-color);
+    font-size: .82rem;
+    line-height: 1.35;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.nm-context-item:hover,
+.nm-context-item:focus-visible {
+    background: var(--tblr-bg-surface-secondary);
+    outline: none;
+}
+
+.nm-context-item > i {
+    width: 1rem;
+    flex: 0 0 auto;
+    color: var(--tblr-secondary);
+    font-size: .95rem;
+    text-align: center;
+}
+
+.nm-context-item:hover > i {
+    color: var(--tblr-primary);
+}
+
+.nm-context-item kbd {
+    margin-left: auto;
+    padding: 0 .3rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .28rem;
+    background: var(--tblr-bg-surface-secondary);
+    color: var(--tblr-secondary);
+    font-family: inherit;
+    font-size: .64rem;
+}
+
+.nm-context-sep {
+    height: 1px;
+    margin: .3rem .35rem;
+    background: var(--tblr-border-color);
+}
+
+/* 检测更新 */
+.nm-update-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .8rem;
+    background: var(--tblr-bg-surface-secondary);
+}
+
+.nm-update-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    flex: 0 0 auto;
+    border-radius: .8rem;
+    background: var(--tblr-primary-lt);
+    color: var(--tblr-primary);
+    font-size: 1.5rem;
+}
+
+.nm-update-hero.is-latest .nm-update-icon {
+    background: rgba(47, 179, 68, .12);
+    color: #2fb344;
+}
+
+.nm-update-hero.is-skipped .nm-update-icon {
+    background: rgba(245, 159, 0, .14);
+    color: #f59f00;
+}
+
+.nm-update-hero.is-error .nm-update-icon {
+    background: rgba(214, 57, 57, .12);
+    color: #d63939;
+}
+
+.nm-update-version {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.nm-update-meta {
+    margin-top: .2rem;
+    color: var(--tblr-secondary);
+    font-size: .78rem;
+}
+
+.nm-update-notes {
+    max-height: 320px;
+    overflow: auto;
+    padding: .9rem 1rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .65rem;
+    background: var(--tblr-bg-surface);
+    color: var(--tblr-body-color);
+    font-size: .82rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.nm-update-notes-heading {
+    margin: .55rem 0 .2rem;
+    font-weight: 700;
+}
+
+.nm-update-notes-heading:first-child {
+    margin-top: 0;
+}
+
+.nm-update-notes-item {
+    padding-left: 1rem;
+    text-indent: -1rem;
+}
+
+.nm-update-notes-gap {
+    height: .35rem;
+}
+
+.nm-update-source {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .12rem .45rem;
+    border-radius: 999px;
+    background: var(--tblr-bg-surface);
+    border: 1px solid var(--tblr-border-color);
+    color: var(--tblr-secondary);
+    font-size: .68rem;
+}
+
+.nm-update-spinner {
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid var(--tblr-border-color);
+    border-top-color: var(--tblr-primary);
+    border-radius: 50%;
+    animation: nm-update-spin .8s linear infinite;
+}
+
+@keyframes nm-update-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 767.98px) {
+    .nm-context-menu {
+        min-width: 200px;
+    }
+
+    .nm-update-hero {
+        align-items: flex-start;
+    }
+
+    .nm-update-hero .btn-list {
+        width: 100%;
+    }
+
+    .nm-copy-hint {
+        bottom: 1.2rem;
     }
 }

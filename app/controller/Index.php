@@ -39,6 +39,7 @@ class Index extends BaseController
             'siteBrandImage' => $front['brandImage'],
             'siteNavStyle'   => $front['navStyle'],
             'siteNavLogin'   => $front['navLogin'],
+            'contextMenuMode'=> site_context_menu_mode(),
             'themeColor'  => site_theme_color(),
             'home'        => $home,
             'homeButtons' => $home['buttons'],

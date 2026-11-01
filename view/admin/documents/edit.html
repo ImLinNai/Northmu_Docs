@@ -136,6 +136,13 @@
                         </label>
                         <div class="form-hint">关闭后该文档阅读页不显示右侧目录，可在阅读页手动展开。</div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="copy_protected" value="1" id="docCopyProtected" {if !empty($doc.copy_protected)}checked{/if}>
+                            <span class="form-check-label">禁止复制正文</span>
+                        </label>
+                        <div class="form-hint">开启后访客无法选中、复制或拖拽正文，Ctrl+C 等复制快捷键会被拦截并提示；代码块的复制按钮同时禁用。</div>
+                    </div>
                     <div>
                         <label class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" name="is_top" value="1" id="docTop" {if $doc.is_top == 1}checked{/if}>

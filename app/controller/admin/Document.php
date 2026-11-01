@@ -90,6 +90,7 @@ class Document extends Base
             'seo_description' => '',
             'baidu_push'      => null,
             'show_toc'        => 1,
+            'copy_protected'  => 0,
             'is_top'          => 0,
             'top_at'          => null,
             'published_at'    => null,
@@ -272,6 +273,7 @@ class Document extends Base
         $seoKeywords = seo_clean_keywords((string) $this->request->post('seo_keywords', ''));
         $seoDescription = seo_clean_text((string) $this->request->post('seo_description', ''), 500);
         $showToc = (int) $this->request->post('show_toc', 0) === 1 ? 1 : 0;
+        $copyProtected = (int) $this->request->post('copy_protected', 0) === 1 ? 1 : 0;
         $isTop = (int) $this->request->post('is_top', 0) === 1 ? 1 : 0;
         $tagIds = (array) $this->request->post('tag_ids/a', []);
         $after = (string) $this->request->post('after', 'edit');
@@ -315,6 +317,7 @@ class Document extends Base
             'seo_keywords'    => mb_substr($seoKeywords, 0, 255),
             'seo_description' => mb_substr($seoDescription, 0, 500),
             'show_toc'        => $showToc,
+            'copy_protected'  => $copyProtected,
             'is_top'          => $isTop,
             'updated_at'      => $now,
         ];

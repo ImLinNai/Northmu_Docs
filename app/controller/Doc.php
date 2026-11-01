@@ -86,11 +86,14 @@ class Doc extends BaseController
         ]);
 
         $view = $this->baseViewData($catName, 'docs');
+        $docMap = $this->documentTreeMap($publicCategories, $allCategories);
         $view += [
             'mode'          => 'list',
             'isSearch'      => false,
             'docs'          => $docs,
-            'catTreeHtml'   => render_category_tree($tree, $catId),
+            'catTreeHtml'   => render_category_tree($tree, $catId, $docMap, 0),
+            'uncategorizedDocs' => $docMap[0] ?? [],
+            'activeDocId'   => 0,
             'activeCat'     => $catId,
             'allActive'     => $catId === 0,
             'searchKeyword' => '',
@@ -158,11 +161,14 @@ class Doc extends BaseController
         $this->decorateDocs($docs, $allCategories);
 
         $view = $this->baseViewData('搜索：' . $keyword, 'docs');
+        $docMap = $this->documentTreeMap($publicCategories, $allCategories);
         $view += [
             'mode'          => 'list',
             'isSearch'      => true,
             'docs'          => $docs,
-            'catTreeHtml'   => render_category_tree($tree, 0),
+            'catTreeHtml'   => render_category_tree($tree, 0, $docMap, 0),
+            'uncategorizedDocs' => $docMap[0] ?? [],
+            'activeDocId'   => 0,
             'activeCat'     => 0,
             'allActive'     => false,
             'searchKeyword' => $keyword,
@@ -234,11 +240,14 @@ class Doc extends BaseController
         $view['extraHead'] = '<link id="hljs-light" rel="stylesheet" href="/static/vendor/highlight/styles/github.min.css">'
             . '<link id="hljs-dark" rel="stylesheet" href="/static/vendor/highlight/styles/github-dark.min.css" disabled>';
         $view['extraScripts'] = '<script src="/static/vendor/highlight/highlight.min.js"></script>';
+        $docMap = $this->documentTreeMap($publicCategories, $allCategories);
         $view += [
             'mode'          => 'read',
             'doc'           => $doc,
             'contentHtml'   => $contentHtml,
-            'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id']),
+            'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),
+            'uncategorizedDocs' => $docMap[0] ?? [],
+            'activeDocId'   => (int) $doc['id'],
             'catPath'       => $catPath,
             'activeCat'     => (int) $doc['category_id'],
             'allActive'     => false,
@@ -300,6 +309,7 @@ class Doc extends BaseController
         }
         $publicCategories = $this->publicCategories($allCategories);
         $tree = build_tree($publicCategories);
+        $docMap = $this->documentTreeMap($publicCategories, $allCategories);
         $view = $this->baseViewData('输入密码 - ' . $doc['title'], 'docs');
         $view += [
             'doc'           => $doc,
@@ -308,7 +318,9 @@ class Doc extends BaseController
             'publishedText' => !empty($doc['published_at']) ? date('Y-m-d', strtotime((string) $doc['published_at'])) : '-',
             'error'         => $error,
             'unlockId'      => (int) $doc['id'],
-            'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id']),
+            'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),
+            'uncategorizedDocs' => $docMap[0] ?? [],
+            'activeDocId'   => (int) $doc['id'],
             'activeCat'     => (int) $doc['category_id'],
             'allActive'     => false,
             'searchKeyword' => '',
@@ -323,6 +335,42 @@ class Doc extends BaseController
             'type'        => 'article',
         ]));
         return view('doc/unlock', $view);
+    }
+
+    protected function documentTreeMap(array $publicCategories, array $allCategories): array
+    {
+        $rows = cache_remember('docs:tree-links', cache_ttl(), function () {
+            return Db::name('documents')
+                ->whereNull('deleted_at')
+                ->where('status', 1)
+                ->field('id,title,category_id,visibility,password_hash,is_top,published_at')
+                ->order('is_top', 'desc')
+                ->order('top_at', 'desc')
+                ->order('published_at', 'desc')
+                ->order('id', 'desc')
+                ->select()
+                ->toArray();
+        });
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $publicIds = array_flip(array_map('intval', array_column($publicCategories, 'id')));
+        $map = [];
+        foreach ($rows as $row) {
+            $categoryId = (int) $row['category_id'];
+            if ($categoryId !== 0 && !isset($publicIds[$categoryId])) {
+                continue;
+            }
+            $access = document_access($row, $allCategories);
+            if ($access['visibility'] === 'private') {
+                continue;
+            }
+            $row['is_encrypted'] = $access['visibility'] === 'encrypted';
+            unset($row['password_hash']);
+            $map[$categoryId][] = $row;
+        }
+        return $map;
     }
 
     protected function allCategories(): array
@@ -447,6 +495,7 @@ class Doc extends BaseController
             'siteBrandImage' => $front['brandImage'],
             'siteNavStyle'   => $front['navStyle'],
             'siteNavLogin'   => $front['navLogin'],
+            'contextMenuMode'=> site_context_menu_mode(),
             'themeColor'  => site_theme_color(),
             'adminLogged' => admin_logged_in(),
             'adminProfile'=> admin_logged_in() ? admin_profile() : null,

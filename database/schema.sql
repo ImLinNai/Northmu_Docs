@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `seo_description` varchar(500) NOT NULL DEFAULT '',
   `baidu_push` text,
   `show_toc` tinyint(1) NOT NULL DEFAULT '1',
+  `copy_protected` tinyint(1) NOT NULL DEFAULT '0',
   `is_top` tinyint(1) NOT NULL DEFAULT '0',
   `top_at` datetime DEFAULT NULL,
   `views` int unsigned NOT NULL DEFAULT '0',

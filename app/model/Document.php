@@ -9,6 +9,7 @@ class Document extends BaseModel
     protected $type = [
         'status'    => 'integer',
         'show_toc'  => 'integer',
+        'copy_protected' => 'integer',
         'is_top'    => 'integer',
         'views'     => 'integer',
     ];
