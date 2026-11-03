@@ -60,7 +60,7 @@
     <link rel="stylesheet" href="/static/css/app.css">
     {$extraHead|raw}
 </head>
-<body>
+<body class="nm-front{if !empty($immersiveNav)} nm-immersive-nav{/if}">
 <div class="nm-boot" id="nmBoot" aria-hidden="true">
     <div class="nm-boot-panel">
         <div class="nm-skeleton nm-skeleton-brand"></div>
@@ -70,7 +70,7 @@
 </div>
 <div class="nm-loading-bar" id="nmLoadingBar"></div>
 <div class="page">
-    <header class="navbar navbar-expand-md d-print-none front-nav{if $siteNavStyle == 'floating'} is-floating{/if}">
+    <header class="navbar navbar-expand-md d-print-none front-nav{if $siteNavStyle == 'floating'} is-floating{/if}{if !empty($immersiveNav)} is-immersive{/if}">
         <div class="container-xl">
             <a class="navbar-brand navbar-brand-autodark d-flex align-items-center gap-2" href="/">
                 {if $siteBrandMode == 'image' && $siteBrandImage}

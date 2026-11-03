@@ -43,6 +43,7 @@ class Index extends BaseController
             'themeColor'  => site_theme_color(),
             'home'        => $home,
             'homeButtons' => $home['buttons'],
+            'immersiveNav' => $home['bgType'] !== 'none',
             'adminLogged' => admin_logged_in(),
             'adminProfile'=> admin_logged_in() ? admin_profile() : null,
             'author'      => site_author(),

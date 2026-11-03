@@ -9,7 +9,7 @@ use think\facade\Session;
  */
 function app_version(): string
 {
-    return '1.4.4';
+    return '1.4.5';
 }
 
 /**
@@ -1720,7 +1720,7 @@ function render_category_nodes(array $nodes, int $activeId, array $docsByCategor
         }
         $visibility = (string) ($node['effective_visibility'] ?? $node['visibility'] ?? 'public');
         $lock = $visibility === 'encrypted' ? '<i class="ti ti-lock cat-lock" title="加密分类"></i>' : '';
-        $html .= '<a class="cat-link' . ($isActive ? ' active' : '') . '" href="/docs?cat=' . $id . '">'
+        $html .= '<a class="cat-link' . ($isActive ? ' active' : '') . '" href="/docs?cat=' . $id . '" title="' . e($node['name']) . '">'
             . '<i class="ti ti-folder"></i><span class="text-truncate">' . e($node['name']) . '</span>' . $lock . '</a>';
         $html .= '</div>';
         if ($hasDocs || $hasChildren) {
@@ -1742,6 +1742,7 @@ function render_category_documents(array $docs, int $activeDocId = 0): string
         $isActive = $id === $activeDocId;
         $lock = !empty($doc['is_encrypted']) ? '<i class="ti ti-lock cat-lock" title="加密文档"></i>' : '';
         $html .= '<li class="cat-doc-item"><a class="cat-doc-link' . ($isActive ? ' active' : '') . '" href="/doc/' . $id . '.html"'
+            . ' title="' . e((string) $doc['title']) . '"'
             . ($isActive ? ' aria-current="page"' : '') . '>'
             . '<i class="ti ti-file-text"></i><span>' . e((string) $doc['title']) . '</span>' . $lock . '</a></li>';
     }

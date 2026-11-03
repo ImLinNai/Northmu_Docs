@@ -4456,3 +4456,362 @@ body,
         gap: .1rem;
     }
 }
+
+/* ============================================================
+   v1.4.5 前台布局优化
+   版权置底 / 内容贴边 / 侧栏折叠 / 沉浸导航 / 消除色差
+   ============================================================ */
+
+/* 前台页面占满视口，页脚与正文同色，不再出现上下色差与底部白条 */
+body.nm-front {
+    background-color: var(--tblr-bg-surface);
+}
+
+.nm-front .page {
+    min-height: 100svh;
+    border: 0;
+    border-radius: 0;
+    background: var(--tblr-bg-surface);
+}
+
+.nm-front .page > main {
+    flex: 1 1 auto;
+}
+
+.nm-front .footer {
+    background-color: transparent;
+}
+
+/* 首页：版权信息固定在屏幕底部，背景图铺满整屏 */
+.hero-wrap:not(.has-bg) {
+    padding-bottom: 7rem;
+}
+
+.hero-wrap .hero-footer {
+    bottom: 1.5rem;
+}
+
+.hero-wrap.has-bg {
+    min-height: 100svh;
+    padding-bottom: clamp(4.5rem, 9vh, 7rem);
+}
+
+body.nm-immersive-nav {
+    background-color: #0b1220;
+}
+
+/* 沉浸导航：首页设置背景后，导航栏透明覆盖在背景之上 */
+.front-nav.is-immersive {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    background: transparent;
+    background-color: transparent;
+    backdrop-filter: none;
+    border-bottom: 1px solid transparent;
+    box-shadow: none;
+    transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+.front-nav.is-immersive.is-floating {
+    top: .9rem;
+    width: min(1280px, calc(100% - 2rem));
+    margin: .9rem auto 0;
+    background: rgba(2, 6, 23, .2);
+    border-color: rgba(255, 255, 255, .16);
+    backdrop-filter: blur(10px);
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .navbar-brand,
+.front-nav.is-immersive:not(.is-scrolled) .navbar-brand .fw-bold,
+.front-nav.is-immersive:not(.is-scrolled) .nav-link:hover,
+.front-nav.is-immersive:not(.is-scrolled) .nav-link.active {
+    color: #fff;
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nav-link {
+    color: rgba(255, 255, 255, .82);
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .btn-ghost-secondary {
+    color: rgba(255, 255, 255, .86);
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .btn-ghost-secondary:hover {
+    background: rgba(255, 255, 255, .14);
+    color: #fff;
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nm-search-trigger {
+    border-color: rgba(255, 255, 255, .22);
+    background: rgba(255, 255, 255, .12);
+    color: rgba(255, 255, 255, .86);
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nm-search-trigger:hover {
+    border-color: rgba(255, 255, 255, .5);
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+    box-shadow: none;
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nm-search-trigger-kbd {
+    border-color: rgba(255, 255, 255, .28);
+    background: rgba(255, 255, 255, .16);
+    color: rgba(255, 255, 255, .9);
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nm-user-toggle {
+    border-color: rgba(255, 255, 255, .22);
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nm-user-toggle:hover {
+    border-color: rgba(255, 255, 255, .5);
+    color: #fff;
+}
+
+.front-nav.is-immersive:not(.is-scrolled) .nm-user-caret {
+    color: rgba(255, 255, 255, .72);
+}
+
+/* 滚动后恢复实色导航，保证可读性 */
+.front-nav.is-immersive.is-scrolled {
+    background: color-mix(in srgb, var(--tblr-body-bg) 88%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom-color: var(--tblr-border-color);
+}
+
+.front-nav.is-immersive.is-scrolled.is-floating {
+    background: color-mix(in srgb, var(--tblr-bg-surface) 90%, transparent);
+    border-color: var(--tblr-border-color);
+    box-shadow: 0 12px 34px rgba(15, 23, 42, .1);
+}
+
+/* 主内容填满列宽，去掉左右空洞 */
+.doc-main {
+    max-width: none;
+    padding: 2rem clamp(1.5rem, 3vw, 3.25rem) 4rem;
+}
+
+.doc-shell.no-toc .doc-main {
+    max-width: none;
+    margin: 0 auto;
+}
+
+@media (min-width: 2400px) {
+    .doc-main {
+        max-width: 1640px;
+        margin: 0 auto;
+    }
+}
+
+/* 文档分类侧栏：浅底分区 + 更清晰的层级与激活态 */
+.doc-sidebar {
+    padding: 1.15rem .8rem 1.6rem;
+    background: var(--tblr-bg-surface-secondary);
+}
+
+.doc-panel-head {
+    margin-bottom: .7rem;
+    padding: 0 .3rem;
+}
+
+.doc-panel-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: .1rem;
+}
+
+.doc-panel-collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: .45rem;
+    background: transparent;
+    color: var(--tblr-secondary);
+    font-size: .95rem;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.doc-panel-collapse:hover {
+    background: var(--tblr-bg-surface);
+    color: var(--tblr-primary);
+}
+
+.doc-panel-collapse .nm-ic-expand {
+    display: none;
+}
+
+.doc-panel-search {
+    background: var(--tblr-bg-surface);
+    margin-bottom: .85rem;
+}
+
+.doc-panel-search:hover {
+    background: var(--tblr-bg-surface);
+}
+
+.doc-cat-nav {
+    gap: .05rem;
+}
+
+.doc-cat-nav .cat-all {
+    padding: .45rem .6rem;
+    box-shadow: inset 2px 0 0 0 transparent;
+}
+
+.doc-cat-nav .cat-all:hover,
+.doc-cat-nav .cat-row:hover {
+    background: color-mix(in srgb, var(--tblr-bg-surface) 72%, transparent);
+}
+
+.doc-cat-nav .cat-all.active,
+.doc-cat-nav .cat-row.active {
+    background: var(--tblr-primary-lt);
+}
+
+.doc-cat-nav .cat-all.active {
+    box-shadow: inset 2px 0 0 0 var(--tblr-primary);
+}
+
+.doc-cat-nav .cat-link {
+    padding: .42rem .45rem .42rem 0;
+}
+
+.doc-cat-nav .cat-link.active {
+    box-shadow: none;
+}
+
+.doc-cat-nav .cat-doc-link {
+    margin: 0 .1rem;
+}
+
+.doc-cat-nav .cat-doc-link:hover {
+    background: color-mix(in srgb, var(--tblr-bg-surface) 72%, transparent);
+}
+
+.cat-tree-wrap > .cat-tree {
+    padding: .1rem 0;
+}
+
+.cat-children {
+    margin-left: .85rem;
+}
+
+.doc-panel-foot {
+    margin-top: 1.1rem;
+    padding: .8rem .3rem 0;
+    border-top: 1px solid var(--tblr-border-color);
+}
+
+/* 侧栏折叠为图标轨道（仅桌面） */
+@media (min-width: 768px) {
+    .doc-shell.sidebar-collapsed {
+        grid-template-columns: 3.6rem minmax(0, 1fr) 264px;
+    }
+
+    .doc-shell.sidebar-collapsed.no-toc,
+    .doc-shell.sidebar-collapsed.doc-shell-list,
+    .doc-shell.sidebar-collapsed.doc-shell-unlock {
+        grid-template-columns: 3.6rem minmax(0, 1fr);
+    }
+
+    .doc-shell.sidebar-collapsed .doc-sidebar {
+        padding: 1.15rem .4rem 1.5rem;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-text {
+        display: none !important;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-head {
+        justify-content: center;
+        padding: 0;
+        margin-bottom: .9rem;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-title {
+        gap: 0;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-search {
+        justify-content: center;
+        padding: .5rem 0;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-all {
+        justify-content: center;
+        width: 100%;
+        padding: .5rem 0;
+        box-shadow: none;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-all.active {
+        box-shadow: inset 0 2px 0 0 var(--tblr-primary);
+    }
+
+    .doc-shell.sidebar-collapsed .cat-row {
+        justify-content: center;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-toggle {
+        display: none;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-link {
+        flex: 0 0 auto;
+        gap: 0;
+        padding: .42rem .5rem;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-children {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-left: 0 !important;
+        margin-left: 0;
+        border-left: 0;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-doc-list-root {
+        padding-left: 0;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-doc-link {
+        justify-content: center;
+        gap: 0;
+        padding: .35rem .5rem;
+        margin: 0;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-link > span,
+    .doc-shell.sidebar-collapsed .cat-doc-link > span {
+        display: none;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-lock {
+        display: none;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-foot {
+        justify-content: center;
+        gap: 0;
+        padding: .8rem 0 0;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-collapse .nm-ic-collapse {
+        display: none;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel-collapse .nm-ic-expand {
+        display: inline-block;
+    }
+}
+

@@ -115,6 +115,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         document.body.setAttribute('data-theme', currentTheme());
         initSidebar();
+        initSidebarCollapse();
+        initImmersiveNav();
         initTocToggle();
         initToc();
         initLightbox();
@@ -641,6 +643,53 @@
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') close();
         });
+    }
+
+    function initSidebarCollapse() {
+        var shell = document.querySelector('.doc-shell');
+        var buttons = document.querySelectorAll('[data-sidebar-collapse]');
+        if (!shell || !buttons.length) return;
+        var key = 'northmu-doc-sidebar-collapsed';
+
+        function sync(collapsed) {
+            shell.classList.toggle('sidebar-collapsed', collapsed);
+            buttons.forEach(function (button) {
+                button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                button.setAttribute('title', collapsed ? '展开分类栏' : '折叠分类栏');
+                button.setAttribute('aria-label', collapsed ? '展开分类栏' : '折叠分类栏');
+            });
+        }
+
+        var stored = null;
+        try { stored = localStorage.getItem(key); } catch (e) { }
+        sync(stored === '1');
+
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var collapsed = !shell.classList.contains('sidebar-collapsed');
+                sync(collapsed);
+                try { localStorage.setItem(key, collapsed ? '1' : '0'); } catch (e) { }
+            });
+        });
+    }
+
+    function initImmersiveNav() {
+        var nav = document.querySelector('.front-nav.is-immersive');
+        if (!nav) return;
+        var ticking = false;
+
+        function update() {
+            nav.classList.toggle('is-scrolled', window.scrollY > 24);
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', function () {
+            if (!ticking) {
+                ticking = true;
+                window.requestAnimationFrame(update);
+            }
+        }, { passive: true });
+        update();
     }
 
     function initCategoryCollapse() {
