@@ -9,7 +9,7 @@ use think\facade\Session;
  */
 function app_version(): string
 {
-    return '1.4.5';
+    return '1.5.0';
 }
 
 /**
@@ -1320,9 +1320,88 @@ function e($value): string
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * 后台登录态有效时长（小时）：12 / 24 / 168（7 天）
+ */
+function admin_session_hours(): int
+{
+    $hours = (int) sys_setting('admin_session_hours', '24');
+    return in_array($hours, [12, 24, 168], true) ? $hours : 24;
+}
+
+function admin_session_lifetime(): int
+{
+    return admin_session_hours() * 3600;
+}
+
 function admin_logged_in(): bool
 {
-    return (bool) Session::get('admin_id');
+    $adminId = (int) Session::get('admin_id', 0);
+    if ($adminId <= 0) {
+        return false;
+    }
+
+    // 旧会话没有记录登录时间时补记，避免升级后立即掉线
+    $loginAt = (int) Session::get('admin_login_at', 0);
+    if ($loginAt <= 0) {
+        Session::set('admin_login_at', time());
+        Session::set('admin_lifetime', admin_session_lifetime());
+        return true;
+    }
+
+    $lifetime = (int) Session::get('admin_lifetime', 0);
+    if ($lifetime <= 0) {
+        $lifetime = admin_session_lifetime();
+        Session::set('admin_lifetime', $lifetime);
+    }
+    if (time() - $loginAt >= $lifetime) {
+        Session::delete('admin_id');
+        Session::delete('admin_username');
+        Session::delete('admin_login_at');
+        Session::delete('admin_lifetime');
+        return false;
+    }
+    return true;
+}
+
+/**
+ * 后台导航分组，侧栏与面包屑共用
+ */
+function admin_nav_groups(): array
+{
+    return [
+        ['label' => '概览', 'icon' => 'ti-layout-dashboard', 'items' => [
+            ['key' => 'dashboard', 'title' => '仪表盘', 'url' => '/admin', 'icon' => 'ti-layout-dashboard', 'desc' => '站点概况与快捷入口'],
+        ]],
+        ['label' => '内容管理', 'icon' => 'ti-article', 'items' => [
+            ['key' => 'documents', 'title' => '文档管理', 'url' => '/admin/documents', 'icon' => 'ti-file-text', 'desc' => '创建、发布与维护全部文档'],
+            ['key' => 'categories', 'title' => '分类管理', 'url' => '/admin/categories', 'icon' => 'ti-folders', 'desc' => '维护多级分类与可见性'],
+            ['key' => 'tags', 'title' => '标签管理', 'url' => '/admin/tags', 'icon' => 'ti-tags', 'desc' => '整理标签、重命名与合并'],
+            ['key' => 'attachments', 'title' => '附件管理', 'url' => '/admin/attachments', 'icon' => 'ti-paperclip', 'desc' => '查看、上传与清理附件'],
+        ]],
+        ['label' => '站点设置', 'icon' => 'ti-brush', 'items' => [
+            ['key' => 'appearance', 'title' => '前台设置', 'url' => '/admin/appearance', 'icon' => 'ti-layout-navbar', 'desc' => '品牌、导航与首页外观'],
+            ['key' => 'settings', 'title' => '系统设置', 'url' => '/admin/settings', 'icon' => 'ti-settings', 'desc' => '站点信息、SEO 与登录安全'],
+        ]],
+        ['label' => '系统工具', 'icon' => 'ti-tool', 'items' => [
+            ['key' => 'logs', 'title' => '操作日志', 'url' => '/admin/logs', 'icon' => 'ti-list-details', 'desc' => '追踪后台操作记录'],
+            ['key' => 'cache', 'title' => '缓存管理', 'url' => '/admin/cache', 'icon' => 'ti-database-cog', 'desc' => 'Redis 状态、配置与清理'],
+            ['key' => 'backup', 'title' => '数据备份', 'url' => '/admin/backup', 'icon' => 'ti-database-export', 'desc' => '导出数据库与附件'],
+            ['key' => 'update', 'title' => '检测更新', 'url' => '/admin/update', 'icon' => 'ti-cloud-download', 'desc' => '检查并获取最新版本'],
+        ]],
+    ];
+}
+
+function admin_nav_current(string $active = ''): array
+{
+    foreach (admin_nav_groups() as $group) {
+        foreach ($group['items'] as $item) {
+            if ($item['key'] === $active) {
+                return ['group' => $group['label'], 'item' => $item];
+            }
+        }
+    }
+    return ['group' => '管理后台', 'item' => ['key' => '', 'title' => '控制台', 'url' => '/admin', 'icon' => 'ti-layout-dashboard', 'desc' => '']];
 }
 
 function current_admin(): array

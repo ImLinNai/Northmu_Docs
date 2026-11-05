@@ -2,7 +2,7 @@
 
 <div class="row g-3">
     <div class="col-lg-8">
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h3 class="card-title"><i class="ti ti-cloud-download me-1"></i>版本检测</h3>
                 <div class="card-actions">
@@ -39,11 +39,11 @@
                 </div>
             </div>
             <div class="card-footer text-secondary small">
-                检测顺序：先请求 GitHub Releases API，响应缓慢或失败时自动切换 Gitee；成功结果缓存 10 分钟，点击「重新检测」可立即刷新。
+                <i class="ti ti-info-circle me-1"></i>检测顺序：先请求 GitHub Releases API，响应缓慢或失败时自动切换 Gitee；成功结果缓存 10 分钟，点击「重新检测」可立即刷新。
             </div>
         </div>
 
-        <div class="card mt-3 d-none" id="nmUpdateNotesCard">
+        <div class="card d-none" id="nmUpdateNotesCard">
             <div class="card-header">
                 <h3 class="card-title"><i class="ti ti-file-text me-1"></i>发行版说明</h3>
                 <div class="card-actions">
@@ -57,40 +57,42 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header">
                 <h3 class="card-title"><i class="ti ti-info-circle me-1"></i>当前状态</h3>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center py-1">
-                    <span class="text-secondary">当前版本</span>
-                    <span class="fw-semibold font-monospace">v{$currentVersion}</span>
+                <div class="nm-meta-list">
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">当前版本</div>
+                        <div class="nm-meta-value font-monospace">v{$currentVersion}</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">已跳过版本</div>
+                        <div class="nm-meta-value font-monospace" id="nmSkippedVersion">{$skippedVersion ?: '无'}</div>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center py-1">
-                    <span class="text-secondary">已跳过版本</span>
-                    <span class="fw-semibold font-monospace" id="nmSkippedVersion">{$skippedVersion ?: '无'}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center py-1">
-                    <span class="text-secondary">下载方式</span>
-                    <span class="fw-semibold">发行版直链</span>
+                <div class="nm-meta-item mt-2">
+                    <div class="nm-meta-label">下载方式</div>
+                    <div class="nm-meta-value">发行版直链</div>
                 </div>
             </div>
         </div>
 
-        <div class="card mt-3">
+        <div class="card mb-3">
             <div class="card-header">
-                <h3 class="card-title"><i class="ti ti-bulb me-1"></i>说明</h3>
+                <h3 class="card-title"><i class="ti ti-bulb me-1"></i>升级提示</h3>
             </div>
-            <div class="card-body text-secondary small">
-                <ul class="mb-0 ps-3">
-                    <li>「立即下载」直接获取发行版附件，不在服务器中转。</li>
-                    <li>「跳过此版本」仅忽略当前最新版，后续版本仍会正常提示。</li>
-                    <li>升级前请备份数据库与 <code>public/uploads/</code>，并按发行版说明执行数据库升级脚本。</li>
+            <div class="card-body">
+                <ul class="doc-tip-list">
+                    <li><i class="ti ti-check"></i><span>「立即下载」直接获取发行版附件，不在服务器中转。</span></li>
+                    <li><i class="ti ti-check"></i><span>「跳过此版本」仅忽略当前最新版，后续版本仍会正常提示。</span></li>
+                    <li><i class="ti ti-check"></i><span>升级前请备份数据库与 <code>public/uploads/</code>，并按发行版说明执行数据库升级脚本。</span></li>
                 </ul>
             </div>
         </div>
 
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <h3 class="card-title"><i class="ti ti-route me-1"></i>发行版主页</h3>
             </div>

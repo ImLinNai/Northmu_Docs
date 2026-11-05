@@ -1,52 +1,52 @@
 {include file="common/header" /}
 
-<div class="row g-3 mb-3">
-    <div class="col-lg-4">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">附件数量</div>
-                <div class="h3 mb-0">{$totalCount}</div>
-            </div>
+<div class="nm-stat-grid">
+    <div class="nm-stat nm-stat-sky">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">附件数量</span>
+            <span class="nm-stat-icon"><i class="ti ti-paperclip"></i></span>
         </div>
+        <div class="nm-stat-value">{$totalCount}</div>
+        <div class="nm-stat-foot">附件库中已登记的文件总数</div>
     </div>
-    <div class="col-lg-4">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">占用空间</div>
-                <div class="h3 mb-0">{$totalSize}</div>
-            </div>
+    <div class="nm-stat nm-stat-mint">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">占用空间</span>
+            <span class="nm-stat-icon"><i class="ti ti-database"></i></span>
         </div>
+        <div class="nm-stat-value">{$totalSize}</div>
+        <div class="nm-stat-foot">全部附件文件合计大小</div>
     </div>
-    <div class="col-lg-4">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">上传限制</div>
-                <div class="d-flex flex-column gap-1 mt-1">
-                    {foreach $uploadCategories as $cat}
-                    <div class="d-flex justify-content-between gap-2 small">
-                        <span>{$cat.label}</span>
-                        <span class="text-secondary text-nowrap" title="{$cat.ext}">{$cat.max_mb} MB</span>
-                    </div>
-                    {/foreach}
-                </div>
+    <div class="nm-stat nm-stat-violet">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">上传限制</span>
+            <span class="nm-stat-icon"><i class="ti ti-upload"></i></span>
+        </div>
+        <div class="nm-stat-foot mt-1">
+            {foreach $uploadCategories as $cat}
+            <div class="d-flex justify-content-between gap-2">
+                <span>{$cat.label}</span>
+                <span class="text-nowrap">{$cat.max_mb} MB</span>
             </div>
+            {/foreach}
         </div>
     </div>
 </div>
 
 <div class="card mb-3">
     <div class="card-body">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <div class="attachment-upload-icon"><i class="ti ti-cloud-upload"></i></div>
-            <div class="flex-fill min-width-0">
-                <div class="fw-semibold">上传附件</div>
-                <div class="text-secondary small">支持图片、文档、压缩包与视频；图片最大 {$uploadCategories.image.max_mb} MB、文件最大 {$uploadCategories.file.max_mb} MB、视频最大 {$uploadCategories.video.max_mb} MB。浏览器不支持拖拽时请点击按钮选择。</div>
+        <div class="nm-upload-zone" id="attachmentDropZone">
+            <span class="nm-upload-zone-icon"><i class="ti ti-cloud-upload"></i></span>
+            <div class="nm-upload-zone-body">
+                <div class="nm-upload-zone-title">上传附件</div>
+                <div class="nm-upload-zone-desc">将文件拖拽到这里，或点击右侧按钮选择。支持图片、文档、压缩包与视频；图片最大 {$uploadCategories.image.max_mb} MB、文件最大 {$uploadCategories.file.max_mb} MB、视频最大 {$uploadCategories.video.max_mb} MB。</div>
             </div>
             <input type="file" id="attachmentInput" class="d-none" multiple>
             <button type="button" class="btn btn-primary" id="attachmentUploadBtn">
                 <i class="ti ti-upload me-1"></i>选择文件上传
             </button>
-            <button type="button" class="btn btn-outline-warning" id="attachmentCleanupBtn">
+            <button type="button" class="btn btn-outline-warning" id="attachmentCleanupBtn"
+                    data-nm-tip="删除未登记或未被引用的文件">
                 <i class="ti ti-eraser me-1"></i>清理未引用文件
             </button>
         </div>
@@ -56,9 +56,15 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card nm-table-wrap">
+    <div class="card-header">
+        <h3 class="card-title"><i class="ti ti-library"></i>附件列表</h3>
+        <div class="card-actions">
+            <span class="text-secondary small">共 {$paginator->total()} 个附件</span>
+        </div>
+    </div>
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="table table-vcenter">
             <thead>
             <tr>
                 <th class="w-1">预览</th>
@@ -74,14 +80,16 @@
             <tr>
                 <td>
                     {if $item.is_image}
-                    <img src="{$item.url}" alt="{$item.original_name}" class="attachment-thumb" loading="lazy">
+                    <a href="{$item.url}" target="_blank" rel="noopener">
+                        <img src="{$item.url}" alt="{$item.original_name}" class="nm-attachment-thumb" loading="lazy">
+                    </a>
                     {else}
-                    <span class="attachment-file-icon"><i class="ti ti-file"></i></span>
+                    <span class="nm-attachment-file"><i class="ti ti-file"></i></span>
                     {/if}
                 </td>
                 <td>
-                    <div class="fw-medium text-truncate" style="max-width:360px" title="{$item.original_name}">{$item.original_name}</div>
-                    <div class="text-secondary small font-monospace text-truncate" style="max-width:360px">{$item.url}</div>
+                    <div class="nm-attachment-name nm-cell-title" title="{$item.original_name}">{$item.original_name}</div>
+                    <div class="nm-cell-sub nm-mono text-truncate" style="max-width:26rem">{$item.url}</div>
                 </td>
                 <td class="text-secondary text-nowrap">{$item.size_text}</td>
                 <td>
@@ -93,11 +101,14 @@
                 </td>
                 <td class="text-secondary small text-nowrap">{$item.created_at}</td>
                 <td>
-                    <div class="btn-list flex-nowrap justify-content-end">
-                        <button type="button" class="btn btn-sm btn-ghost-secondary" data-copy-url="{$item.url}" title="复制链接">
+                    <div class="nm-row-actions">
+                        <button type="button" class="btn btn-sm btn-icon btn-ghost-secondary" data-copy-url="{$item.url}" data-nm-tip="复制链接">
                             <i class="ti ti-copy"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-ghost-danger" data-delete-attachment="{$item.id}" title="删除">
+                        <a href="{$item.url}" download class="btn btn-sm btn-icon btn-ghost-secondary" data-nm-tip="下载文件">
+                            <i class="ti ti-download"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-icon btn-ghost-danger" data-delete-attachment="{$item.id}" data-nm-tip="删除附件">
                             <i class="ti ti-trash"></i>
                         </button>
                     </div>
@@ -107,9 +118,10 @@
             {empty name="items"}
             <tr>
                 <td colspan="6">
-                    <div class="text-center text-secondary py-5">
-                        <i class="ti ti-paperclip" style="font-size:2rem;opacity:.5"></i>
-                        <div class="mt-2">还没有上传任何附件。</div>
+                    <div class="nm-empty">
+                        <span class="nm-empty-icon"><i class="ti ti-paperclip"></i></span>
+                        <div class="nm-empty-title">还没有上传任何附件</div>
+                        <div class="nm-empty-desc">上传后的图片、文档与视频会出现在这里，并可在编辑器中插入引用。</div>
                     </div>
                 </td>
             </tr>

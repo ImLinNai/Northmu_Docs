@@ -69,6 +69,8 @@ class Login extends BaseController
         Session::regenerate();
         Session::set('admin_id', (int) $admin->id);
         Session::set('admin_username', (string) $admin->username);
+        Session::set('admin_login_at', time());
+        Session::set('admin_lifetime', admin_session_lifetime());
 
         $admin->save([
             'last_login_at' => date('Y-m-d H:i:s'),
@@ -84,6 +86,8 @@ class Login extends BaseController
         audit_log('auth', 'logout', '管理员退出登录');
         Session::delete('admin_id');
         Session::delete('admin_username');
+        Session::delete('admin_login_at');
+        Session::delete('admin_lifetime');
         Session::delete('csrf_token');
         return redirect('/admin/login');
     }

@@ -441,14 +441,14 @@ class Install extends BaseController
         }
 
         $lockFile = root_path('data') . 'install.lock';
-        $lock = json_encode(['installed_at' => $now, 'version' => '1.4.5'], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $lock = json_encode(['installed_at' => $now, 'version' => '1.5.0'], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         if (@file_put_contents($lockFile, $lock) === false) {
             throw new \RuntimeException('无法写入安装锁文件，请检查 data 目录权限');
         }
 
         $this->stage = 'done';
         return [
-            'version'      => '1.4.5',
+            'version'      => '1.5.0',
             'site_name'    => $siteName,
             'admin_user'   => $adminUser,
             'admin_id'     => $adminId,

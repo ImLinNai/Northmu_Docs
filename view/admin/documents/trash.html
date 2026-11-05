@@ -1,31 +1,34 @@
 {include file="common/header" /}
 
-<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-    <div class="text-secondary small">回收站中的文档可随时恢复；彻底删除后无法找回。</div>
-    <div class="btn-list ms-auto">
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title"><span class="nm-section-icon"><i class="ti ti-trash"></i></span>回收站</div>
+    <div class="nm-toolbar-meta">回收站中的文档可随时恢复；彻底删除后无法找回</div>
+    <div class="nm-toolbar-actions">
         <a href="/admin/documents" class="btn btn-outline-secondary">
             <i class="ti ti-arrow-left me-1"></i>返回文档管理
         </a>
     </div>
 </div>
 
-<form method="post" action="/admin/documents/batch" id="batchForm" data-confirm-batch="确定执行所选操作？彻底删除无法恢复。">
+<form method="post" action="/admin/documents/batch" id="batchForm"
+      data-confirm-batch="确定对所选文档执行该操作？彻底删除无法恢复。"
+      data-confirm-title="批量操作" data-confirm-ok="执行操作">
     {:csrf_field()}
-    <div class="card">
+    <div class="card nm-table-wrap">
         <div class="card-header">
             <div class="d-flex flex-wrap align-items-center gap-2 w-100">
-                <span class="text-secondary small">批量操作</span>
+                <span class="nm-toolbar-title"><i class="ti ti-checklist"></i>批量操作</span>
                 <select class="form-select form-select-sm w-auto" name="action" required>
                     <option value="">选择操作…</option>
                     <option value="restore">恢复</option>
                     <option value="purge">彻底删除</option>
                 </select>
                 <button type="submit" class="btn btn-sm btn-outline-secondary">应用到所选</button>
-                <span class="text-secondary small ms-auto">已选择 <span data-check-count>0</span> 篇</span>
+                <span class="nm-toolbar-meta ms-auto">已选择 <span data-check-count>0</span> 篇</span>
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-vcenter card-table">
+            <table class="table table-vcenter">
                 <thead>
                 <tr>
                     <th class="w-1"><input type="checkbox" class="form-check-input" data-check-all aria-label="全选"></th>
@@ -40,7 +43,7 @@
                 <tr>
                     <td><input type="checkbox" class="form-check-input" name="ids[]" value="{$doc.id}" data-check-item aria-label="选择文档"></td>
                     <td>
-                        <div class="fw-medium">{$doc.title}</div>
+                        <div class="nm-cell-title">{$doc.title}</div>
                         {if $doc.tags}
                         <div class="mt-1 d-flex flex-wrap gap-1">
                             {volist name="doc.tags" id="tag"}
@@ -52,11 +55,11 @@
                     <td class="text-secondary">{$doc.category_name}</td>
                     <td class="text-secondary small text-nowrap">{$doc.deleted_text}</td>
                     <td>
-                        <div class="btn-list flex-nowrap justify-content-end">
+                        <div class="nm-row-actions">
                             <button type="submit" form="restore-form-{$doc.id}" class="btn btn-sm btn-outline-success">
                                 <i class="ti ti-restore me-1"></i>恢复
                             </button>
-                            <button type="submit" form="purge-form-{$doc.id}" class="btn btn-sm btn-outline-danger">
+                            <button type="submit" form="purge-form-{$doc.id}" class="btn btn-sm btn-ghost-danger">
                                 <i class="ti ti-trash-x me-1"></i>彻底删除
                             </button>
                         </div>
@@ -66,9 +69,11 @@
                 {empty name="docs"}
                 <tr>
                     <td colspan="5">
-                        <div class="text-center text-secondary py-5">
-                            <i class="ti ti-trash-off" style="font-size:2rem;opacity:.5"></i>
-                            <div class="mt-2">回收站是空的。</div>
+                        <div class="nm-empty">
+                            <span class="nm-empty-icon"><i class="ti ti-trash-off"></i></span>
+                            <div class="nm-empty-title">回收站是空的</div>
+                            <div class="nm-empty-desc">移入回收站的文档会出现在这里，可以恢复或彻底删除。</div>
+                            <a href="/admin/documents" class="btn btn-outline-secondary">返回文档管理</a>
                         </div>
                     </td>
                 </tr>
@@ -90,7 +95,8 @@
     {:csrf_field()}
     <input type="hidden" name="id" value="{$doc.id}">
 </form>
-<form id="purge-form-{$doc.id}" action="/admin/documents/purge" method="post" class="d-none" data-confirm="彻底删除「{$doc.title}」后无法恢复，确定继续？">
+<form id="purge-form-{$doc.id}" action="/admin/documents/purge" method="post" class="d-none"
+      data-confirm="彻底删除「{$doc.title}」后无法恢复，确定继续？" data-confirm-tone="danger" data-confirm-title="彻底删除">
     {:csrf_field()}
     <input type="hidden" name="id" value="{$doc.id}">
 </form>

@@ -4713,18 +4713,55 @@ body.nm-immersive-nav {
 
 /* 侧栏折叠为图标轨道（仅桌面） */
 @media (min-width: 768px) {
+    .doc-shell {
+        align-items: stretch;
+        min-height: calc(100vh - 57px);
+    }
+
+    .doc-sidebar,
+    .doc-toc {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 57px);
+        max-height: calc(100vh - 57px);
+    }
+
+    .doc-panel {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-height: 100%;
+    }
+
+    .doc-cat-nav {
+        flex: 1 1 auto;
+    }
+
+    .doc-toc-nav {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .doc-panel-foot {
+        margin-top: auto;
+    }
+
     .doc-shell.sidebar-collapsed {
-        grid-template-columns: 3.6rem minmax(0, 1fr) 264px;
+        grid-template-columns: 3.9rem minmax(0, 1fr) 264px;
     }
 
     .doc-shell.sidebar-collapsed.no-toc,
     .doc-shell.sidebar-collapsed.doc-shell-list,
     .doc-shell.sidebar-collapsed.doc-shell-unlock {
-        grid-template-columns: 3.6rem minmax(0, 1fr);
+        grid-template-columns: 3.9rem minmax(0, 1fr);
     }
 
     .doc-shell.sidebar-collapsed .doc-sidebar {
-        padding: 1.15rem .4rem 1.5rem;
+        padding: 1.1rem .55rem 1.3rem;
+    }
+
+    .doc-shell.sidebar-collapsed .doc-panel {
+        min-height: 100%;
     }
 
     .doc-shell.sidebar-collapsed .doc-panel-text {
@@ -4734,7 +4771,7 @@ body.nm-immersive-nav {
     .doc-shell.sidebar-collapsed .doc-panel-head {
         justify-content: center;
         padding: 0;
-        margin-bottom: .9rem;
+        margin-bottom: .75rem;
     }
 
     .doc-shell.sidebar-collapsed .doc-panel-title {
@@ -4749,12 +4786,19 @@ body.nm-immersive-nav {
     .doc-shell.sidebar-collapsed .cat-all {
         justify-content: center;
         width: 100%;
-        padding: .5rem 0;
+        padding: .55rem 0;
+        border-radius: .55rem;
         box-shadow: none;
     }
 
     .doc-shell.sidebar-collapsed .cat-all.active {
-        box-shadow: inset 0 2px 0 0 var(--tblr-primary);
+        box-shadow: inset 2px 0 0 0 var(--tblr-primary);
+    }
+
+    .doc-shell.sidebar-collapsed .cat-tree-wrap > .cat-tree {
+        display: flex;
+        flex-direction: column;
+        gap: .15rem;
     }
 
     .doc-shell.sidebar-collapsed .cat-row {
@@ -4767,28 +4811,31 @@ body.nm-immersive-nav {
 
     .doc-shell.sidebar-collapsed .cat-link {
         flex: 0 0 auto;
-        gap: 0;
-        padding: .42rem .5rem;
-    }
-
-    .doc-shell.sidebar-collapsed .cat-children {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-left: 0 !important;
-        margin-left: 0;
-        border-left: 0;
-    }
-
-    .doc-shell.sidebar-collapsed .cat-doc-list-root {
-        padding-left: 0;
-    }
-
-    .doc-shell.sidebar-collapsed .cat-doc-link {
         justify-content: center;
         gap: 0;
-        padding: .35rem .5rem;
-        margin: 0;
+        width: 2.55rem;
+        height: 2.55rem;
+        padding: 0;
+        border-radius: .55rem;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-link i {
+        font-size: 1.05rem;
+    }
+
+    .doc-shell.sidebar-collapsed .cat-link:hover {
+        background: color-mix(in srgb, var(--tblr-bg-surface) 55%, transparent);
+    }
+
+    .doc-shell.sidebar-collapsed .cat-link:hover,
+    .doc-shell.sidebar-collapsed .cat-link.is-flyout-open {
+        background: var(--tblr-primary-lt);
+        color: var(--tblr-primary);
+    }
+
+    .doc-shell.sidebar-collapsed .cat-children,
+    .doc-shell.sidebar-collapsed .cat-doc-list-root {
+        display: none;
     }
 
     .doc-shell.sidebar-collapsed .cat-link > span,
@@ -4813,5 +4860,117 @@ body.nm-immersive-nav {
     .doc-shell.sidebar-collapsed .doc-panel-collapse .nm-ic-expand {
         display: inline-block;
     }
+}
+
+/* 折叠轨道的分类悬浮菜单 */
+.nm-cat-flyout {
+    position: fixed;
+    z-index: 1250;
+    width: max-content;
+    min-width: 220px;
+    max-width: 300px;
+    max-height: min(68vh, 540px);
+    overflow: auto;
+    padding: .45rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: .8rem;
+    background: var(--tblr-bg-surface);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, .2);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity .13s ease, transform .13s ease;
+    pointer-events: none;
+    scrollbar-width: thin;
+}
+
+.nm-cat-flyout.show {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
+.nm-cat-flyout-title {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .55rem .5rem;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--tblr-secondary);
+    text-transform: none;
+}
+
+.nm-cat-flyout-title i {
+    color: var(--tblr-primary);
+}
+
+.nm-cat-flyout .cat-tree,
+.nm-cat-flyout .cat-children {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 0;
+}
+
+.nm-cat-flyout .cat-children {
+    padding-left: .55rem;
+    margin-left: .1rem;
+    border-left: 1px solid var(--tblr-border-color);
+}
+
+.nm-cat-flyout .cat-toggle {
+    display: none;
+}
+
+.nm-cat-flyout .cat-row {
+    padding: 0;
+}
+
+.nm-cat-flyout .cat-link,
+.nm-cat-flyout .cat-doc-link {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    width: 100%;
+    height: auto;
+    padding: .42rem .55rem;
+    border-radius: .45rem;
+    box-shadow: none;
+    color: var(--tblr-body-color);
+}
+
+.nm-cat-flyout .cat-link span,
+.nm-cat-flyout .cat-doc-link span {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nm-cat-flyout .cat-doc-link {
+    font-size: .82rem;
+}
+
+.nm-cat-flyout .cat-link:hover,
+.nm-cat-flyout .cat-doc-link:hover {
+    background: var(--tblr-bg-surface-secondary);
+}
+
+.nm-cat-flyout .cat-link.active,
+.nm-cat-flyout .cat-doc-link.active {
+    background: var(--tblr-primary-lt);
+    color: var(--tblr-primary);
+}
+
+.nm-cat-flyout .cat-lock {
+    margin-left: auto;
+    font-size: .8rem;
+    color: var(--tblr-secondary);
+}
+
+.nm-cat-flyout-empty {
+    padding: .55rem;
+    font-size: .8rem;
+    color: var(--tblr-secondary);
 }
 

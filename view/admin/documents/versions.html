@@ -1,20 +1,17 @@
 {include file="common/header" /}
 
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-    <div class="text-secondary small">
-        文档「{$doc.title}」共 {$versions|count} 个历史版本。每次内容变更都会保留快照。
-    </div>
-    <div class="btn-list ms-auto">
-        <a href="/admin/documents/edit/{$doc.id}" class="btn btn-outline-secondary">
-            <i class="ti ti-edit me-1"></i>编辑文档
-        </a>
-        <a href="/admin/documents" class="btn btn-link link-secondary">返回列表</a>
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title"><span class="nm-section-icon"><i class="ti ti-history"></i></span>{$doc.title}</div>
+    <div class="nm-toolbar-meta">共 {$versions|count} 个历史版本，每次保存文档都会生成快照</div>
+    <div class="nm-toolbar-actions">
+        <a href="/admin/documents" class="btn btn-outline-secondary"><i class="ti ti-arrow-left me-1"></i>返回列表</a>
+        <a href="/admin/documents/edit/{$doc.id}" class="btn btn-primary"><i class="ti ti-pencil me-1"></i>编辑文档</a>
     </div>
 </div>
 
-<div class="card">
+<div class="card nm-table-wrap">
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="table table-vcenter">
             <thead>
             <tr>
                 <th class="w-1">版本</th>
@@ -30,9 +27,9 @@
             <tr>
                 <td><span class="badge bg-blue-lt">v{$version.version_no}</span></td>
                 <td>
-                    <div class="fw-medium">{$version.title}</div>
+                    <div class="nm-cell-title">{$version.title}</div>
                     {if $version.is_latest}
-                    <div class="text-secondary small">最新快照</div>
+                    <div class="nm-cell-sub"><i class="ti ti-point-filled text-green me-1"></i>最新快照</div>
                     {/if}
                 </td>
                 <td>
@@ -45,7 +42,7 @@
                 <td class="text-secondary">{$version.size_text}</td>
                 <td class="text-secondary small text-nowrap">{$version.created_at}</td>
                 <td>
-                    <div class="btn-list flex-nowrap justify-content-end">
+                    <div class="nm-row-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-compare-version="{$version.id}">
                             <i class="ti ti-git-compare me-1"></i>对比当前
                         </button>
@@ -59,9 +56,11 @@
             {empty name="versions"}
             <tr>
                 <td colspan="6">
-                    <div class="text-center text-secondary py-5">
-                        <i class="ti ti-history-off" style="font-size:2rem;opacity:.5"></i>
-                        <div class="mt-2">暂无历史版本，保存文档后会自动生成。</div>
+                    <div class="nm-empty">
+                        <span class="nm-empty-icon"><i class="ti ti-history-off"></i></span>
+                        <div class="nm-empty-title">暂无历史版本</div>
+                        <div class="nm-empty-desc">保存文档后会自动生成版本快照，可在此对比差异并回滚。</div>
+                        <a href="/admin/documents/edit/{$doc.id}" class="btn btn-primary"><i class="ti ti-pencil me-1"></i>编辑文档</a>
                     </div>
                 </td>
             </tr>
@@ -72,7 +71,9 @@
 </div>
 
 {volist name="versions" id="version"}
-<form id="rollback-form-{$version.id}" action="/admin/documents/rollback" method="post" class="d-none" data-confirm="确定回滚到版本 v{$version.version_no}？当前内容会被覆盖，并生成新的版本记录。">
+<form id="rollback-form-{$version.id}" action="/admin/documents/rollback" method="post" class="d-none"
+      data-confirm="确定回滚到版本 v{$version.version_no}？当前内容会被覆盖，并生成新的版本记录。"
+      data-confirm-tone="danger" data-confirm-title="回滚版本">
     {:csrf_field()}
     <input type="hidden" name="document_id" value="{$doc.id}">
     <input type="hidden" name="version_id" value="{$version.id}">
@@ -83,14 +84,14 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="diffTitle">版本对比</h5>
+                <h5 class="modal-title"><i class="ti ti-git-compare me-1"></i><span id="diffTitle">版本对比</span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
             </div>
             <div class="modal-body">
                 <div id="diffOutput" class="diff-output"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>

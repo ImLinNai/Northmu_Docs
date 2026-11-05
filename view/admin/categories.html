@@ -1,22 +1,26 @@
 {include file="common/header" /}
 
-<div class="d-flex align-items-center mb-3 gap-2 flex-wrap">
-    <div class="text-secondary small">
-        共 {$categories|count} 个分类。分类可设为公开、加密或私有，子分类会自动继承上级限制。
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title"><span class="nm-section-icon"><i class="ti ti-folders"></i></span>共 {$categories|count} 个分类</div>
+    <div class="nm-toolbar-meta">支持多级分类，子分类自动继承上级的可见性限制</div>
+    <div class="nm-toolbar-actions">
+        <a href="/admin/documents" class="btn btn-outline-secondary">
+            <i class="ti ti-file-text me-1"></i>文档管理
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#categoryDrawer" data-category-new>
+            <i class="ti ti-plus me-1"></i>新建分类
+        </button>
     </div>
-    <button type="button" class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#categoryModal" data-category-new>
-        <i class="ti ti-plus me-1"></i>新建分类
-    </button>
 </div>
 
-<div class="card">
+<div class="card nm-table-wrap">
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="table table-vcenter">
             <thead>
             <tr>
                 <th>分类名称</th>
                 <th class="w-1">可见性</th>
-                <th class="w-1">文档数</th>
+                <th class="w-1">文档</th>
                 <th class="w-1">排序</th>
                 <th class="w-1 text-end">操作</th>
             </tr>
@@ -26,17 +30,17 @@
             <tr>
                 <td>
                     <div class="cat-name-cell" style="padding-left: {$cat.indent}px">
-                        {if $cat.depth > 0}<span class="cat-tree-branch">└</span>{/if}
+                        {if $cat.depth > 0}<span class="cat-tree-branch"><i class="ti ti-corner-down-right"></i></span>{/if}
                         <i class="ti ti-folder{if $cat.effective_visibility == 'encrypted'} text-warning{elseif $cat.effective_visibility == 'private'} text-danger{else} text-secondary{/if}"></i>
                         <div class="min-width-0">
-                            <div class="fw-medium d-flex align-items-center gap-1">
+                            <div class="nm-cell-title">
                                 {$cat.name}
-                                {if $cat.visibility == 'encrypted'}<i class="ti ti-lock text-warning" title="加密分类"></i>{/if}
+                                {if $cat.visibility == 'encrypted'}<i class="ti ti-lock text-warning" data-nm-tip="加密分类"></i>{/if}
                             </div>
                             {if $cat.description}
-                            <div class="text-secondary small">{$cat.description}</div>
+                            <div class="nm-cell-sub">{$cat.description}</div>
                             {/if}
-                            <div class="text-secondary small">第 {$cat.depth + 1} 级 · ID {$cat.id}</div>
+                            <div class="nm-cell-sub">第 {$cat.depth + 1} 级 · ID {$cat.id}</div>
                         </div>
                     </div>
                 </td>
@@ -44,7 +48,7 @@
                     {if $cat.effective_visibility == 'private'}
                     <span class="badge bg-red-lt">{if $cat.visibility == 'private'}私有{else}继承私有{/if}</span>
                     {elseif $cat.effective_visibility == 'encrypted'}
-                    <span class="badge bg-orange-lt text-orange">{if $cat.visibility == 'encrypted'}加密{else}继承加密{/if}</span>
+                    <span class="badge bg-orange-lt text-orange"><i class="ti ti-lock me-1"></i>{if $cat.visibility == 'encrypted'}加密{else}继承加密{/if}</span>
                     {else}
                     <span class="badge bg-green-lt">公开</span>
                     {/if}
@@ -52,9 +56,9 @@
                 <td class="text-secondary">{$cat.doc_count}</td>
                 <td class="text-secondary">{$cat.sort}</td>
                 <td>
-                    <div class="btn-list flex-nowrap justify-content-end">
-                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                data-bs-toggle="modal" data-bs-target="#categoryModal"
+                    <div class="nm-row-actions">
+                        <button type="button" class="btn btn-sm btn-icon btn-ghost-secondary"
+                                data-bs-toggle="offcanvas" data-bs-target="#categoryDrawer"
                                 data-category-edit
                                 data-id="{$cat.id}"
                                 data-name="{$cat.name}"
@@ -62,16 +66,35 @@
                                 data-parent="{$cat.parent_id}"
                                 data-visibility="{$cat.visibility}"
                                 data-has-password="{$cat.has_password ? '1' : '0'}"
-                                data-sort="{$cat.sort}">
-                            <i class="ti ti-edit me-1"></i>编辑
+                                data-sort="{$cat.sort}"
+                                data-nm-tip="编辑分类">
+                            <i class="ti ti-pencil"></i>
                         </button>
-                        <form action="/admin/categories/delete" method="post" data-confirm="确定删除该分类？删除前请确保没有子分类和文档。">
-                            {:csrf_field()}
-                            <input type="hidden" name="id" value="{$cat.id}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="ti ti-trash me-1"></i>删除
+                        <button type="button" class="btn btn-sm btn-icon btn-ghost-secondary"
+                                data-bs-toggle="dropdown" aria-expanded="false" data-nm-tip="更多操作">
+                            <i class="ti ti-dots"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <button type="button" class="dropdown-item"
+                                    data-bs-toggle="offcanvas" data-bs-target="#categoryDrawer"
+                                    data-category-edit
+                                    data-id="{$cat.id}"
+                                    data-name="{$cat.name}"
+                                    data-description="{$cat.description}"
+                                    data-parent="{$cat.parent_id}"
+                                    data-visibility="{$cat.visibility}"
+                                    data-has-password="{$cat.has_password ? '1' : '0'}"
+                                    data-sort="{$cat.sort}">
+                                <i class="ti ti-pencil"></i>编辑分类
                             </button>
-                        </form>
+                            <a href="/admin/documents?cat={$cat.id}" class="dropdown-item">
+                                <i class="ti ti-file-text"></i>查看文档
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button type="submit" form="category-delete-{$cat.id}" class="dropdown-item text-danger">
+                                <i class="ti ti-trash"></i>删除分类
+                            </button>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -79,9 +102,13 @@
             {empty name="categories"}
             <tr>
                 <td colspan="5">
-                    <div class="text-center text-secondary py-5">
-                        <i class="ti ti-folder-off" style="font-size:2rem;opacity:.5"></i>
-                        <div class="mt-2">还没有分类，点击右上角「新建分类」开始创建。</div>
+                    <div class="nm-empty">
+                        <span class="nm-empty-icon"><i class="ti ti-folder-off"></i></span>
+                        <div class="nm-empty-title">还没有分类</div>
+                        <div class="nm-empty-desc">创建分类后即可为文档分组，支持多级结构与公开、加密、私有三种可见性。</div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#categoryDrawer" data-category-new>
+                            <i class="ti ti-plus me-1"></i>新建第一个分类
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -91,63 +118,70 @@
     </div>
 </div>
 
-<div class="modal modal-blur fade" id="categoryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form method="post" action="/admin/categories/save" id="categoryForm">
-                {:csrf_field()}
-                <input type="hidden" name="id" id="catId" value="0">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="catModalTitle">新建分类</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label required" for="catName">分类名称</label>
-                        <input type="text" class="form-control" id="catName" name="name" maxlength="100" required placeholder="例如：技术笔记">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="catDescription">分类描述</label>
-                        <textarea class="form-control" id="catDescription" name="description" rows="2" maxlength="255" placeholder="选填，仅后台展示"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="catParent">上级分类</label>
-                        <select class="form-select" id="catParent" name="parent_id">
-                            <option value="0">作为顶级分类</option>
-                            {volist name="categories" id="opt"}
-                            <option value="{$opt.id}">{$opt.option_label}</option>
-                            {/volist}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="catVisibility">可见性</label>
-                        <select class="form-select" id="catVisibility" name="visibility">
-                            <option value="public">公开 · 前台显示并可自由阅读</option>
-                            <option value="encrypted">加密 · 前台显示，需密码阅读</option>
-                            <option value="private">私有 · 前台不显示且不可访问</option>
-                        </select>
-                        <div class="form-hint">子分类自动继承上级限制：上级私有时整个子树私有，上级加密时子分类继承加密。</div>
-                    </div>
-                    <div class="mb-3 d-none" id="catPasswordWrap">
-                        <label class="form-label" for="catPassword">访问密码</label>
-                        <input type="password" class="form-control" id="catPassword" name="password" autocomplete="new-password" minlength="4" maxlength="64" placeholder="设置分类访问密码">
-                        <div class="form-hint" id="catPasswordHint">加密分类必须设置 4-64 位访问密码；编辑时留空表示保持原密码。</div>
-                    </div>
-                    <div>
-                        <label class="form-label" for="catSort">排序</label>
-                        <input type="number" class="form-control" id="catSort" name="sort" value="0" step="1">
-                        <div class="form-hint">数值越小越靠前。文档排序不受此项影响。</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy me-1"></i>保存分类
-                    </button>
-                </div>
-            </form>
-        </div>
+{volist name="categories" id="cat"}
+<form id="category-delete-{$cat.id}" action="/admin/categories/delete" method="post" class="d-none"
+      data-confirm="确定删除分类「{$cat.name}」？请先移除其子分类与文档。" data-confirm-tone="danger" data-confirm-title="删除分类">
+    {:csrf_field()}
+    <input type="hidden" name="id" value="{$cat.id}">
+</form>
+{/volist}
+
+<div class="offcanvas offcanvas-end nm-drawer" tabindex="-1" id="categoryDrawer" aria-labelledby="catModalTitle">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <span class="nm-section-icon"><i class="ti ti-folder-plus"></i></span>
+            <span id="catModalTitle">新建分类</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="关闭"></button>
     </div>
+    <form method="post" action="/admin/categories/save" id="categoryForm" class="d-flex flex-column flex-grow-1 min-h-0">
+        {:csrf_field()}
+        <input type="hidden" name="id" id="catId" value="0">
+        <div class="offcanvas-body">
+            <div class="mb-3">
+                <label class="form-label required" for="catName">分类名称</label>
+                <input type="text" class="form-control" id="catName" name="name" maxlength="100" required placeholder="例如：技术笔记">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="catDescription">分类描述</label>
+                <textarea class="form-control" id="catDescription" name="description" rows="2" maxlength="255" placeholder="选填，仅后台展示"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="catParent">上级分类</label>
+                <select class="form-select" id="catParent" name="parent_id">
+                    <option value="0">作为顶级分类</option>
+                    {volist name="categories" id="opt"}
+                    <option value="{$opt.id}">{$opt.option_label}</option>
+                    {/volist}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="catVisibility">可见性</label>
+                <select class="form-select" id="catVisibility" name="visibility">
+                    <option value="public">公开 · 前台显示并可自由阅读</option>
+                    <option value="encrypted">加密 · 前台显示，需密码阅读</option>
+                    <option value="private">私有 · 前台不显示且不可访问</option>
+                </select>
+                <div class="form-hint">子分类自动继承上级限制：上级私有时整个子树私有，上级加密时子分类继承加密。</div>
+            </div>
+            <div class="mb-3 d-none" id="catPasswordWrap">
+                <label class="form-label" for="catPassword">访问密码</label>
+                <input type="password" class="form-control" id="catPassword" name="password" autocomplete="new-password" minlength="4" maxlength="64" placeholder="设置分类访问密码">
+                <div class="form-hint" id="catPasswordHint">加密分类必须设置 4-64 位访问密码；编辑时留空表示保持原密码。</div>
+            </div>
+            <div>
+                <label class="form-label" for="catSort">排序</label>
+                <input type="number" class="form-control" id="catSort" name="sort" value="0" step="1">
+                <div class="form-hint">数值越小越靠前。文档排序不受此项影响。</div>
+            </div>
+        </div>
+        <div class="offcanvas-footer d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="offcanvas">取消</button>
+            <button type="submit" class="btn btn-primary">
+                <i class="ti ti-device-floppy me-1"></i>保存分类
+            </button>
+        </div>
+    </form>
 </div>
 
 {include file="common/footer" /}

@@ -6,30 +6,30 @@
     <input type="hidden" name="content_type" id="contentTypeField" value="{$doc.content_type}">
     <textarea name="content" id="contentField" class="d-none">{$doc.content}</textarea>
 
+    <div class="alert alert-warning d-none" id="draftBanner">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <i class="ti ti-history"></i>
+            <div class="flex-fill">
+                检测到一份未提交的自动草稿
+                <span class="text-secondary small" id="draftTime"></span>
+            </div>
+            <button type="button" class="btn btn-sm btn-warning" id="draftRestore">恢复草稿</button>
+            <button type="button" class="btn btn-sm btn-link link-secondary" id="draftDiscard">丢弃</button>
+        </div>
+    </div>
+
     <div class="row g-3">
         <div class="col-lg-8">
-            <div class="alert alert-warning d-none" id="draftBanner">
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <i class="ti ti-history"></i>
-                    <div class="flex-fill">
-                        检测到一份未提交的自动草稿
-                        <span class="text-secondary small" id="draftTime"></span>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-warning" id="draftRestore">恢复草稿</button>
-                    <button type="button" class="btn btn-sm btn-link link-secondary" id="draftDiscard">丢弃</button>
-                </div>
-            </div>
-
             <div class="card">
-                <div class="card-body">
-                    <input type="text" class="form-control form-control-lg doc-title-input" name="title" id="docTitle"
+                <div class="card-body py-2">
+                    <input type="text" class="form-control form-control-lg nm-editor-title" name="title" id="docTitle"
                            value="{$doc.title}" placeholder="请输入文档标题…" maxlength="200" required>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header editor-mode-bar">
-                    <div class="btn-group btn-group-sm" role="group" aria-label="编辑模式">
+            <div class="card mt-3 nm-editor-chrome">
+                <div class="card-header">
+                    <div class="btn-group btn-group-sm nm-editor-mode" role="group" aria-label="编辑模式">
                         <button type="button" class="btn btn-outline-secondary" data-editor-mode="html">
                             <i class="ti ti-typography me-1"></i>富文本
                         </button>
@@ -61,18 +61,17 @@
                 </div>
             </div>
 
-            <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-                <a href="/admin/documents" class="btn btn-link link-secondary">
-                    <i class="ti ti-arrow-left me-1"></i>返回列表
-                </a>
-                {if !$isNew}
-                <a href="/admin/documents/versions/{$doc.id}" class="btn btn-outline-secondary">
-                    <i class="ti ti-history me-1"></i>版本历史
-                </a>
-                {/if}
-                <div class="ms-auto d-flex gap-2">
+            <div class="nm-savebar mt-3">
+                <span class="nm-savebar-status"><i class="ti ti-cloud-check me-1"></i>每次保存都会生成版本快照</span>
+                <div class="ms-auto d-flex flex-wrap gap-2">
+                    <a href="/admin/documents" class="btn btn-link link-secondary">返回列表</a>
+                    {if !$isNew}
+                    <a href="/admin/documents/versions/{$doc.id}" class="btn btn-outline-secondary">
+                        <i class="ti ti-history me-1"></i>版本历史
+                    </a>
+                    {/if}
                     <button type="submit" name="after" value="list" class="btn btn-outline-secondary">
-                        保存并返回列表
+                        保存并返回
                     </button>
                     <button type="submit" name="after" value="edit" class="btn btn-primary">
                         <i class="ti ti-device-floppy me-1"></i>保存文档
@@ -82,213 +81,215 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-folder me-1"></i>文档分类</h3>
-                    <div class="card-actions">
-                        <a href="/admin/categories" class="btn btn-sm btn-ghost-secondary">管理分类</a>
+            <div class="nm-editor-side">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-folder"></i>文档分类</h3>
+                        <div class="card-actions">
+                            <a href="/admin/categories" class="btn btn-sm btn-ghost-secondary">管理分类</a>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <label class="form-label" for="docCategory">所属分类</label>
-                    <select class="form-select" id="docCategory" name="category_id">
-                        <option value="0" data-visibility="public" data-name="未分类"{if $doc.category_id == 0} selected{/if}>未分类</option>
-                        {volist name="categories" id="category"}
-                        <option value="{$category.id}" data-visibility="{$category.effective_visibility}" data-name="{$category.name}"{if $doc.category_id == $category.id} selected{/if}>{$category.option_label}</option>
-                        {/volist}
-                    </select>
-                    <div class="form-hint mt-2" id="categoryVisibilityHint">分类的可见性会继承给文档，与文档自身设置取更严格的一项。</div>
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-settings me-1"></i>发布设置</h3>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label" for="docStatus">状态</label>
-                        <select class="form-select" id="docStatus" name="status">
-                            <option value="1"{if $doc.status == 1} selected{/if}>已发布</option>
-                            <option value="0"{if $doc.status == 0} selected{/if}>草稿（前台不可见）</option>
+                    <div class="card-body">
+                        <label class="form-label" for="docCategory">所属分类</label>
+                        <select class="form-select" id="docCategory" name="category_id">
+                            <option value="0" data-visibility="public" data-name="未分类"{if $doc.category_id == 0} selected{/if}>未分类</option>
+                            {volist name="categories" id="category"}
+                            <option value="{$category.id}" data-visibility="{$category.effective_visibility}" data-name="{$category.name}"{if $doc.category_id == $category.id} selected{/if}>{$category.option_label}</option>
+                            {/volist}
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="docVisibility">可见性</label>
-                        <select class="form-select" id="docVisibility" name="visibility">
-                            <option value="public"{if $doc.visibility == 'public'} selected{/if}>公开（任何人可查看）</option>
-                            <option value="encrypted"{if $doc.visibility == 'encrypted'} selected{/if}>加密（输入密码后查看）</option>
-                            <option value="private"{if $doc.visibility == 'private'} selected{/if}>私有（前台不显示）</option>
-                        </select>
-                        <div class="form-hint">加密文档会在前台展示标题，需输入密码才能阅读正文。</div>
-                    </div>
-                    <div class="mb-3{if $doc.visibility != 'encrypted'} d-none{/if}" id="docPasswordWrap">
-                        <label class="form-label" for="docPassword">访问密码</label>
-                        <input type="password" class="form-control" id="docPassword" name="password"
-                               data-has-password="{if $hasPassword}1{else}0{/if}"
-                               placeholder="{if $hasPassword}留空则保持原密码{else}设置 4-64 位访问密码{/if}" autocomplete="new-password">
-                        <div class="form-hint">{if $hasPassword}已设置访问密码，留空保持不变。{else}访客输入此密码后才能查看正文。{/if}</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="show_toc" value="1" id="docShowToc" {if $doc.show_toc == 1}checked{/if}>
-                            <span class="form-check-label">显示目录树</span>
-                        </label>
-                        <div class="form-hint">关闭后该文档阅读页不显示右侧目录，可在阅读页手动展开。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="copy_protected" value="1" id="docCopyProtected" {if !empty($doc.copy_protected)}checked{/if}>
-                            <span class="form-check-label">禁止复制正文</span>
-                        </label>
-                        <div class="form-hint">开启后访客无法选中、复制或拖拽正文，Ctrl+C 等复制快捷键会被拦截并提示；代码块的复制按钮同时禁用。</div>
-                    </div>
-                    <div>
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_top" value="1" id="docTop" {if $doc.is_top == 1}checked{/if}>
-                            <span class="form-check-label">在列表中置顶</span>
-                        </label>
-                        <div class="form-hint">支持同时置顶多篇文档，按各自置顶时间排序。</div>
+                        <div class="form-hint mt-2" id="categoryVisibilityHint">分类的可见性会继承给文档，与文档自身设置取更严格的一项。</div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card mt-3" id="docSeoCard">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-search me-1"></i>SEO 优化</h3>
-                    <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">留空自动生成</span></div>
-                </div>
-                <div class="card-body">
-                    <div class="nm-seo-preview">
-                        <div class="nm-seo-preview-url" id="seoPreviewUrl">{$seoPreview.url}</div>
-                        <div class="nm-seo-preview-title" id="seoPreviewTitle">{$seoPreview.title}</div>
-                        <div class="nm-seo-preview-desc" id="seoPreviewDesc">{$seoPreview.description}</div>
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-settings"></i>发布设置</h3>
                     </div>
-                    <div class="mt-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <label class="form-label mb-1" for="docSeoTitle">SEO 标题</label>
-                            <span class="text-secondary small" id="seoTitleCount">0/200</span>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="docStatus">状态</label>
+                            <select class="form-select" id="docStatus" name="status">
+                                <option value="1"{if $doc.status == 1} selected{/if}>已发布</option>
+                                <option value="0"{if $doc.status == 0} selected{/if}>草稿（前台不可见）</option>
+                            </select>
                         </div>
-                        <input type="text" class="form-control" id="docSeoTitle" name="seo_title" value="{$doc.seo_title}" maxlength="200" placeholder="{$seoDefaults.title}">
-                        <div class="form-hint">留空时使用「{$seoDefaults.title}」。</div>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label mb-1" for="docSeoKeywords">SEO 关键词</label>
-                        <input type="text" class="form-control" id="docSeoKeywords" name="seo_keywords" value="{$doc.seo_keywords}" maxlength="255" placeholder="{$seoDefaults.keywords}">
-                        <div class="form-hint">多个关键词用英文逗号分隔；留空自动使用标签与分类。</div>
-                    </div>
-                    <div class="mt-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <label class="form-label mb-1" for="docSeoDescription">SEO 描述</label>
-                            <span class="text-secondary small" id="seoDescriptionCount">0/500</span>
+                        <div class="mb-3">
+                            <label class="form-label" for="docVisibility">可见性</label>
+                            <select class="form-select" id="docVisibility" name="visibility">
+                                <option value="public"{if $doc.visibility == 'public'} selected{/if}>公开（任何人可查看）</option>
+                                <option value="encrypted"{if $doc.visibility == 'encrypted'} selected{/if}>加密（输入密码后查看）</option>
+                                <option value="private"{if $doc.visibility == 'private'} selected{/if}>私有（前台不显示）</option>
+                            </select>
+                            <div class="form-hint">加密文档会在前台展示标题，需输入密码才能阅读正文。</div>
                         </div>
-                        <textarea class="form-control" id="docSeoDescription" name="seo_description" rows="3" maxlength="500" placeholder="{$seoDefaults.description}">{$doc.seo_description}</textarea>
-                        <div class="form-hint">建议 80-160 字；留空自动截取正文摘要。</div>
+                        <div class="mb-3{if $doc.visibility != 'encrypted'} d-none{/if}" id="docPasswordWrap">
+                            <label class="form-label" for="docPassword">访问密码</label>
+                            <input type="password" class="form-control" id="docPassword" name="password"
+                                   data-has-password="{if $hasPassword}1{else}0{/if}"
+                                   placeholder="{if $hasPassword}留空则保持原密码{else}设置 4-64 位访问密码{/if}" autocomplete="new-password">
+                            <div class="form-hint">{if $hasPassword}已设置访问密码，留空保持不变。{else}访客输入此密码后才能查看正文。{/if}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="show_toc" value="1" id="docShowToc" {if $doc.show_toc == 1}checked{/if}>
+                                <span class="form-check-label">显示目录树</span>
+                            </label>
+                            <div class="form-hint">关闭后该文档阅读页不显示右侧目录，可在阅读页手动展开。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="copy_protected" value="1" id="docCopyProtected" {if !empty($doc.copy_protected)}checked{/if}>
+                                <span class="form-check-label">禁止复制正文</span>
+                            </label>
+                            <div class="form-hint">开启后访客无法选中、复制或拖拽正文，Ctrl+C 等复制快捷键会被拦截并提示；代码块的复制按钮同时禁用。</div>
+                        </div>
+                        <div>
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_top" value="1" id="docTop" {if $doc.is_top == 1}checked{/if}>
+                                <span class="form-check-label">在列表中置顶</span>
+                            </label>
+                            <div class="form-hint">支持同时置顶多篇文档，按各自置顶时间排序。</div>
+                        </div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-ghost-secondary w-100 mt-3" id="seoResetBtn">
-                        <i class="ti ti-refresh me-1"></i>清空自定义，恢复自动生成
-                    </button>
                 </div>
-            </div>
 
-            <div class="card mt-3" id="baiduPushCard">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>百度收录</h3>
-                    <div class="card-actions">
-                        {if $baiduConfigured}
-                        <span class="badge bg-green-lt text-green">已配置</span>
-                        {else}
-                        <span class="badge bg-yellow-lt text-yellow">待配置</span>
-                        {/if}
+                <div class="card mt-3" id="docSeoCard">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-search"></i>SEO 优化</h3>
+                        <div class="card-actions"><span class="badge bg-secondary-lt">留空自动生成</span></div>
                     </div>
-                </div>
-                <div class="card-body">
-                    {if $isNew}
-                    <div class="text-secondary small">
-                        {if $baiduConfigured && $baiduAuto}
-                        <i class="ti ti-info-circle me-1"></i>已开启全站自动提交，保存并发布这篇公开文档后会立即推送百度收录。
-                        {else}
-                        <i class="ti ti-info-circle me-1"></i>保存文档后，可在编辑页手动提交百度收录；如需新建自动推送，请先在系统设置中开启。
-                        {/if}
-                    </div>
-                    {elseif !$baiduConfigured}
-                    <div class="alert alert-warning py-2 px-3 small mb-2">
-                        <i class="ti ti-info-circle me-1"></i>尚未配置百度准入密钥或收录通道，暂时无法提交。
-                    </div>
-                    <a href="/admin/settings#baiduSeo" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="ti ti-settings me-1"></i>前往百度收录设置
-                    </a>
-                    {elseif !$canPush}
-                    <div class="alert alert-secondary py-2 px-3 small mb-0">
-                        <i class="ti ti-lock me-1"></i>{if !$docPublished}文档尚未发布，发布后才能提交百度收录。{else}仅公开文档可以提交百度收录，当前文档受可见性设置保护。{/if}
-                    </div>
-                    {else}
-                    <div id="baiduPushStatus" class="nm-push-status">
-                        {if $pushRows}
-                        <div class="nm-push-meta">
-                            <span>{$pushTriggerLabel}</span>
-                            <span>{$baiduStatus.at}</span>
+                    <div class="card-body">
+                        <div class="nm-seo-preview">
+                            <div class="nm-seo-preview-url" id="seoPreviewUrl">{$seoPreview.url}</div>
+                            <div class="nm-seo-preview-title" id="seoPreviewTitle">{$seoPreview.title}</div>
+                            <div class="nm-seo-preview-desc" id="seoPreviewDesc">{$seoPreview.description}</div>
                         </div>
-                        {volist name="pushRows" id="row"}
-                        <div class="nm-push-channel">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="nm-push-dot {if $row.ok}is-ok{else}is-fail{/if}"></span>
-                                <span class="fw-semibold small">{$row.label}</span>
-                                <span class="badge {if $row.ok}bg-green-lt text-green{else}bg-red-lt text-red{/if} ms-auto">{if $row.ok}成功{else}失败{/if}</span>
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <label class="form-label mb-1" for="docSeoTitle">SEO 标题</label>
+                                <span class="text-secondary small" id="seoTitleCount">0/200</span>
                             </div>
-                            <div class="nm-push-message small text-secondary mt-1">{$row.message}</div>
-                            {if $row.at}<div class="nm-push-time small text-secondary">{$row.at}</div>{/if}
+                            <input type="text" class="form-control" id="docSeoTitle" name="seo_title" value="{$doc.seo_title}" maxlength="200" placeholder="{$seoDefaults.title}">
+                            <div class="form-hint">留空时使用「{$seoDefaults.title}」。</div>
                         </div>
-                        {/volist}
+                        <div class="mt-3">
+                            <label class="form-label mb-1" for="docSeoKeywords">SEO 关键词</label>
+                            <input type="text" class="form-control" id="docSeoKeywords" name="seo_keywords" value="{$doc.seo_keywords}" maxlength="255" placeholder="{$seoDefaults.keywords}">
+                            <div class="form-hint">多个关键词用英文逗号分隔；留空自动使用标签与分类。</div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <label class="form-label mb-1" for="docSeoDescription">SEO 描述</label>
+                                <span class="text-secondary small" id="seoDescriptionCount">0/500</span>
+                            </div>
+                            <textarea class="form-control" id="docSeoDescription" name="seo_description" rows="3" maxlength="500" placeholder="{$seoDefaults.description}">{$doc.seo_description}</textarea>
+                            <div class="form-hint">建议 80-160 字；留空自动截取正文摘要。</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-ghost-secondary w-100 mt-3" id="seoResetBtn">
+                            <i class="ti ti-refresh me-1"></i>清空自定义，恢复自动生成
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card mt-3" id="baiduPushCard">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-cloud-upload"></i>百度收录</h3>
+                        <div class="card-actions">
+                            {if $baiduConfigured}
+                            <span class="badge bg-green-lt text-green">已配置</span>
+                            {else}
+                            <span class="badge bg-yellow-lt text-yellow">待配置</span>
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {if $isNew}
+                        <div class="text-secondary small">
+                            {if $baiduConfigured && $baiduAuto}
+                            <i class="ti ti-info-circle me-1"></i>已开启全站自动提交，保存并发布这篇公开文档后会立即推送百度收录。
+                            {else}
+                            <i class="ti ti-info-circle me-1"></i>保存文档后，可在编辑页手动提交百度收录；如需新建自动推送，请先在系统设置中开启。
+                            {/if}
+                        </div>
+                        {elseif !$baiduConfigured}
+                        <div class="alert alert-warning py-2 px-3 small mb-2">
+                            <i class="ti ti-info-circle me-1"></i>尚未配置百度准入密钥或收录通道，暂时无法提交。
+                        </div>
+                        <a href="/admin/settings#baiduSeo" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="ti ti-settings me-1"></i>前往百度收录设置
+                        </a>
+                        {elseif !$canPush}
+                        <div class="alert alert-secondary py-2 px-3 small mb-0">
+                            <i class="ti ti-lock me-1"></i>{if !$docPublished}文档尚未发布，发布后才能提交百度收录。{else}仅公开文档可以提交百度收录，当前文档受可见性设置保护。{/if}
+                        </div>
                         {else}
-                        <div class="text-secondary small">尚未提交过百度收录。</div>
+                        <div id="baiduPushStatus" class="nm-push-status">
+                            {if $pushRows}
+                            <div class="nm-push-meta">
+                                <span>{$pushTriggerLabel}</span>
+                                <span>{$baiduStatus.at}</span>
+                            </div>
+                            {volist name="pushRows" id="row"}
+                            <div class="nm-push-channel">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="nm-push-dot {if $row.ok}is-ok{else}is-fail{/if}"></span>
+                                    <span class="fw-semibold small">{$row.label}</span>
+                                    <span class="badge {if $row.ok}bg-green-lt text-green{else}bg-red-lt text-red{/if} ms-auto">{if $row.ok}成功{else}失败{/if}</span>
+                                </div>
+                                <div class="nm-push-message small text-secondary mt-1">{$row.message}</div>
+                                {if $row.at}<div class="nm-push-time small text-secondary">{$row.at}</div>{/if}
+                            </div>
+                            {/volist}
+                            {else}
+                            <div class="text-secondary small">尚未提交过百度收录。</div>
+                            {/if}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2" id="baiduPushBtn" data-url="/admin/documents/push/{$doc.id}">
+                            <i class="ti ti-refresh me-1"></i>重新提交收录
+                        </button>
                         {/if}
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2" id="baiduPushBtn" data-url="/admin/documents/push/{$doc.id}">
-                        <i class="ti ti-refresh me-1"></i>重新提交收录
-                    </button>
-                    {/if}
                 </div>
-            </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-tags me-1"></i>标签</h3>
-                    <div class="card-actions">
-                        <a href="/admin/tags" class="btn btn-sm btn-ghost-secondary">标签管理</a>
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-tags"></i>标签</h3>
+                        <div class="card-actions">
+                            <a href="/admin/tags" class="btn btn-sm btn-ghost-secondary">标签管理</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="nm-tag-picker">
+                            {volist name="allTags" id="tag"}
+                            <label class="nm-tag-option">
+                                <input type="checkbox" class="nm-tag-option-input" name="tag_ids[]" value="{$tag.id}" {if $tag.checked}checked{/if}>
+                                <span class="nm-tag-option-label">{$tag.name}</span>
+                            </label>
+                            {/volist}
+                            {empty name="allTags"}
+                            <div class="text-secondary small">暂无标签，请先在 <a href="/admin/tags">标签管理</a> 中创建。</div>
+                            {/empty}
+                        </div>
+                        <div class="form-hint mt-2">只能选择已有标签，需先在「标签管理」中添加。</div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="nm-tag-picker">
-                        {volist name="allTags" id="tag"}
-                        <label class="nm-tag-option">
-                            <input type="checkbox" class="nm-tag-option-input" name="tag_ids[]" value="{$tag.id}" {if $tag.checked}checked{/if}>
-                            <span class="nm-tag-option-label">{$tag.name}</span>
-                        </label>
-                        {/volist}
-                        {empty name="allTags"}
-                        <div class="text-secondary small">暂无标签，请先在 <a href="/admin/tags">标签管理</a> 中创建。</div>
-                        {/empty}
-                    </div>
-                    <div class="form-hint mt-2">只能选择已有标签，需先在「标签管理」中添加。</div>
-                </div>
-            </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>草稿与附件</h3>
-                </div>
-                <div class="card-body">
-                    <ul class="doc-tip-list">
-                        <li><i class="ti ti-device-floppy"></i>编辑过程中每 20 秒自动保存一次草稿，只有点击保存才会更新正式内容。</li>
-                        <li><i class="ti ti-history"></i>每次内容变更会生成版本记录，可对比差异并回滚。</li>
-                        <li><i class="ti ti-paperclip"></i>图片会上传到附件库，可在「附件管理」中查看引用次数。</li>
-                    </ul>
-                    {if !$isNew}
-                    <a href="/admin/documents/versions/{$doc.id}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
-                        <i class="ti ti-history me-1"></i>查看版本历史
-                    </a>
-                    {/if}
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-cloud-upload"></i>草稿与附件</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="doc-tip-list">
+                            <li><i class="ti ti-device-floppy"></i>编辑过程中每 20 秒自动保存一次草稿，只有点击保存才会更新正式内容。</li>
+                            <li><i class="ti ti-history"></i>每次内容变更会生成版本记录，可对比差异并回滚。</li>
+                            <li><i class="ti ti-paperclip"></i>图片会上传到附件库，可在「附件管理」中查看引用次数。</li>
+                        </ul>
+                        {if !$isNew}
+                        <a href="/admin/documents/versions/{$doc.id}" class="btn btn-outline-secondary btn-sm w-100 mt-3">
+                            <i class="ti ti-history me-1"></i>查看版本历史
+                        </a>
+                        {/if}
+                    </div>
                 </div>
             </div>
         </div>

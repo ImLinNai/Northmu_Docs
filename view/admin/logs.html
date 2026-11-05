@@ -1,44 +1,44 @@
 {include file="common/header" /}
 
-<div class="row g-3 mb-3">
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">全部日志</div>
-                <div class="h3 mb-0">{$totalCount}</div>
-            </div>
+<div class="nm-stat-grid mb-3">
+    <div class="nm-stat nm-stat-sky">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">全部日志</span>
+            <span class="nm-stat-icon"><i class="ti ti-list-details"></i></span>
         </div>
+        <div class="nm-stat-value">{$totalCount}</div>
+        <div class="nm-stat-foot">累计记录的操作与登录事件</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">今日记录</div>
-                <div class="h3 mb-0">{$todayCount}</div>
-            </div>
+    <div class="nm-stat nm-stat-mint">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">今日记录</span>
+            <span class="nm-stat-icon"><i class="ti ti-calendar-event"></i></span>
         </div>
+        <div class="nm-stat-value">{$todayCount}</div>
+        <div class="nm-stat-foot">今天新产生的日志条目</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">登录相关</div>
-                <div class="h3 mb-0">{$loginCount}</div>
-            </div>
+    <div class="nm-stat nm-stat-violet">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">登录相关</span>
+            <span class="nm-stat-icon"><i class="ti ti-login"></i></span>
         </div>
+        <div class="nm-stat-value">{$loginCount}</div>
+        <div class="nm-stat-foot">登录、退出与登录态事件</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">登录失败</div>
-                <div class="h3 mb-0 text-red">{$failCount}</div>
-            </div>
+    <div class="nm-stat nm-stat-rose">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">登录失败</span>
+            <span class="nm-stat-icon"><i class="ti ti-shield-x"></i></span>
         </div>
+        <div class="nm-stat-value">{$failCount}</div>
+        <div class="nm-stat-foot">请关注异常登录尝试</div>
     </div>
 </div>
 
-<div class="card mb-3">
+<div class="card nm-table-wrap mb-3">
     <div class="card-body">
-        <form method="get" action="/admin/logs" class="row g-2 align-items-end">
-            <div class="col-12 col-md-3">
+        <form method="get" action="/admin/logs" class="nm-filter-grid">
+            <div>
                 <label class="form-label" for="logModule">模块</label>
                 <select class="form-select" id="logModule" name="module">
                     <option value="">全部模块</option>
@@ -47,33 +47,36 @@
                     {/volist}
                 </select>
             </div>
-            <div class="col-12 col-md-3">
+            <div class="nm-filter-keyword">
                 <label class="form-label" for="logKeyword">关键词</label>
                 <div class="input-icon">
                     <span class="input-icon-addon"><i class="ti ti-search"></i></span>
                     <input type="search" class="form-control" id="logKeyword" name="keyword" value="{$filters.keyword}" placeholder="详情、账号或 IP">
                 </div>
             </div>
-            <div class="col-6 col-md-2">
+            <div>
                 <label class="form-label" for="logFrom">开始日期</label>
                 <input type="date" class="form-control" id="logFrom" name="date_from" value="{$filters.date_from}">
             </div>
-            <div class="col-6 col-md-2">
+            <div>
                 <label class="form-label" for="logTo">结束日期</label>
                 <input type="date" class="form-control" id="logTo" name="date_to" value="{$filters.date_to}">
             </div>
-            <div class="col-12 col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-fill">筛选</button>
-                <a href="/admin/logs" class="btn btn-link link-secondary px-2">重置</a>
+            <div class="nm-filter-actions">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="ti ti-filter me-1"></i>筛选
+                </button>
+                <a href="/admin/logs" class="btn btn-outline-secondary">重置</a>
             </div>
         </form>
     </div>
 </div>
 
-<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-    <div class="text-secondary small">共 {$paginator->total()} 条记录</div>
-    <div class="btn-list ms-auto">
-        <a href="{$exportUrl}" class="btn btn-outline-secondary">
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title"><span class="nm-section-icon"><i class="ti ti-history"></i></span>共 {$paginator->total()} 条记录</div>
+    <div class="nm-toolbar-meta">记录管理员与访客的关键操作，可按模块与时间范围检索</div>
+    <div class="nm-toolbar-actions">
+        <a href="{$exportUrl}" class="btn btn-outline-secondary" data-nm-tip="按当前筛选条件导出全部记录">
             <i class="ti ti-download me-1"></i>导出 CSV
         </a>
         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
@@ -82,9 +85,9 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card nm-table-wrap">
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="table table-vcenter">
             <thead>
             <tr>
                 <th class="w-1 text-nowrap">时间</th>
@@ -99,16 +102,22 @@
             <tbody>
             {volist name="logs" id="log"}
             <tr>
-                <td class="text-secondary small text-nowrap">{$log.created_at}</td>
-                <td class="text-nowrap">{$log.username ?: '访客'}</td>
+                <td class="nm-log-meta text-nowrap">{$log.created_at}</td>
+                <td class="text-nowrap">
+                    {if $log.username}
+                    <span class="nm-user-chip"><span class="admin-avatar admin-avatar-sm"><i class="ti ti-user"></i></span>{$log.username}</span>
+                    {else}
+                    <span class="text-secondary">访客</span>
+                    {/if}
+                </td>
                 <td class="text-nowrap">{$log.module_label}</td>
-                <td class="text-nowrap"><span class="badge {$log.action_class}">{$log.action_label}</span></td>
-                <td>{$log.description}</td>
-                <td class="text-secondary small text-nowrap">{$log.target_text ?: '-'}</td>
-                <td class="text-secondary small">
-                    <div>{$log.ip ?: '-'}</div>
+                <td class="text-nowrap"><span class="nm-log-action {$log.action_class}">{$log.action_label}</span></td>
+                <td><div class="nm-log-detail">{$log.description}</div></td>
+                <td class="nm-log-meta text-nowrap">{$log.target_text ?: '-'}</td>
+                <td>
+                    <div class="nm-log-meta">{$log.ip ?: '-'}</div>
                     {if $log.ua_short}
-                    <div class="text-truncate" style="max-width:180px" title="{$log.user_agent}">{$log.ua_short}</div>
+                    <div class="nm-log-meta text-truncate" style="max-width:180px" data-nm-tip="{$log.user_agent}">{$log.ua_short}</div>
                     {/if}
                 </td>
             </tr>
@@ -116,9 +125,11 @@
             {empty name="logs"}
             <tr>
                 <td colspan="7">
-                    <div class="text-center text-secondary py-5">
-                        <i class="ti ti-list-details" style="font-size:2rem;opacity:.5"></i>
-                        <div class="mt-2">暂无符合条件的操作日志。</div>
+                    <div class="nm-empty">
+                        <span class="nm-empty-icon"><i class="ti ti-list-search"></i></span>
+                        <div class="nm-empty-title">没有符合条件的日志</div>
+                        <div class="nm-empty-desc">尝试调整模块、关键词或日期范围后重新筛选。</div>
+                        <a href="/admin/logs" class="btn btn-outline-secondary btn-sm">清除筛选条件</a>
                     </div>
                 </td>
             </tr>
@@ -127,8 +138,8 @@
         </table>
     </div>
     {if $paginator->total() > 0}
-    <div class="card-footer d-flex align-items-center">
-        <div class="text-secondary small">共 {$paginator->total()} 条</div>
+    <div class="card-footer d-flex flex-wrap align-items-center gap-2">
+        <div class="text-secondary small">第 {$paginator->currentPage()} 页 · 共 {$paginator->total()} 条</div>
         <div class="ms-auto">{$paginator->render()|raw}</div>
     </div>
     {/if}
@@ -139,29 +150,41 @@
         <form class="modal-content" method="post" action="/admin/logs/clear">
             {:csrf_field()}
             <div class="modal-header">
-                <h5 class="modal-title" id="clearLogsTitle">清理操作日志</h5>
+                <h5 class="modal-title" id="clearLogsTitle"><i class="ti ti-trash me-2"></i>清理操作日志</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning">
-                    <i class="ti ti-alert-triangle me-1"></i>日志清理后无法恢复，建议先导出备份。
+                    <i class="ti ti-alert-triangle me-1"></i>日志清理后无法恢复，建议先导出 CSV 备份。
                 </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="mode" id="clearModeDays" value="days" checked>
-                    <label class="form-check-label" for="clearModeDays">清理指定天数之前的日志</label>
+                <div class="nm-choice-card mb-2">
+                    <label class="nm-choice">
+                        <input class="form-check-input" type="radio" name="mode" id="clearModeDays" value="days" checked>
+                        <span>
+                            <span class="nm-choice-title">按时间清理</span>
+                            <span class="nm-choice-desc">只删除指定天数之前的日志，近期记录会保留。</span>
+                        </span>
+                    </label>
+                    <div class="input-group mt-2" style="max-width:16rem">
+                        <input type="number" class="form-control" name="days" value="90" min="1" max="3650" aria-label="保留天数">
+                        <span class="input-group-text">天前</span>
+                    </div>
                 </div>
-                <div class="input-group mb-3">
-                    <input type="number" class="form-control" name="days" value="90" min="1" max="3650" aria-label="保留天数">
-                    <span class="input-group-text">天前</span>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="mode" id="clearModeAll" value="all">
-                    <label class="form-check-label text-danger" for="clearModeAll">清空全部日志（不可恢复）</label>
+                <div class="nm-choice-card is-danger">
+                    <label class="nm-choice">
+                        <input class="form-check-input" type="radio" name="mode" id="clearModeAll" value="all">
+                        <span>
+                            <span class="nm-choice-title text-danger">清空全部日志</span>
+                            <span class="nm-choice-desc">删除所有操作记录，且不可恢复。</span>
+                        </span>
+                    </label>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="submit" class="btn btn-danger">确认清理</button>
+                <button type="submit" class="btn btn-danger">
+                    <i class="ti ti-trash me-1"></i>确认清理
+                </button>
             </div>
         </form>
     </div>

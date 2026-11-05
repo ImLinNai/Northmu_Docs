@@ -650,6 +650,99 @@
         var buttons = document.querySelectorAll('[data-sidebar-collapse]');
         if (!shell || !buttons.length) return;
         var key = 'northmu-doc-sidebar-collapsed';
+        var desktop = window.matchMedia('(min-width: 768px)');
+        var flyout = null;
+        var flyoutLink = null;
+        var hideTimer = null;
+
+        function isCollapsed() {
+            return shell.classList.contains('sidebar-collapsed');
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, function (ch) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+            });
+        }
+
+        function clearHide() {
+            if (hideTimer) {
+                clearTimeout(hideTimer);
+                hideTimer = null;
+            }
+        }
+
+        function ensureFlyout() {
+            if (flyout) return flyout;
+            flyout = document.createElement('div');
+            flyout.className = 'nm-cat-flyout';
+            flyout.addEventListener('mouseenter', clearHide);
+            flyout.addEventListener('mouseleave', scheduleHide);
+            document.body.appendChild(flyout);
+            return flyout;
+        }
+
+        function closeFlyout() {
+            clearHide();
+            if (flyout) flyout.classList.remove('show');
+            if (flyoutLink) {
+                flyoutLink.classList.remove('is-flyout-open');
+                flyoutLink = null;
+            }
+        }
+
+        function scheduleHide() {
+            clearHide();
+            hideTimer = setTimeout(closeFlyout, 160);
+        }
+
+        function positionFlyout(panel, rect) {
+            var gap = 10;
+            var left = rect.right + gap;
+            var width = panel.offsetWidth;
+            var height = panel.offsetHeight;
+            if (left + width > window.innerWidth - 10) {
+                left = Math.max(10, rect.left - width - gap);
+            }
+            var top = Math.min(rect.top, window.innerHeight - height - 12);
+            if (top < 10) top = 10;
+            panel.style.left = Math.round(left) + 'px';
+            panel.style.top = Math.round(top) + 'px';
+        }
+
+        function openFlyout(item, link) {
+            if (!isCollapsed() || !desktop.matches) return;
+            var children = item.querySelector(':scope > .cat-children');
+            if (!children) return;
+            clearHide();
+            var panel = ensureFlyout();
+            var nameEl = link.querySelector('span');
+            var name = nameEl ? nameEl.textContent : (link.getAttribute('title') || '分类');
+            panel.innerHTML = '<div class="nm-cat-flyout-title"><i class="ti ti-folder"></i>'
+                + escapeHtml(name) + '</div>' + children.innerHTML;
+            panel.querySelectorAll('.d-none').forEach(function (el) { el.classList.remove('d-none'); });
+            panel.querySelectorAll('[data-cat-toggle]').forEach(function (el) { el.remove(); });
+            panel.classList.add('show');
+            positionFlyout(panel, link.getBoundingClientRect());
+            if (flyoutLink && flyoutLink !== link) flyoutLink.classList.remove('is-flyout-open');
+            flyoutLink = link;
+            link.classList.add('is-flyout-open');
+        }
+
+        function bindFlyoutItems() {
+            document.querySelectorAll('.cat-tree-wrap > .cat-tree > .cat-item').forEach(function (item) {
+                if (item.getAttribute('data-flyout-bound') === '1') return;
+                var link = item.querySelector(':scope > .cat-row .cat-link');
+                item.setAttribute('data-flyout-bound', '1');
+                if (!link) return;
+                item.addEventListener('mouseenter', function () { openFlyout(item, link); });
+                item.addEventListener('mouseleave', function () {
+                    if (isCollapsed()) scheduleHide();
+                });
+                link.addEventListener('focus', function () { openFlyout(item, link); });
+                link.addEventListener('blur', scheduleHide);
+            });
+        }
 
         function sync(collapsed) {
             shell.classList.toggle('sidebar-collapsed', collapsed);
@@ -658,11 +751,13 @@
                 button.setAttribute('title', collapsed ? '展开分类栏' : '折叠分类栏');
                 button.setAttribute('aria-label', collapsed ? '展开分类栏' : '折叠分类栏');
             });
+            if (!collapsed) closeFlyout();
         }
 
         var stored = null;
         try { stored = localStorage.getItem(key); } catch (e) { }
         sync(stored === '1');
+        bindFlyoutItems();
 
         buttons.forEach(function (button) {
             button.addEventListener('click', function () {
@@ -670,6 +765,14 @@
                 sync(collapsed);
                 try { localStorage.setItem(key, collapsed ? '1' : '0'); } catch (e) { }
             });
+        });
+
+        window.addEventListener('scroll', closeFlyout, { passive: true });
+        window.addEventListener('resize', function () {
+            if (!desktop.matches) closeFlyout();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeFlyout();
         });
     }
 

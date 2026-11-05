@@ -14,30 +14,6 @@
         }
     }
 
-    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            var message = form.getAttribute('data-confirm');
-            if (message && !window.confirm(message)) {
-                event.preventDefault();
-            }
-        });
-    });
-
-    document.querySelectorAll('form[data-confirm-batch]').forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            var checked = form.querySelectorAll('[data-check-item]:checked').length;
-            if (checked === 0) {
-                event.preventDefault();
-                toast('请先选择要操作的文档', 'warning');
-                return;
-            }
-            var message = form.getAttribute('data-confirm-batch');
-            if (message && !window.confirm(message)) {
-                event.preventDefault();
-            }
-        });
-    });
-
     document.querySelectorAll('[data-check-all]').forEach(function (all) {
         var table = all.closest('table');
         if (!table) return;
@@ -61,8 +37,8 @@
         updateCount();
     });
 
-    var categoryModal = document.getElementById('categoryModal');
-    if (categoryModal) {
+    var categoryPanel = document.getElementById('categoryDrawer') || document.getElementById('categoryModal');
+    if (categoryPanel) {
         var catVisibility = document.getElementById('catVisibility');
         var catPasswordWrap = document.getElementById('catPasswordWrap');
         var catPassword = document.getElementById('catPassword');
@@ -77,7 +53,8 @@
 
         catVisibility.addEventListener('change', syncCategoryPassword);
 
-        categoryModal.addEventListener('show.bs.modal', function (event) {
+        var categoryEvent = categoryPanel.classList.contains('offcanvas') ? 'show.bs.offcanvas' : 'show.bs.modal';
+        categoryPanel.addEventListener(categoryEvent, function (event) {
             var btn = event.relatedTarget;
             var isEdit = !!(btn && btn.hasAttribute('data-category-edit'));
             var id = isEdit ? btn.getAttribute('data-id') : '0';
@@ -154,6 +131,34 @@
 
     if (uploadBtn && uploadInput) {
         uploadBtn.addEventListener('click', function () { uploadInput.click(); });
+        var dropZone = document.getElementById('attachmentDropZone');
+        if (dropZone) {
+            ['dragenter', 'dragover'].forEach(function (name) {
+                dropZone.addEventListener(name, function (event) {
+                    event.preventDefault();
+                    dropZone.classList.add('is-dragover');
+                });
+            });
+            ['dragleave', 'drop'].forEach(function (name) {
+                dropZone.addEventListener(name, function (event) {
+                    event.preventDefault();
+                    if (name === 'dragleave' && dropZone.contains(event.relatedTarget)) return;
+                    dropZone.classList.remove('is-dragover');
+                });
+            });
+            dropZone.addEventListener('drop', function (event) {
+                var files = event.dataTransfer && event.dataTransfer.files;
+                if (!files || !files.length) return;
+                try {
+                    var transfer = new DataTransfer();
+                    Array.prototype.forEach.call(files, function (file) { transfer.items.add(file); });
+                    uploadInput.files = transfer.files;
+                    uploadInput.dispatchEvent(new Event('change', { bubbles: true }));
+                } catch (e) {
+                    toast('当前浏览器不支持拖拽上传，请点击按钮选择文件', 'warning');
+                }
+            });
+        }
         uploadInput.addEventListener('change', function () {
             var files = Array.prototype.slice.call(uploadInput.files || []);
             if (!files.length) return;
@@ -205,9 +210,10 @@
     document.querySelectorAll('[data-copy-url]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var url = window.location.origin + btn.getAttribute('data-copy-url');
-            var done = function () { toast('链接已复制'); };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(done).catch(function () { window.prompt('复制链接', url); });
+            if (window.NorthmuUI) {
+                NorthmuUI.copy(url, '附件链接已复制');
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function () { toast('链接已复制'); });
             } else {
                 window.prompt('复制链接', url);
             }
@@ -216,16 +222,27 @@
 
     document.querySelectorAll('[data-delete-attachment]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (!window.confirm('确定删除该附件？仍被文档引用时无法删除。')) return;
-            NorthmuAdmin.post('/admin/attachments/delete', { id: btn.getAttribute('data-delete-attachment') }).then(function (res) {
-                if (res.code === 0) {
-                    toast('附件已删除');
-                    window.location.reload();
-                } else {
-                    toast(res.msg || '删除失败', 'failure');
-                }
-            }).catch(function () {
-                toast('删除失败，请稍后重试', 'error');
+            var ask = window.NorthmuUI
+                ? NorthmuUI.confirm({
+                    anchor: btn,
+                    title: '删除附件',
+                    message: '删除后文件将从附件库移除；仍被文档引用时无法删除。',
+                    tone: 'danger',
+                    confirmText: '删除'
+                })
+                : Promise.resolve(window.confirm('确定删除该附件？仍被文档引用时无法删除。'));
+            ask.then(function (ok) {
+                if (!ok) return;
+                NorthmuAdmin.post('/admin/attachments/delete', { id: btn.getAttribute('data-delete-attachment') }).then(function (res) {
+                    if (res.code === 0) {
+                        toast('附件已删除', 'success');
+                        window.location.reload();
+                    } else {
+                        toast(res.msg || '删除失败', 'error');
+                    }
+                }).catch(function () {
+                    toast('删除失败，请稍后重试', 'error');
+                });
             });
         });
     });
@@ -233,14 +250,27 @@
     var cleanupBtn = document.getElementById('attachmentCleanupBtn');
     if (cleanupBtn) {
         cleanupBtn.addEventListener('click', function () {
-            if (!window.confirm('将删除所有未被文档引用的附件记录，以及上传目录中未登记的孤立文件。确定继续？')) return;
-            cleanupBtn.disabled = true;
-            NorthmuAdmin.post('/admin/attachments/cleanup', {}).then(function (res) {
-                toast(res.msg || '清理完成');
-                setTimeout(function () { window.location.reload(); }, 800);
-            }).catch(function () {
-                cleanupBtn.disabled = false;
-                toast('清理失败，请稍后重试', 'error');
+            var ask = window.NorthmuUI
+                ? NorthmuUI.confirm({
+                    anchor: cleanupBtn,
+                    title: '清理未引用文件',
+                    message: '将删除所有未被文档引用的附件记录，以及上传目录中未登记的孤立文件。此操作不可撤销。',
+                    tone: 'danger',
+                    confirmText: '开始清理'
+                })
+                : Promise.resolve(window.confirm('将删除所有未被文档引用的附件记录，以及上传目录中未登记的孤立文件。确定继续？'));
+            ask.then(function (ok) {
+                if (!ok) return;
+                if (window.NorthmuUI) NorthmuUI.busy(cleanupBtn, true, '清理中…');
+                else cleanupBtn.disabled = true;
+                NorthmuAdmin.post('/admin/attachments/cleanup', {}).then(function (res) {
+                    toast(res.msg || '清理完成');
+                    setTimeout(function () { window.location.reload(); }, 800);
+                }).catch(function () {
+                    if (window.NorthmuUI) NorthmuUI.busy(cleanupBtn, false);
+                    else cleanupBtn.disabled = false;
+                    toast('清理失败，请稍后重试', 'error');
+                });
             });
         });
     }

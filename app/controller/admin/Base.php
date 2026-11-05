@@ -14,6 +14,8 @@ abstract class Base extends BaseController
             'pageTitle'    => $title,
             'pageDesc'     => $desc,
             'active'       => $active,
+            'navGroups'    => admin_nav_groups(),
+            'navCurrent'   => admin_nav_current($active),
             'siteName'     => $siteName,
             'siteLogo'     => (string) sys_setting('site_logo', ''),
             'themeColor'   => site_theme_color(),
@@ -23,6 +25,7 @@ abstract class Base extends BaseController
             'uploadLimitsJson' => json_encode(upload_limits_payload(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'extraHead'    => '',
             'extraScripts' => '',
+            'pageActions'  => '',
         ];
     }
 

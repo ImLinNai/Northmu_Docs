@@ -32,68 +32,12 @@
         });
     }
 
-    var TOAST_TYPES = {
-        success: { icon: 'ti-circle-check' },
-        failure: { icon: 'ti-circle-x' },
-        warning: { icon: 'ti-alert-triangle' },
-        error: { icon: 'ti-alert-octagon' }
-    };
-
-    function normalizeType(type) {
-        type = String(type || 'success').toLowerCase();
-        if (type === 'danger' || type === 'fail' || type === 'failed') return 'error';
-        if (type === 'info') return 'success';
-        return TOAST_TYPES[type] ? type : 'success';
-    }
-
-    function toastWrap() {
-        var wrap = document.getElementById('nmToastWrap');
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.id = 'nmToastWrap';
-            wrap.className = 'nm-toast-wrap';
-            wrap.setAttribute('role', 'status');
-            wrap.setAttribute('aria-live', 'polite');
-            document.body.appendChild(wrap);
-        }
-        return wrap;
-    }
-
     function toast(message, type) {
-        if (!message) return;
-        type = normalizeType(type);
-        var wrap = toastWrap();
-        var el = document.createElement('div');
-        el.className = 'nm-toast nm-toast-' + type;
-
-        var icon = document.createElement('i');
-        icon.className = 'ti ' + TOAST_TYPES[type].icon + ' nm-toast-icon';
-
-        var body = document.createElement('div');
-        body.className = 'nm-toast-message';
-        body.textContent = message;
-
-        var close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'nm-toast-close';
-        close.setAttribute('aria-label', '关闭');
-        close.innerHTML = '<i class="ti ti-x"></i>';
-
-        var timer = null;
-        function remove() {
-            clearTimeout(timer);
-            el.classList.remove('show');
-            el.classList.add('hide');
-            setTimeout(function () { el.remove(); }, 240);
+        if (window.NorthmuUI && window.NorthmuUI.toast) {
+            return window.NorthmuUI.toast(message, type);
         }
-        close.addEventListener('click', remove);
-
-        el.appendChild(icon);
-        el.appendChild(body);
-        el.appendChild(close);
-        wrap.appendChild(el);
-        window.requestAnimationFrame(function () { el.classList.add('show'); });
-        timer = setTimeout(remove, 4000);
+        if (!message) return;
+        window.alert(message);
     }
 
     var loadingBar = document.getElementById('nmLoadingBar');

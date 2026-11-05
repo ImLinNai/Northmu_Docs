@@ -32,6 +32,7 @@ class Settings extends Base
             'captcha_on'          => '1',
             'login_fail_limit'    => '5',
             'login_lock_minutes'  => '10',
+            'admin_session_hours' => '24',
         ];
         $uploadCategories = upload_categories();
         foreach ($uploadCategories as $key => $category) {
@@ -84,6 +85,10 @@ class Settings extends Base
         $captchaOn = (int) $this->request->post('captcha_on', 0) === 1 ? '1' : '0';
         $failLimit = (int) $this->request->post('login_fail_limit', 5);
         $lockMinutes = (int) $this->request->post('login_lock_minutes', 10);
+        $sessionHours = (int) $this->request->post('admin_session_hours', 24);
+        if (!in_array($sessionHours, [12, 24, 168], true)) {
+            $sessionHours = 24;
+        }
         $removeLogo = (int) $this->request->post('logo_remove', 0) === 1;
         $logoUrl = normalize_media_url((string) $this->request->post('logo_url', ''));
 
@@ -199,6 +204,7 @@ class Settings extends Base
             'captcha_on'          => $captchaOn,
             'login_fail_limit'    => (string) $failLimit,
             'login_lock_minutes'  => (string) $lockMinutes,
+            'admin_session_hours' => (string) $sessionHours,
         ] + $uploadData;
 
         if ($newLogo !== null) {

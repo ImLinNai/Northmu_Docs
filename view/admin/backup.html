@@ -1,5 +1,40 @@
 {include file="common/header" /}
 
+<div class="nm-stat-grid mb-3">
+    <div class="nm-stat nm-stat-sky">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">备份数量</span>
+            <span class="nm-stat-icon"><i class="ti ti-archive"></i></span>
+        </div>
+        <div class="nm-stat-value">{$backupCount}</div>
+        <div class="nm-stat-foot">data/backups 中的备份包</div>
+    </div>
+    <div class="nm-stat nm-stat-mint">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">占用空间</span>
+            <span class="nm-stat-icon"><i class="ti ti-database"></i></span>
+        </div>
+        <div class="nm-stat-value">{$totalSize}</div>
+        <div class="nm-stat-foot">全部备份文件合计</div>
+    </div>
+    <div class="nm-stat nm-stat-violet">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">当前数据库</span>
+            <span class="nm-stat-icon"><i class="ti ti-table"></i></span>
+        </div>
+        <div class="nm-stat-value" style="font-size:1rem">{$dbName}</div>
+        <div class="nm-stat-foot">导出为 MySQL 5.7 兼容 SQL</div>
+    </div>
+    <div class="nm-stat nm-stat-amber">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">附件目录</span>
+            <span class="nm-stat-icon"><i class="ti ti-folder"></i></span>
+        </div>
+        <div class="nm-stat-value" style="font-size:1rem">uploads/</div>
+        <div class="nm-stat-foot">随数据库一并打包</div>
+    </div>
+</div>
+
 <div class="row g-3">
     <div class="col-lg-5">
         <div class="card">
@@ -8,26 +43,40 @@
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div class="attachment-upload-icon"><i class="ti ti-cloud-download"></i></div>
+                    <span class="nm-section-icon nm-section-icon-lg"><i class="ti ti-cloud-download"></i></span>
                     <div class="text-secondary small">
                         一键导出当前数据库与附件目录，生成一个 ZIP 压缩包。备份包含所有文档、分类、标签、版本、登录日志与附件文件。
                     </div>
                 </div>
-                <div class="mb-3">
-                    <div class="text-secondary small mb-1">当前数据库</div>
-                    <div class="font-monospace">{$dbName}</div>
+                <div class="nm-meta-list">
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">数据库</div>
+                        <div class="nm-meta-value font-monospace">{$dbName}</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">保存位置</div>
+                        <div class="nm-meta-value font-monospace">data/backups</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">压缩内容</div>
+                        <div class="nm-meta-value">database.sql + uploads/</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">导入兼容</div>
+                        <div class="nm-meta-value">MySQL 5.7+</div>
+                    </div>
                 </div>
-                <div class="alert alert-info mb-0">
+                <div class="alert alert-info mt-3 mb-0">
                     <div class="d-flex">
-                        <i class="ti ti-info-circle me-2"></i>
+                        <i class="ti ti-lock me-2"></i>
                         <div class="small">
-                            压缩包内含 <code>database.sql</code>（MySQL 5.7 兼容）与 <code>uploads/</code> 附件目录；备份文件保存在 <code>data/backups</code>，不在公开目录中。
+                            备份文件保存在 <code>data/backups</code>，不在公开目录中，仅管理员可下载。
                         </div>
                     </div>
                 </div>
             </div>
             <div class="card-footer">
-                <form method="post" action="/admin/backup/create">
+                <form method="post" action="/admin/backup/create" data-confirm="将立即导出数据库与附件目录，数据量较大时可能需要等待。确定创建备份？" data-confirm-title="创建备份" data-confirm-ok="开始创建">
                     {:csrf_field()}
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="ti ti-database-export me-1"></i>立即创建备份
@@ -41,10 +90,12 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title"><i class="ti ti-archive me-1"></i>备份记录</h3>
-                <span class="card-subtitle ms-auto">{$backupCount} 个 / {$totalSize}</span>
+                <div class="card-actions">
+                    <span class="text-secondary small">{$backupCount} 个 / {$totalSize}</span>
+                </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-vcenter card-table">
+                <table class="table table-vcenter">
                     <thead>
                     <tr>
                         <th>文件名</th>
@@ -58,14 +109,17 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <i class="ti ti-file-zip text-secondary"></i>
-                                <span class="font-monospace text-truncate" style="max-width:320px" title="{$backup.name}">{$backup.name}</span>
+                                <span class="nm-attachment-file"><i class="ti ti-file-zip"></i></span>
+                                <div class="min-width-0">
+                                    <div class="nm-cell-title font-monospace text-truncate" style="max-width:22rem" title="{$backup.name}">{$backup.name}</div>
+                                    <div class="nm-cell-sub">数据库 + 附件压缩包</div>
+                                </div>
                             </div>
                         </td>
                         <td class="text-secondary text-nowrap">{$backup.size_text}</td>
                         <td class="text-secondary small text-nowrap">{$backup.created_text}</td>
                         <td>
-                            <div class="btn-list justify-content-end">
+                            <div class="nm-row-actions justify-content-end">
                                 <a href="{$backup.download_url}" class="btn btn-sm btn-outline-primary">
                                     <i class="ti ti-download me-1"></i>下载
                                 </a>
@@ -76,9 +130,10 @@
                     {empty name="backups"}
                     <tr>
                         <td colspan="4">
-                            <div class="text-center text-secondary py-5">
-                                <i class="ti ti-archive-off" style="font-size:2rem;opacity:.5"></i>
-                                <div class="mt-2">还没有备份，点击左侧按钮创建第一个备份。</div>
+                            <div class="nm-empty">
+                                <span class="nm-empty-icon"><i class="ti ti-archive-off"></i></span>
+                                <div class="nm-empty-title">还没有备份</div>
+                                <div class="nm-empty-desc">点击左侧「立即创建备份」生成第一个备份包。</div>
                             </div>
                         </td>
                     </tr>
@@ -87,12 +142,17 @@
                 </table>
             </div>
         </div>
+
         <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-restore me-1"></i>恢复备份</h3>
+            </div>
             <div class="card-body">
-                <div class="text-secondary small">
-                    <i class="ti ti-restore me-1"></i>
-                    恢复备份：解压 ZIP 后，将 <code>uploads</code> 目录覆盖到 <code>public/uploads</code>，再把 <code>database.sql</code> 导入同名数据库即可。恢复前建议先创建一份新的备份。
-                </div>
+                <ol class="mb-0 ps-3 text-secondary small">
+                    <li class="mb-1">解压 ZIP，将 <code>uploads</code> 目录覆盖到 <code>public/uploads</code>。</li>
+                    <li class="mb-1">把 <code>database.sql</code> 导入同名数据库。</li>
+                    <li>恢复前请先创建一份新的备份，避免覆盖现有数据。</li>
+                </ol>
             </div>
         </div>
     </div>

@@ -1,105 +1,91 @@
 {include file="common/header" /}
 
-<div class="row g-3 mb-3">
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">全部文档</div>
-                <div class="h3 mb-0">{$totalCount}</div>
-            </div>
+<div class="nm-stat-grid">
+    <a href="/admin/documents" class="nm-stat nm-stat-sky">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">全部文档</span>
+            <span class="nm-stat-icon"><i class="ti ti-file-text"></i></span>
         </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">草稿</div>
-                <div class="h3 mb-0">{$draftCount}</div>
-            </div>
+        <div class="nm-stat-value">{$totalCount}</div>
+        <div class="nm-stat-foot">包含草稿与已发布文档</div>
+    </a>
+    <div class="nm-stat nm-stat-amber">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">草稿</span>
+            <span class="nm-stat-icon"><i class="ti ti-file-pencil"></i></span>
         </div>
+        <div class="nm-stat-value">{$draftCount}</div>
+        <div class="nm-stat-foot">尚未在前台展示</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="card card-sm">
-            <div class="card-body">
-                <div class="text-secondary small">私有 / 加密</div>
-                <div class="h3 mb-0">{$privateCount} <span class="fs-4 text-secondary">/ {$encryptedCount}</span></div>
-            </div>
+    <div class="nm-stat nm-stat-rose">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">私有 / 加密</span>
+            <span class="nm-stat-icon"><i class="ti ti-lock"></i></span>
         </div>
+        <div class="nm-stat-value">{$privateCount} <span class="fs-4 text-secondary">/ {$encryptedCount}</span></div>
+        <div class="nm-stat-foot">受可见性保护的文档</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <a class="card card-sm text-reset text-decoration-none" href="/admin/documents/trash">
-            <div class="card-body">
-                <div class="text-secondary small">回收站</div>
-                <div class="h3 mb-0">{$trashCount}</div>
-            </div>
-        </a>
-    </div>
+    <a href="/admin/documents/trash" class="nm-stat nm-stat-violet">
+        <div class="nm-stat-top">
+            <span class="nm-stat-label">回收站</span>
+            <span class="nm-stat-icon"><i class="ti ti-trash"></i></span>
+        </div>
+        <div class="nm-stat-value">{$trashCount}</div>
+        <div class="nm-stat-foot">可恢复或彻底删除</div>
+    </a>
 </div>
 
-<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-    <div class="text-secondary small">共 {$totalCount} 篇文档</div>
-    <div class="btn-list ms-auto">
-        <a href="/admin/documents/trash" class="btn btn-outline-secondary">
-            <i class="ti ti-trash me-1"></i>回收站
-        </a>
-        <a href="/admin/documents/create" class="btn btn-primary">
-            <i class="ti ti-plus me-1"></i>新建文档
-        </a>
-    </div>
+<div class="nm-toolbar">
+    <form method="get" action="/admin/documents" class="nm-filter-grid">
+        <div class="nm-filter-keyword">
+            <label class="form-label" for="filterKeyword">关键词</label>
+            <div class="input-icon">
+                <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                <input type="search" class="form-control" id="filterKeyword" name="keyword" value="{$filters.keyword}" placeholder="搜索标题或正文">
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="filterCat">分类</label>
+            <select class="form-select" id="filterCat" name="cat">
+                <option value="">全部分类</option>
+                <option value="0"{if $filters.cat == '0'} selected{/if}>未分类</option>
+                {volist name="categories" id="category"}
+                <option value="{$category.id}"{if $filters.cat == $category.id} selected{/if}>{$category.option_label}</option>
+                {/volist}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="filterStatus">状态</label>
+            <select class="form-select" id="filterStatus" name="status">
+                <option value="">全部状态</option>
+                <option value="1"{if $filters.status == '1'} selected{/if}>已发布</option>
+                <option value="0"{if $filters.status == '0'} selected{/if}>草稿</option>
+            </select>
+        </div>
+        <div>
+            <label class="form-label" for="filterVisibility">可见性</label>
+            <select class="form-select" id="filterVisibility" name="visibility">
+                <option value="">全部</option>
+                <option value="public"{if $filters.visibility == 'public'} selected{/if}>公开</option>
+                <option value="encrypted"{if $filters.visibility == 'encrypted'} selected{/if}>加密</option>
+                <option value="private"{if $filters.visibility == 'private'} selected{/if}>私有</option>
+            </select>
+        </div>
+        <div class="nm-filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="ti ti-filter me-1"></i>筛选</button>
+            <a href="/admin/documents" class="btn btn-link link-secondary">重置</a>
+        </div>
+    </form>
 </div>
 
-<div class="card mb-3">
-    <div class="card-body">
-        <form method="get" action="/admin/documents" class="row g-2 align-items-end">
-            <div class="col-12 col-md-4">
-                <label class="form-label" for="filterKeyword">关键词</label>
-                <div class="input-icon">
-                    <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-                    <input type="search" class="form-control" id="filterKeyword" name="keyword" value="{$filters.keyword}" placeholder="搜索标题或正文">
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label" for="filterCat">分类</label>
-                <select class="form-select" id="filterCat" name="cat">
-                    <option value="">全部分类</option>
-                    <option value="0"{if $filters.cat == '0'} selected{/if}>未分类</option>
-                    {volist name="categories" id="category"}
-                    <option value="{$category.id}"{if $filters.cat == $category.id} selected{/if}>{$category.option_label}</option>
-                    {/volist}
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label" for="filterStatus">状态</label>
-                <select class="form-select" id="filterStatus" name="status">
-                    <option value="">全部状态</option>
-                    <option value="1"{if $filters.status == '1'} selected{/if}>已发布</option>
-                    <option value="0"{if $filters.status == '0'} selected{/if}>草稿</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-2">
-                <label class="form-label" for="filterVisibility">可见性</label>
-                <select class="form-select" id="filterVisibility" name="visibility">
-                    <option value="">全部</option>
-                    <option value="public"{if $filters.visibility == 'public'} selected{/if}>公开</option>
-                    <option value="encrypted"{if $filters.visibility == 'encrypted'} selected{/if}>加密</option>
-                    <option value="private"{if $filters.visibility == 'private'} selected{/if}>私有</option>
-                </select>
-            </div>
-            <div class="col-6 col-md-auto">
-                <button type="submit" class="btn btn-primary w-100">筛选</button>
-            </div>
-            <div class="col-6 col-md-auto">
-                <a href="/admin/documents" class="btn btn-link link-secondary">重置</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<form method="post" action="/admin/documents/batch" id="batchForm" data-confirm-batch="确定执行所选批量操作？此操作可能无法撤销。">
+<form method="post" action="/admin/documents/batch" id="batchForm"
+      data-confirm-batch="确定对所选文档执行该批量操作？此操作可能无法撤销。"
+      data-confirm-title="批量操作" data-confirm-ok="执行操作">
     {:csrf_field()}
-    <div class="card">
+    <div class="card nm-table-wrap">
         <div class="card-header">
             <div class="d-flex flex-wrap align-items-center gap-2 w-100">
-                <span class="text-secondary small">批量操作</span>
+                <span class="nm-toolbar-title"><i class="ti ti-checklist"></i>批量操作</span>
                 <select class="form-select form-select-sm w-auto" name="action" required>
                     <option value="">选择操作…</option>
                     <option value="publish">发布</option>
@@ -109,11 +95,11 @@
                     <option value="delete">移入回收站</option>
                 </select>
                 <button type="submit" class="btn btn-sm btn-outline-secondary">应用到所选</button>
-                <span class="text-secondary small ms-auto">已选择 <span data-check-count>0</span> 篇</span>
+                <span class="nm-toolbar-meta ms-auto">已选择 <span data-check-count>0</span> 篇</span>
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-vcenter card-table">
+            <table class="table table-vcenter">
                 <thead>
                 <tr>
                     <th class="w-1"><input type="checkbox" class="form-check-input" data-check-all aria-label="全选"></th>
@@ -132,8 +118,8 @@
                     <td><input type="checkbox" class="form-check-input" name="ids[]" value="{$doc.id}" data-check-item aria-label="选择文档"></td>
                     <td>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <a href="/admin/documents/edit/{$doc.id}" class="fw-medium text-reset text-decoration-none">{$doc.title}</a>
-                            {if $doc.is_top}<span class="badge bg-orange-lt text-orange" title="置顶时间：{$doc.top_text}">置顶</span>{/if}
+                            <a href="/admin/documents/edit/{$doc.id}" class="nm-cell-title">{$doc.title}</a>
+                            {if $doc.is_top}<span class="badge bg-orange-lt text-orange" title="置顶时间：{$doc.top_text}"><i class="ti ti-pin me-1"></i>置顶</span>{/if}
                         </div>
                         {if $doc.tags}
                         <div class="mt-1 d-flex flex-wrap gap-1">
@@ -174,16 +160,24 @@
                         {/if}
                     </td>
                     <td>
-                        <div class="btn-list flex-nowrap justify-content-end">
-                            <a href="/admin/documents/versions/{$doc.id}" class="btn btn-sm btn-ghost-secondary" title="版本历史">
-                                <i class="ti ti-history"></i>
+                        <div class="nm-row-actions">
+                            <a href="/admin/documents/edit/{$doc.id}" class="btn btn-sm btn-icon btn-ghost-secondary" data-nm-tip="编辑文档">
+                                <i class="ti ti-pencil"></i>
                             </a>
-                            <a href="/admin/documents/edit/{$doc.id}" class="btn btn-sm btn-ghost-secondary" title="编辑">
-                                <i class="ti ti-edit"></i>
-                            </a>
-                            <button type="submit" form="delete-form-{$doc.id}" class="btn btn-sm btn-ghost-danger" title="移入回收站">
-                                <i class="ti ti-trash"></i>
+                            <button type="button" class="btn btn-sm btn-icon btn-ghost-secondary" data-bs-toggle="dropdown" aria-expanded="false" data-nm-tip="更多操作">
+                                <i class="ti ti-dots"></i>
                             </button>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a href="/admin/documents/edit/{$doc.id}" class="dropdown-item"><i class="ti ti-pencil"></i>编辑文档</a>
+                                <a href="/admin/documents/versions/{$doc.id}" class="dropdown-item"><i class="ti ti-history"></i>版本历史</a>
+                                {if $doc.status == 1}
+                                <a href="/doc/{$doc.id}.html" target="_blank" rel="noopener" class="dropdown-item"><i class="ti ti-external-link"></i>前台预览</a>
+                                {/if}
+                                <div class="dropdown-divider"></div>
+                                <button type="submit" form="delete-form-{$doc.id}" class="dropdown-item text-danger">
+                                    <i class="ti ti-trash"></i>移入回收站
+                                </button>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -191,9 +185,11 @@
                 {empty name="docs"}
                 <tr>
                     <td colspan="8">
-                        <div class="text-center text-secondary py-5">
-                            <i class="ti ti-file-off" style="font-size:2rem;opacity:.5"></i>
-                            <div class="mt-2">没有符合条件的文档。</div>
+                        <div class="nm-empty">
+                            <span class="nm-empty-icon"><i class="ti ti-file-off"></i></span>
+                            <div class="nm-empty-title">没有符合条件的文档</div>
+                            <div class="nm-empty-desc">尝试调整筛选条件，或创建一篇新的文档。</div>
+                            <a href="/admin/documents/create" class="btn btn-primary"><i class="ti ti-plus me-1"></i>新建文档</a>
                         </div>
                     </td>
                 </tr>
@@ -211,7 +207,8 @@
 </form>
 
 {volist name="docs" id="doc"}
-<form id="delete-form-{$doc.id}" action="/admin/documents/delete" method="post" class="d-none" data-confirm="确定将「{$doc.title}」移入回收站？">
+<form id="delete-form-{$doc.id}" action="/admin/documents/delete" method="post" class="d-none"
+      data-confirm="确定将「{$doc.title}」移入回收站？" data-confirm-tone="danger" data-confirm-title="移入回收站">
     {:csrf_field()}
     <input type="hidden" name="id" value="{$doc.id}">
 </form>

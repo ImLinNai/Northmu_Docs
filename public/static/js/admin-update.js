@@ -258,39 +258,56 @@
         if (skipButton) {
             skipButton.addEventListener('click', function () {
                 if (!latestVersion) return;
-                if (!window.confirm('确定跳过 v' + latestVersion + '？跳过只影响该版本，后续新版本仍会提示。')) {
+                var message = '确定跳过 v' + latestVersion + '？跳过只影响该版本，后续新版本仍会提示。';
+                var run = function () {
+                    skipButton.disabled = true;
+                    fetch('/admin/update/skip', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf(),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: 'version=' + encodeURIComponent(latestVersion)
+                    }).then(function (response) {
+                        return response.json();
+                    }).then(function (payload) {
+                        if (!payload || payload.code !== 0) {
+                            throw new Error((payload && payload.msg) || '操作失败');
+                        }
+                        setHeroState('skipped');
+                        setIcon('skipped');
+                        title.textContent = '已跳过 v' + latestVersion;
+                        meta.textContent = '该版本已跳过，后续新版本仍会提示';
+                        hint.textContent = '已跳过此版本；如需升级仍可点击「立即下载」手动获取安装包。';
+                        skipButton.classList.add('d-none');
+                        if (skippedLabel) skippedLabel.textContent = latestVersion;
+                        toast(payload.msg || '已跳过该版本', 'success');
+                    }).catch(function (error) {
+                        toast(error && error.message ? error.message : '操作失败', 'danger');
+                    }).finally(function () {
+                        skipButton.disabled = false;
+                    });
+                };
+
+                if (window.NorthmuUI && window.NorthmuUI.confirm) {
+                    window.NorthmuUI.confirm({
+                        anchor: skipButton,
+                        title: '跳过此版本',
+                        message: message,
+                        tone: 'warning',
+                        confirmText: '跳过',
+                        cancelText: '取消'
+                    }).then(function (ok) {
+                        if (ok) run();
+                    });
                     return;
                 }
-                skipButton.disabled = true;
-                fetch('/admin/update/skip', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrf(),
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: 'version=' + encodeURIComponent(latestVersion)
-                }).then(function (response) {
-                    return response.json();
-                }).then(function (payload) {
-                    if (!payload || payload.code !== 0) {
-                        throw new Error((payload && payload.msg) || '操作失败');
-                    }
-                    setHeroState('skipped');
-                    setIcon('skipped');
-                    title.textContent = '已跳过 v' + latestVersion;
-                    meta.textContent = '该版本已跳过，后续新版本仍会提示';
-                    hint.textContent = '已跳过此版本；如需升级仍可点击「立即下载」手动获取安装包。';
-                    skipButton.classList.add('d-none');
-                    if (skippedLabel) skippedLabel.textContent = latestVersion;
-                    toast(payload.msg || '已跳过该版本', 'success');
-                }).catch(function (error) {
-                    toast(error && error.message ? error.message : '操作失败', 'danger');
-                }).finally(function () {
-                    skipButton.disabled = false;
-                });
+                if (window.confirm(message)) {
+                    run();
+                }
             });
         }
 

@@ -2,326 +2,440 @@
 
 <div class="row g-3">
     <div class="col-lg-8">
-        <form method="post" action="/admin/settings/save" enctype="multipart/form-data" class="card">
+        <form method="post" action="/admin/settings/save" enctype="multipart/form-data" id="settingsForm">
             {:csrf_field()}
-            <div class="card-header">
-                <h3 class="card-title"><i class="ti ti-world me-1"></i>站点信息</h3>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-7">
-                        <label class="form-label required" for="siteName">站点名称</label>
-                        <input type="text" class="form-control" id="siteName" name="site_name" value="{$settings.site_name}" maxlength="50" required>
-                        <div class="form-hint">显示在导航栏、浏览器标题与页脚。</div>
-                    </div>
-                    <div class="col-md-5">
-                        <label class="form-label" for="siteDesc">站点描述</label>
-                        <input type="text" class="form-control" id="siteDesc" name="site_desc" value="{$settings.site_desc}" maxlength="200">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">站点 Logo</label>
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <span class="nm-upload-preview" id="siteLogoPreview">
-                                {if $siteLogo}
-                                <img src="{$siteLogo}" alt="Logo" class="settings-logo-preview">
-                                {else}
-                                <span class="settings-logo-placeholder"><i class="ti ti-book-2"></i></span>
-                                {/if}
-                            </span>
-                            <div class="flex-fill min-width-0">
-                                <input type="file" class="d-none" id="siteLogoFile" name="logo" accept="image/*">
-                                <input type="text" class="form-control" id="siteLogoUrl" name="logo_url" value="{$logoUrl}" maxlength="500" placeholder="或填写在线图片链接">
-                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="siteLogoUrl" data-preview="siteLogoPreview" data-file="siteLogoFile" data-remove="logo_remove">
-                                        <i class="ti ti-photo me-1"></i>从附件库选择
-                                    </button>
-                                    <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
-                                </div>
-                                <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB；未设置时使用默认书本图标。</div>
-                            </div>
-                        </div>
-                        {if $siteLogo}
-                        <label class="form-check mt-2">
-                            <input class="form-check-input" type="checkbox" name="logo_remove" value="1">
-                            <span class="form-check-label">移除当前 Logo</span>
-                        </label>
-                        {/if}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="siteIcp">ICP 备案号</label>
-                        <input type="text" class="form-control" id="siteIcp" name="site_icp" value="{$settings.site_icp}" maxlength="50" placeholder="例如：京ICP备00000000号">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="siteCopyright">版权信息</label>
-                        <input type="text" class="form-control" id="siteCopyright" name="site_copyright" value="{$settings.site_copyright}" maxlength="100">
-                    </div>
-                </div>
-            </div>
-            <div class="card-header border-top" id="siteSeo">
-                <h3 class="card-title"><i class="ti ti-search me-1"></i>SEO 优化</h3>
-                <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label" for="siteUrl">站点地址</label>
-                        <input type="url" class="form-control" id="siteUrl" name="site_url" value="{$siteUrl}" maxlength="255" placeholder="https://docs.northmu.cn">
-                        <div class="form-hint">用于生成 canonical、Sitemap 与百度推送链接；留空时按当前访问域名自动推断，建议填写固定域名。</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="siteSeoTitle">SEO 标题</label>
-                        <input type="text" class="form-control" id="siteSeoTitle" name="site_seo_title" value="{$siteSeoTitle}" maxlength="120" placeholder="{$settings.site_name}">
-                        <div class="form-hint">显示在浏览器标签与搜索结果的首页标题，留空则使用站点名称。</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="siteSeoKeywords">SEO 关键词</label>
-                        <input type="text" class="form-control" id="siteSeoKeywords" name="site_seo_keywords" value="{$siteSeoKeywords}" maxlength="255" placeholder="北牧视界,北牧网络,北牧博客">
-                        <div class="form-hint">多个关键词用英文逗号分隔，最多 20 个。</div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label" for="siteSeoDescription">SEO 描述</label>
-                        <textarea class="form-control" id="siteSeoDescription" name="site_seo_description" rows="2" maxlength="300" placeholder="牧一方思绪 观百态日常">{$siteSeoDescription}</textarea>
-                        <div class="form-hint">建议 80-160 字，用于首页摘要与分享卡片描述；留空则使用站点描述。</div>
-                    </div>
-                </div>
-                <div class="nm-seo-preview mt-3" id="siteSeoPreview">
-                    <div class="nm-seo-preview-url" id="siteSeoPreviewUrl" data-default="{$seoPreview.url}">{$seoPreview.url}</div>
-                    <div class="nm-seo-preview-title" id="siteSeoPreviewTitle">{$seoPreview.title}</div>
-                    <div class="nm-seo-preview-desc" id="siteSeoPreviewDesc">{$seoPreview.description}</div>
-                </div>
-            </div>
-            <div class="card-header border-top" id="baiduSeo">
-                <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>百度收录</h3>
-                <div class="card-actions">
-                    {if $baiduConfigured}
-                    <span class="badge bg-green-lt text-green">已配置</span>
-                    {else}
-                    <span class="badge bg-yellow-lt text-yellow">待配置</span>
-                    {/if}
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info py-2 px-3 small mb-3">
-                    <i class="ti ti-info-circle me-1"></i>通过百度搜索资源平台主动推送链接，加快新文档收录。请先在
-                    <a href="https://ziyuan.baidu.com/college/courseinfo?id=267&amp;page=2#h2_article_title12" target="_blank" rel="noopener">官方文档</a>
-                    了解规则，并在
-                    <a href="https://zn.baidu.com/linksubmit" target="_blank" rel="noopener">百度准入密钥页面</a>
-                    获取 Token（需先验证站点归属）。
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="baidu_auto_push" value="1" id="baiduAutoPush" {if $settings.baidu_auto_push == '1'}checked{/if}>
-                            <span class="form-check-label">全站链接自动提交</span>
-                        </label>
-                        <div class="form-hint">新建并发布公开文档时自动提交一次。</div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="baidu_common_push" value="1" id="baiduCommonPush" {if $settings.baidu_common_push == '1'}checked{/if}>
-                            <span class="form-check-label">百度普通收录</span>
-                        </label>
-                        <div class="form-hint">常规推送通道，配额较高。</div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="baidu_quick_push" value="1" id="baiduQuickPush" {if $settings.baidu_quick_push == '1'}checked{/if}>
-                            <span class="form-check-label">百度快速收录</span>
-                        </label>
-                        <div class="form-hint">配额较少，账号未开通时会返回错误，不影响普通收录。</div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label" for="baiduToken">百度准入密钥 Token</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control font-monospace" id="baiduToken" name="baidu_token" value="{$baiduToken}" maxlength="100" autocomplete="off" placeholder="粘贴百度搜索资源平台提供的 Token">
-                            <button type="button" class="btn btn-outline-secondary" id="baiduTokenToggle" aria-label="显示或隐藏 Token">
-                                <i class="ti ti-eye"></i>
-                            </button>
-                        </div>
-                        <div class="form-hint">Token 仅保存在站点数据库中，用于调用百度主动推送接口，不会出现在前台页面。</div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-header border-top" id="frontInteraction">
-                <h3 class="card-title"><i class="ti ti-layout-navbar me-1"></i>前台交互</h3>
-                <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label" for="contextMenuMode">右键菜单</label>
-                        <select class="form-select" id="contextMenuMode" name="context_menu_mode">
-                            <option value="default" {if $settings.context_menu_mode == 'default'}selected{/if}>默认（浏览器右键菜单）</option>
-                            <option value="disabled" {if $settings.context_menu_mode == 'disabled'}selected{/if}>禁止右键菜单</option>
-                            <option value="custom" {if $settings.context_menu_mode == 'custom'}selected{/if}>新版右键菜单（替换浏览器菜单）</option>
-                        </select>
-                        <div class="form-hint">新版菜单提供返回、刷新、复制链接、复制选中文字、搜索文档、切换主题与回到顶部等快捷操作，不会展示浏览器默认菜单。</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">禁止复制</label>
-                        <div class="form-hint mb-2">按文档独立控制，在文档编辑页「发布设置」中开启；开启后将拦截 Ctrl+C、右键复制与拖拽选取，并显示提示。</div>
-                        <div class="alert alert-info py-2 px-3 small mb-0">
-                            <i class="ti ti-shield-lock me-1"></i>禁止复制仅对访客端生效，管理员后台不受影响。
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-header border-top">
-                <h3 class="card-title"><i class="ti ti-upload me-1"></i>上传设置</h3>
-                <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全局生效</span></div>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info py-2 px-3 small mb-3">
-                    <i class="ti ti-info-circle me-1"></i>此处统一管理附件库、编辑器、站点素材与头像等所有上传限制；单文件大小同时受服务器 PHP 上传上限（{$phpUploadMax}）约束。
-                </div>
-                <div class="row g-3">
-                    {foreach $uploadCategories as $cat}
-                    <div class="col-md-4">
-                        <div class="upload-limit-card">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <span class="upload-limit-icon"><i class="ti ti-{$cat.icon}"></i></span>
-                                <div class="fw-semibold">{$cat.label}</div>
-                            </div>
-                            <label class="form-label small" for="uploadExt{$cat.key}">允许的扩展名</label>
-                            <input type="text" class="form-control form-control-sm font-monospace" id="uploadExt{$cat.key}" name="upload_{$cat.key}_ext" value="{$cat.ext}" maxlength="500" required>
-                            <label class="form-label small mt-2" for="uploadMax{$cat.key}">单文件上限（MB）</label>
-                            <input type="number" class="form-control form-control-sm" id="uploadMax{$cat.key}" name="upload_{$cat.key}_max_mb" value="{$cat.max_mb}" min="1" max="500" step="1" required>
-                        </div>
-                    </div>
-                    {/foreach}
-                </div>
-                <div class="form-hint mt-2">用英文逗号分隔扩展名；php、phtml、phar、html、js、svg 等可执行或脚本类型会被自动忽略。</div>
-            </div>
-            <div class="card-header border-top">
-                <h3 class="card-title"><i class="ti ti-shield-lock me-1"></i>登录安全</h3>
-            </div>
-            <div class="card-body">
-                <div class="row g-3 align-items-center">
-                    <div class="col-md-4">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="captcha_on" value="1" {if $settings.captcha_on == '1'}checked{/if}>
-                            <span class="form-check-label">启用登录验证码</span>
-                        </label>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" for="failLimit">失败次数上限</label>
-                        <input type="number" class="form-control" id="failLimit" name="login_fail_limit" value="{$settings.login_fail_limit}" min="1" max="50" step="1">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label" for="lockMinutes">锁定时长（分钟）</label>
-                        <input type="number" class="form-control" id="lockMinutes" name="login_lock_minutes" value="{$settings.login_lock_minutes}" min="1" max="1440" step="1">
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="ti ti-device-floppy me-1"></i>保存设置
+            <div class="nav nm-settings-tabs" role="tablist" aria-label="设置分类">
+                <button class="nav-link active" type="button" data-bs-toggle="tab" data-bs-target="#settingsSiteTab" role="tab" aria-controls="settingsSiteTab" aria-selected="true">
+                    <i class="ti ti-world"></i>站点信息
                 </button>
+                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsSeoTab" role="tab" aria-controls="settingsSeoTab" aria-selected="false">
+                    <i class="ti ti-search"></i>SEO 与收录
+                </button>
+                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsFrontTab" role="tab" aria-controls="settingsFrontTab" aria-selected="false">
+                    <i class="ti ti-layout-navbar"></i>前台交互
+                </button>
+                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsUploadTab" role="tab" aria-controls="settingsUploadTab" aria-selected="false">
+                    <i class="ti ti-upload"></i>上传设置
+                </button>
+                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsSecurityTab" role="tab" aria-controls="settingsSecurityTab" aria-selected="false">
+                    <i class="ti ti-shield-lock"></i>登录安全
+                </button>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="settingsSiteTab" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-world me-1"></i>站点信息</h3>
+                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    <label class="form-label required" for="siteName">站点名称</label>
+                                    <input type="text" class="form-control" id="siteName" name="site_name" value="{$settings.site_name}" maxlength="50" required>
+                                    <div class="form-hint">显示在导航栏、浏览器标题与页脚。</div>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label" for="siteDesc">站点描述</label>
+                                    <input type="text" class="form-control" id="siteDesc" name="site_desc" value="{$settings.site_desc}" maxlength="200">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">站点 Logo</label>
+                                    <div class="d-flex flex-wrap align-items-center gap-3">
+                                        <span class="nm-upload-preview" id="siteLogoPreview">
+                                            {if $siteLogo}
+                                            <img src="{$siteLogo}" alt="Logo" class="settings-logo-preview">
+                                            {else}
+                                            <span class="settings-logo-placeholder"><i class="ti ti-book-2"></i></span>
+                                            {/if}
+                                        </span>
+                                        <div class="flex-fill min-width-0">
+                                            <input type="file" class="d-none" id="siteLogoFile" name="logo" accept="image/*">
+                                            <input type="text" class="form-control" id="siteLogoUrl" name="logo_url" value="{$logoUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="siteLogoUrl" data-preview="siteLogoPreview" data-file="siteLogoFile" data-remove="logo_remove">
+                                                    <i class="ti ti-photo me-1"></i>从附件库选择
+                                                </button>
+                                                <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                                            </div>
+                                            <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB；未设置时使用默认书本图标。</div>
+                                        </div>
+                                    </div>
+                                    {if $siteLogo}
+                                    <label class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="logo_remove" value="1">
+                                        <span class="form-check-label">移除当前 Logo</span>
+                                    </label>
+                                    {/if}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="siteIcp">ICP 备案号</label>
+                                    <input type="text" class="form-control" id="siteIcp" name="site_icp" value="{$settings.site_icp}" maxlength="50" placeholder="例如：京ICP备00000000号">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="siteCopyright">版权信息</label>
+                                    <input type="text" class="form-control" id="siteCopyright" name="site_copyright" value="{$settings.site_copyright}" maxlength="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="settingsSeoTab" role="tabpanel">
+                    <div class="card nm-settings-section" id="siteSeo">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-search me-1"></i>SEO 优化</h3>
+                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label" for="siteUrl">站点地址</label>
+                                    <input type="url" class="form-control" id="siteUrl" name="site_url" value="{$siteUrl}" maxlength="255" placeholder="https://docs.northmu.cn">
+                                    <div class="form-hint">用于生成 canonical、Sitemap 与百度推送链接；留空时按当前访问域名自动推断，建议填写固定域名。</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="siteSeoTitle">SEO 标题</label>
+                                    <input type="text" class="form-control" id="siteSeoTitle" name="site_seo_title" value="{$siteSeoTitle}" maxlength="120" placeholder="{$settings.site_name}">
+                                    <div class="form-hint">显示在浏览器标签与搜索结果的首页标题，留空则使用站点名称。</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="siteSeoKeywords">SEO 关键词</label>
+                                    <input type="text" class="form-control" id="siteSeoKeywords" name="site_seo_keywords" value="{$siteSeoKeywords}" maxlength="255" placeholder="北牧视界,北牧网络,北牧博客">
+                                    <div class="form-hint">多个关键词用英文逗号分隔，最多 20 个。</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="siteSeoDescription">SEO 描述</label>
+                                    <textarea class="form-control" id="siteSeoDescription" name="site_seo_description" rows="2" maxlength="300" placeholder="牧一方思绪 观百态日常">{$siteSeoDescription}</textarea>
+                                    <div class="form-hint">建议 80-160 字，用于首页摘要与分享卡片描述；留空则使用站点描述。</div>
+                                </div>
+                            </div>
+                            <div class="nm-seo-preview mt-3" id="siteSeoPreview">
+                                <div class="nm-seo-preview-url" id="siteSeoPreviewUrl" data-default="{$seoPreview.url}">{$seoPreview.url}</div>
+                                <div class="nm-seo-preview-title" id="siteSeoPreviewTitle">{$seoPreview.title}</div>
+                                <div class="nm-seo-preview-desc" id="siteSeoPreviewDesc">{$seoPreview.description}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card nm-settings-section" id="baiduSeo">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>百度收录</h3>
+                            <div class="card-actions">
+                                {if $baiduConfigured}
+                                <span class="badge bg-green-lt text-green"><i class="ti ti-check me-1"></i>已配置</span>
+                                {else}
+                                <span class="badge bg-yellow-lt text-yellow">待配置</span>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info py-2 px-3 small mb-3">
+                                <i class="ti ti-info-circle me-1"></i>通过百度搜索资源平台主动推送链接，加快新文档收录。请先在
+                                <a href="https://ziyuan.baidu.com/college/courseinfo?id=267&amp;page=2#h2_article_title12" target="_blank" rel="noopener">官方文档</a>
+                                了解规则，并在
+                                <a href="https://zn.baidu.com/linksubmit" target="_blank" rel="noopener">百度准入密钥页面</a>
+                                获取 Token（需先验证站点归属）。
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="baidu_auto_push" value="1" id="baiduAutoPush" {if $settings.baidu_auto_push == '1'}checked{/if}>
+                                        <span class="form-check-label">全站链接自动提交</span>
+                                    </label>
+                                    <div class="form-hint">新建并发布公开文档时自动提交一次。</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="baidu_common_push" value="1" id="baiduCommonPush" {if $settings.baidu_common_push == '1'}checked{/if}>
+                                        <span class="form-check-label">百度普通收录</span>
+                                    </label>
+                                    <div class="form-hint">常规推送通道，配额较高。</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="baidu_quick_push" value="1" id="baiduQuickPush" {if $settings.baidu_quick_push == '1'}checked{/if}>
+                                        <span class="form-check-label">百度快速收录</span>
+                                    </label>
+                                    <div class="form-hint">配额较少，账号未开通时会返回错误，不影响普通收录。</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="baiduToken">百度准入密钥 Token</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control font-monospace" id="baiduToken" name="baidu_token" value="{$baiduToken}" maxlength="100" autocomplete="off" placeholder="粘贴百度搜索资源平台提供的 Token">
+                                        <button type="button" class="btn btn-outline-secondary" id="baiduTokenToggle" aria-label="显示或隐藏 Token">
+                                            <i class="ti ti-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-hint">Token 仅保存在站点数据库中，用于调用百度主动推送接口，不会出现在前台页面。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="settingsFrontTab" role="tabpanel">
+                    <div class="card" id="frontInteraction">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-layout-navbar me-1"></i>前台交互</h3>
+                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="contextMenuMode">右键菜单</label>
+                                    <select class="form-select" id="contextMenuMode" name="context_menu_mode">
+                                        <option value="default" {if $settings.context_menu_mode == 'default'}selected{/if}>默认（浏览器右键菜单）</option>
+                                        <option value="disabled" {if $settings.context_menu_mode == 'disabled'}selected{/if}>禁止右键菜单</option>
+                                        <option value="custom" {if $settings.context_menu_mode == 'custom'}selected{/if}>新版右键菜单（替换浏览器菜单）</option>
+                                    </select>
+                                    <div class="form-hint">新版菜单提供返回、刷新、复制链接、复制选中文字、搜索文档、切换主题与回到顶部等快捷操作。</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">禁止复制</label>
+                                    <div class="nm-choice-card">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="ti ti-shield-lock text-primary mt-1"></i>
+                                            <div>
+                                                <div class="nm-choice-title">按文档独立控制</div>
+                                                <div class="nm-choice-desc">在文档编辑页「发布设置」中开启；开启后拦截 Ctrl+C、右键复制与拖拽选取，并显示提示。仅对访客端生效，管理员后台不受影响。</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="settingsUploadTab" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-upload me-1"></i>上传设置</h3>
+                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全局生效</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info py-2 px-3 small mb-3">
+                                <i class="ti ti-info-circle me-1"></i>统一管理附件库、编辑器、站点素材与头像等所有上传限制；单文件大小同时受服务器 PHP 上传上限（{$phpUploadMax}）约束。
+                            </div>
+                            <div class="row g-3">
+                                {foreach $uploadCategories as $cat}
+                                <div class="col-md-4">
+                                    <div class="upload-limit-card">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="upload-limit-icon"><i class="ti ti-{$cat.icon}"></i></span>
+                                            <div class="fw-semibold">{$cat.label}</div>
+                                        </div>
+                                        <label class="form-label small" for="uploadExt{$cat.key}">允许的扩展名</label>
+                                        <input type="text" class="form-control form-control-sm font-monospace" id="uploadExt{$cat.key}" name="upload_{$cat.key}_ext" value="{$cat.ext}" maxlength="500" required>
+                                        <label class="form-label small mt-2" for="uploadMax{$cat.key}">单文件上限（MB）</label>
+                                        <input type="number" class="form-control form-control-sm" id="uploadMax{$cat.key}" name="upload_{$cat.key}_max_mb" value="{$cat.max_mb}" min="1" max="500" step="1" required>
+                                    </div>
+                                </div>
+                                {/foreach}
+                            </div>
+                            <div class="form-hint mt-2">用英文逗号分隔扩展名；php、phtml、phar、html、js、svg 等可执行或脚本类型会被自动忽略。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="settingsSecurityTab" role="tabpanel">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-shield-lock me-1"></i>登录安全</h3>
+                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="captcha_on" value="1" id="captchaOn" {if $settings.captcha_on == '1'}checked{/if}>
+                                        <span class="form-check-label">启用登录验证码</span>
+                                    </label>
+                                    <div class="form-hint">开启后登录页需要输入图形验证码。</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="failLimit">失败次数上限</label>
+                                    <input type="number" class="form-control" id="failLimit" name="login_fail_limit" value="{$settings.login_fail_limit}" min="1" max="50" step="1">
+                                    <div class="form-hint">连续失败达到上限后锁定登录。</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="lockMinutes">锁定时长（分钟）</label>
+                                    <input type="number" class="form-control" id="lockMinutes" name="login_lock_minutes" value="{$settings.login_lock_minutes}" min="1" max="1440" step="1">
+                                    <div class="form-hint">锁定期间即使密码正确也无法登录。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-clock-hour-4 me-1"></i>登录态有效期</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="nm-choice-grid">
+                                <label class="nm-choice-card nm-choice-card-select">
+                                    <input class="form-check-input" type="radio" name="admin_session_hours" id="sessionHours12" value="12" {if $settings.admin_session_hours == '12'}checked{/if}>
+                                    <span>
+                                        <span class="nm-choice-title">12 小时</span>
+                                        <span class="nm-choice-desc">适合公用电脑，当天使用后自动失效。</span>
+                                    </span>
+                                </label>
+                                <label class="nm-choice-card nm-choice-card-select">
+                                    <input class="form-check-input" type="radio" name="admin_session_hours" id="sessionHours24" value="24" {if $settings.admin_session_hours == '24'}checked{/if}>
+                                    <span>
+                                        <span class="nm-choice-title">24 小时</span>
+                                        <span class="nm-choice-desc">默认方案，兼顾安全与日常使用。</span>
+                                    </span>
+                                </label>
+                                <label class="nm-choice-card nm-choice-card-select">
+                                    <input class="form-check-input" type="radio" name="admin_session_hours" id="sessionHours168" value="168" {if $settings.admin_session_hours == '168'}checked{/if}>
+                                    <span>
+                                        <span class="nm-choice-title">7 天</span>
+                                        <span class="nm-choice-desc">适合个人设备，减少重复登录。</span>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="form-hint mt-2">从登录成功时开始计时，到期后需要重新登录。修改后对下一次登录生效，当前登录态不受影响；手动退出后重新登录会重新计算。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nm-savebar mt-3">
+                <div class="nm-savebar-status"><i class="ti ti-info-circle me-1"></i>修改任意分页内容后，点击右侧保存即可统一提交。</div>
+                <div class="ms-auto d-flex gap-2">
+                    <a href="/admin/settings" class="btn btn-link link-secondary">还原</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ti ti-device-floppy me-1"></i>保存设置
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card" id="adminProfile">
-            <div class="card-header">
-                <h3 class="card-title"><i class="ti ti-user-circle me-1"></i>管理员资料</h3>
-            </div>
-            <div class="card-body">
-                <form method="post" action="/admin/settings/profile" enctype="multipart/form-data">
-                    {:csrf_field()}
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <span class="nm-upload-preview" id="adminAvatarPreview">
-                            {if $admin.avatar}
-                            <img src="{$admin.avatar}" alt="{$admin.display_name}" class="admin-profile-avatar">
-                            {else}
-                            <span class="admin-profile-avatar admin-profile-avatar-fallback">{$admin.initial}</span>
-                            {/if}
-                        </span>
-                        <div>
-                            <div class="fw-semibold">{$admin.display_name}</div>
-                            <div class="text-secondary small">账号：{$admin.username}</div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="adminNickname">昵称</label>
-                        <input type="text" class="form-control" id="adminNickname" name="nickname" value="{$admin.nickname}" maxlength="30" placeholder="未设置时显示账号">
-                        <div class="form-hint">前台文档作者处显示昵称；留空时显示账号名。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="adminAvatar">头像</label>
-                        <input type="file" class="d-none" id="adminAvatar" name="avatar" accept="image/*">
-                        <input type="text" class="form-control" id="adminAvatarUrl" name="avatar_url" value="{$avatarUrl}" maxlength="500" placeholder="或填写在线图片链接">
-                        <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="adminAvatarUrl" data-preview="adminAvatarPreview" data-file="adminAvatar" data-remove="avatar_remove">
-                                <i class="ti ti-photo me-1"></i>从附件库选择
-                            </button>
-                            <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
-                        </div>
-                        <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB，建议使用正方形图片。</div>
-                        {if $admin.avatar}
-                        <label class="form-check mt-2">
-                            <input class="form-check-input" type="checkbox" name="avatar_remove" value="1">
-                            <span class="form-check-label">移除当前头像</span>
-                        </label>
-                        {/if}
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="ti ti-device-floppy me-1"></i>保存资料
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-header">
-                <h3 class="card-title"><i class="ti ti-key me-1"></i>管理员账号</h3>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label">当前账号</label>
-                    <input type="text" class="form-control" value="{$admin.username}" readonly>
-                    <div class="form-hint">系统仅有唯一超级管理员，账号名不可修改。</div>
+        <div class="col-lg-4">
+            <div class="card mb-3" id="adminProfile">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-user-circle me-1"></i>管理员资料</h3>
                 </div>
-                <form method="post" action="/admin/settings/password">
-                    {:csrf_field()}
-                    <div class="mb-3">
-                        <label class="form-label required" for="currentPassword">当前密码</label>
-                        <input type="password" class="form-control" id="currentPassword" name="current_password" autocomplete="current-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label required" for="newPassword">新密码</label>
-                        <input type="password" class="form-control" id="newPassword" name="new_password" autocomplete="new-password" minlength="8" required>
-                        <div class="form-hint">至少 8 个字符，建议包含大小写字母、数字和符号。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label required" for="confirmPassword">确认新密码</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" autocomplete="new-password" minlength="8" required>
-                    </div>
-                    <button type="submit" class="btn btn-outline-warning w-100">
-                        <i class="ti ti-lock-check me-1"></i>更新密码
-                    </button>
-                </form>
+                <div class="card-body">
+                    <form method="post" action="/admin/settings/profile" enctype="multipart/form-data">
+                        {:csrf_field()}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="nm-upload-preview" id="adminAvatarPreview">
+                                {if $admin.avatar}
+                                <img src="{$admin.avatar}" alt="{$admin.display_name}" class="admin-profile-avatar">
+                                {else}
+                                <span class="admin-profile-avatar admin-profile-avatar-fallback">{$admin.initial}</span>
+                                {/if}
+                            </span>
+                            <div>
+                                <div class="fw-semibold">{$admin.display_name}</div>
+                                <div class="text-secondary small">账号：{$admin.username}</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="adminNickname">昵称</label>
+                            <input type="text" class="form-control" id="adminNickname" name="nickname" value="{$admin.nickname}" maxlength="30" placeholder="未设置时显示账号">
+                            <div class="form-hint">前台文档作者处显示昵称；留空时显示账号名。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="adminAvatar">头像</label>
+                            <input type="file" class="d-none" id="adminAvatar" name="avatar" accept="image/*">
+                            <input type="text" class="form-control" id="adminAvatarUrl" name="avatar_url" value="{$avatarUrl}" maxlength="500" placeholder="或填写在线图片链接">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-nm-picker="image" data-target="adminAvatarUrl" data-preview="adminAvatarPreview" data-file="adminAvatar" data-remove="avatar_remove">
+                                    <i class="ti ti-photo me-1"></i>从附件库选择
+                                </button>
+                                <span class="text-secondary small">弹窗内可选用已有附件或上传新图片</span>
+                            </div>
+                            <div class="form-hint">支持 {$uploadCategories.image.ext}，最大 {$uploadCategories.image.max_mb} MB，建议使用正方形图片。</div>
+                            {if $admin.avatar}
+                            <label class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="avatar_remove" value="1">
+                                <span class="form-check-label">移除当前头像</span>
+                            </label>
+                            {/if}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-device-floppy me-1"></i>保存资料
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <div class="card mt-3">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="settings-logo-placeholder"><i class="ti ti-list-details"></i></span>
-                    <div>
-                        <div class="fw-semibold">操作日志</div>
-                        <div class="text-secondary small">共 {$auditCount} 条记录，支持筛选与导出</div>
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-key me-1"></i>管理员账号</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">当前账号</label>
+                        <input type="text" class="form-control" value="{$admin.username}" readonly>
+                        <div class="form-hint">系统仅有唯一超级管理员，账号名不可修改。</div>
                     </div>
-                    <a href="/admin/logs" class="btn btn-sm btn-outline-secondary ms-auto">查看</a>
+                    <form method="post" action="/admin/settings/password" data-confirm="确定更新管理员密码？更新后请使用新密码登录。" data-confirm-title="更新密码" data-confirm-ok="更新">
+                        {:csrf_field()}
+                        <div class="mb-3">
+                            <label class="form-label required" for="currentPassword">当前密码</label>
+                            <input type="password" class="form-control" id="currentPassword" name="current_password" autocomplete="current-password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required" for="newPassword">新密码</label>
+                            <input type="password" class="form-control" id="newPassword" name="new_password" autocomplete="new-password" minlength="8" required>
+                            <div class="form-hint">至少 8 个字符，建议包含大小写字母、数字和符号。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label required" for="confirmPassword">确认新密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirm_password" autocomplete="new-password" minlength="8" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-warning w-100">
+                            <i class="ti ti-lock-check me-1"></i>更新密码
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="nm-section-icon"><i class="ti ti-list-details"></i></span>
+                        <div>
+                            <div class="fw-semibold">操作日志</div>
+                            <div class="text-secondary small">共 {$auditCount} 条记录，支持筛选与导出</div>
+                        </div>
+                        <a href="/admin/logs" class="btn btn-sm btn-outline-secondary ms-auto">查看</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 <script>
     (function () {
         'use strict';
+
+        function activateTabFromHash() {
+            var hash = (window.location.hash || '').replace('#', '');
+            var tabMap = {
+                siteSeo: '#settingsSeoTab',
+                baiduSeo: '#settingsSeoTab',
+                frontInteraction: '#settingsFrontTab'
+            };
+            var target = tabMap[hash];
+            if (target && window.bootstrap && window.bootstrap.Tab) {
+                var trigger = document.querySelector('[data-bs-target="' + target + '"]');
+                if (trigger) {
+                    window.bootstrap.Tab.getOrCreateInstance(trigger).show();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', activateTabFromHash);
+        window.addEventListener('hashchange', activateTabFromHash);
+
         var tokenInput = document.getElementById('baiduToken');
         var toggle = document.getElementById('baiduTokenToggle');
         if (tokenInput && toggle) {
