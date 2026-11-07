@@ -31,12 +31,6 @@
     {if $seoType == 'article' && $seoModified}
     <meta property="article:modified_time" content="{$seoModified}">
     {/if}
-    <meta name="twitter:card" content="{if $seoImage}summary_large_image{else}summary{/if}">
-    <meta name="twitter:title" content="{$seoTitle}">
-    <meta name="twitter:description" content="{$seoDescription}">
-    {if $seoImage}
-    <meta name="twitter:image" content="{$seoImage}">
-    {/if}
     {if $seoJsonLd}
     <script type="application/ld+json">{$seoJsonLd|raw}</script>
     {/if}
@@ -58,9 +52,12 @@
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/apple.css">
+    <link rel="stylesheet" href="/static/css/notices.css">
     {$extraHead|raw}
 </head>
 <body class="nm-front{if !empty($immersiveNav)} nm-immersive-nav{/if}">
+<a class="nm-skip-link" href="#main-content">跳到主要内容</a>
 <div class="nm-boot" id="nmBoot" aria-hidden="true">
     <div class="nm-boot-panel">
         <div class="nm-skeleton nm-skeleton-brand"></div>
@@ -70,7 +67,7 @@
 </div>
 <div class="nm-loading-bar" id="nmLoadingBar"></div>
 <div class="page">
-    <header class="navbar navbar-expand-md d-print-none front-nav{if $siteNavStyle == 'floating'} is-floating{/if}{if !empty($immersiveNav)} is-immersive{/if}">
+    <header class="navbar navbar-expand-md d-print-none front-nav{if $siteNavStyle == 'floating'} is-floating{/if}{if $siteNavStyle == 'capsule'} is-capsule{/if}{if !empty($immersiveNav)} is-immersive{/if}">
         <div class="container-xl">
             <a class="navbar-brand navbar-brand-autodark d-flex align-items-center gap-2" href="/">
                 {if $siteBrandMode == 'image' && $siteBrandImage}
@@ -85,15 +82,18 @@
                 {/if}
             </a>
             <nav class="navbar-nav flex-row align-items-center ms-4 gap-1 d-none d-sm-flex front-nav-links">
+                {if $siteNavStyle == 'capsule'}<span class="front-nav-indicator" aria-hidden="true"></span>{/if}
                 {foreach $navItems as $item}
                 <a class="nav-link{if $item.active} active{/if}" href="{$item.url}"{if $item.target == '_blank'} target="_blank" rel="noopener"{/if}>{$item.title}</a>
                 {/foreach}
             </nav>
+            {if $siteNavStyle != 'capsule'}
             <button type="button" class="nm-search-trigger ms-auto d-none d-md-flex" data-search-open aria-label="搜索公开文档（Ctrl+K）">
                 <i class="ti ti-search"></i>
                 <span class="nm-search-trigger-text">快速搜索问题、主题或关键字...</span>
                 <kbd class="nm-search-trigger-kbd">Ctrl K</kbd>
             </button>
+            {/if}
             <nav class="navbar-nav flex-row align-items-center ms-auto ms-md-3 gap-1">
                 <div class="dropdown d-sm-none">
                     <button class="btn btn-icon btn-ghost-secondary" type="button" data-bs-toggle="dropdown" aria-label="导航菜单">
@@ -105,7 +105,7 @@
                         {/foreach}
                     </div>
                 </div>
-                <button class="btn btn-icon btn-ghost-secondary d-md-none" type="button" data-search-open title="搜索" aria-label="搜索">
+                <button class="btn btn-icon btn-ghost-secondary{if $siteNavStyle != 'capsule'} d-md-none{/if}" type="button" data-search-open title="搜索" aria-label="搜索">
                     <i class="ti ti-search"></i>
                 </button>
                 <button class="btn btn-icon btn-ghost-secondary" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
@@ -140,3 +140,18 @@
             </nav>
         </div>
     </header>
+    {if !empty($noticeBanner) && $noticePlacement == 'doc'}
+    {include file="common/notices_banner" /}
+    {/if}
+    {if !empty($maintenanceBanner) && $maintenanceBanner.enabled}
+    <div class="nm-maint-banner" role="status">
+        <div class="container-xl">
+            <span class="nm-maint-banner-badge"><i class="ti ti-tool"></i>维护模式</span>
+            <span class="nm-maint-banner-text">维护模式已开启，未登录访客当前只能看到维护页面。</span>
+            {if $maintenanceBanner.until}
+            <span class="nm-maint-banner-time">预计恢复：{:date('Y-m-d H:i', $maintenanceBanner.until)}</span>
+            {/if}
+            <a class="nm-maint-banner-link" href="/admin/settings#maintenance">管理维护</a>
+        </div>
+    </div>
+    {/if}

@@ -29,9 +29,11 @@
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/static/css/apple.css">
     {$extraHead|default=''|raw}
 </head>
 <body class="nm-admin-body">
+<a class="nm-skip-link" href="#main-content">跳到主要内容</a>
 <div class="nm-boot" id="nmBoot" aria-hidden="true">
     <div class="nm-boot-panel">
         <div class="nm-skeleton nm-skeleton-brand"></div>
@@ -110,6 +112,13 @@
                     <span class="is-current">{$navCurrent.item.title}</span>
                 </nav>
                 <div class="nm-topbar-actions">
+                    {if !empty($maintenance) && $maintenance.enabled}
+                    <a href="/admin/settings#maintenance" class="nm-topbar-maint" data-nm-tip="维护模式已开启，访客暂时无法访问前台">
+                        <span class="nm-topbar-maint-dot" aria-hidden="true"></span>
+                        <i class="ti ti-tool"></i>
+                        <span class="d-none d-md-inline">维护模式</span>
+                    </a>
+                    {/if}
                     <a href="/admin/documents/create" class="nm-topbar-create">
                         <i class="ti ti-plus"></i>
                         <span class="d-none d-sm-inline">新建文档</span>
@@ -148,22 +157,7 @@
             </div>
         </header>
 
-        <div class="page-header d-print-none">
-            <div class="container-xl">
-                <div class="nm-page-head">
-                    <div class="nm-page-head-main">
-                        <div class="nm-page-eyebrow"><i class="ti {$navCurrent.item.icon}"></i>{$navCurrent.group}</div>
-                        <h2 class="page-title">{$pageTitle}</h2>
-                        {if $pageDesc}<div class="nm-page-desc">{$pageDesc}</div>{/if}
-                    </div>
-                    {if $pageActions}
-                    <div class="nm-page-head-extra">{$pageActions|raw}</div>
-                    {/if}
-                </div>
-            </div>
-        </div>
-
-        <div class="page-body">
+        <div class="page-body" id="main-content" tabindex="-1">
             <div class="container-xl">
                 {if $flash.message}
                 <div id="nmFlash" class="d-none" data-message="{$flash.message}" data-type="{$flash.type}"></div>

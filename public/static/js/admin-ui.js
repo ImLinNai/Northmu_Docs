@@ -85,6 +85,11 @@
 
     /* ---------- Popconfirm（气泡确认框） ---------- */
     var activeConfirm = null;
+    var lastPointer = null;
+
+    document.addEventListener('pointerdown', function (event) {
+        lastPointer = { x: event.clientX, y: event.clientY };
+    }, true);
 
     function closeConfirm(result) {
         if (!activeConfirm) return;
@@ -102,17 +107,30 @@
     }
 
     function positionConfirm(el, anchor) {
-        if (!anchor || !anchor.getBoundingClientRect) return;
-        var rect = anchor.getBoundingClientRect();
         var pad = 8;
         var width = el.offsetWidth;
         var height = el.offsetHeight;
-        var left = rect.left + rect.width / 2 - width / 2;
-        left = Math.max(pad, Math.min(left, window.innerWidth - width - pad));
-        var top = rect.top - height - 10;
-        if (top < pad) {
-            top = Math.min(rect.bottom + 10, window.innerHeight - height - pad);
+        var left;
+        var top;
+        var rect = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
+        var anchored = rect && rect.width > 0 && rect.height > 0 &&
+            rect.bottom > 0 && rect.top < window.innerHeight;
+        if (anchored) {
+            left = rect.left + rect.width / 2 - width / 2;
+            top = rect.top - height - 10;
+            if (top < pad) top = rect.bottom + 10;
+        } else if (lastPointer) {
+            left = lastPointer.x - width / 2;
+            top = lastPointer.y - height - 12;
+            if (top < pad) top = lastPointer.y + 14;
+        } else if (rect) {
+            left = rect.left + rect.width / 2 - width / 2;
+            top = rect.top - height - 10;
+        } else {
+            return;
         }
+        left = Math.max(pad, Math.min(left, window.innerWidth - width - pad));
+        top = Math.max(pad, Math.min(top, window.innerHeight - height - pad));
         el.style.left = Math.round(left) + 'px';
         el.style.top = Math.round(top) + 'px';
     }

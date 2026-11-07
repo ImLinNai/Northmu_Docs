@@ -117,12 +117,15 @@
         initSidebar();
         initSidebarCollapse();
         initImmersiveNav();
+        initCapsuleNav();
         initTocToggle();
         initToc();
+        initReadingProgress();
         initLightbox();
         initCategoryCollapse();
         initBackTop();
         initSearchModal();
+        initUnlockToggle();
         initContextMenu();
         initCopyProtection();
         if (window.hljs) {
@@ -226,6 +229,28 @@
             }
         }, { passive: true });
         update();
+    }
+
+    function initUnlockToggle() {
+        document.querySelectorAll('[data-unlock-toggle]').forEach(function (button) {
+            var field = button.closest('.doc-unlock-field');
+            var input = field ? field.querySelector('input') : null;
+            if (!input) return;
+            button.addEventListener('click', function () {
+                var reveal = input.type === 'password';
+                input.type = reveal ? 'text' : 'password';
+                button.setAttribute('aria-pressed', reveal ? 'true' : 'false');
+                button.setAttribute('aria-label', reveal ? '隐藏密码' : '显示密码');
+                button.setAttribute('title', reveal ? '隐藏密码' : '显示密码');
+                var icon = button.querySelector('i');
+                if (icon) icon.className = reveal ? 'ti ti-eye-off' : 'ti ti-eye';
+                input.focus();
+                try {
+                    var end = input.value.length;
+                    input.setSelectionRange(end, end);
+                } catch (e) { }
+            });
+        });
     }
 
     function initSearchModal() {
@@ -651,7 +676,7 @@
         if (!shell || !buttons.length) return;
         var key = 'northmu-doc-sidebar-collapsed';
         var desktop = window.matchMedia('(min-width: 768px)');
-        var flyout = null;
+        var flyouts = [];
         var flyoutLink = null;
         var hideTimer = null;
 
@@ -672,61 +697,134 @@
             }
         }
 
-        function ensureFlyout() {
-            if (flyout) return flyout;
-            flyout = document.createElement('div');
-            flyout.className = 'nm-cat-flyout';
-            flyout.addEventListener('mouseenter', clearHide);
-            flyout.addEventListener('mouseleave', scheduleHide);
-            document.body.appendChild(flyout);
-            return flyout;
-        }
-
-        function closeFlyout() {
-            clearHide();
-            if (flyout) flyout.classList.remove('show');
-            if (flyoutLink) {
+        function closeFrom(depth) {
+            while (flyouts.length && flyouts[flyouts.length - 1].depth >= depth) {
+                var entry = flyouts.pop();
+                entry.el.remove();
+            }
+            if (!flyouts.length && flyoutLink) {
                 flyoutLink.classList.remove('is-flyout-open');
                 flyoutLink = null;
             }
         }
 
-        function scheduleHide() {
+        function closeFlyout() {
             clearHide();
-            hideTimer = setTimeout(closeFlyout, 160);
+            closeFrom(0);
+        }
+
+        function scheduleHide(depth) {
+            clearHide();
+            hideTimer = setTimeout(function () { closeFrom(depth); }, 160);
         }
 
         function positionFlyout(panel, rect) {
-            var gap = 10;
+            var gap = 8;
             var left = rect.right + gap;
             var width = panel.offsetWidth;
             var height = panel.offsetHeight;
             if (left + width > window.innerWidth - 10) {
                 left = Math.max(10, rect.left - width - gap);
             }
-            var top = Math.min(rect.top, window.innerHeight - height - 12);
-            if (top < 10) top = 10;
+            var top = rect.top;
+            if (top + height > window.innerHeight - 12) {
+                top = Math.max(10, window.innerHeight - height - 12);
+            }
             panel.style.left = Math.round(left) + 'px';
             panel.style.top = Math.round(top) + 'px';
         }
 
-        function openFlyout(item, link) {
+        function categoryInfo(item) {
+            var link = item.querySelector(':scope > .cat-row .cat-link');
+            if (!link) return null;
+            var nameEl = link.querySelector('span.text-truncate') || link.querySelector('span');
+            return {
+                link: link,
+                name: nameEl ? nameEl.textContent.trim() : (link.getAttribute('title') || '分类'),
+                href: link.getAttribute('href') || '#'
+            };
+        }
+
+        function createFlyoutItem(tag, className, icon, text, tail) {
+            var row = document.createElement(tag);
+            row.className = 'nm-cat-flyout-item ' + className;
+            row.innerHTML = '<i class="ti ' + icon + '"></i><span>' + escapeHtml(text) + '</span>' + (tail || '');
+            return row;
+        }
+
+        function openFlyout(item, anchor, depth) {
             if (!isCollapsed() || !desktop.matches) return;
-            var children = item.querySelector(':scope > .cat-children');
-            if (!children) return;
+            var info = categoryInfo(item);
+            if (!info) return;
+            var existing = flyouts[depth];
+            if (existing && existing.item === item) {
+                clearHide();
+                closeFrom(depth + 1);
+                return;
+            }
+            closeFrom(depth);
             clearHide();
-            var panel = ensureFlyout();
-            var nameEl = link.querySelector('span');
-            var name = nameEl ? nameEl.textContent : (link.getAttribute('title') || '分类');
-            panel.innerHTML = '<div class="nm-cat-flyout-title"><i class="ti ti-folder"></i>'
-                + escapeHtml(name) + '</div>' + children.innerHTML;
-            panel.querySelectorAll('.d-none').forEach(function (el) { el.classList.remove('d-none'); });
-            panel.querySelectorAll('[data-cat-toggle]').forEach(function (el) { el.remove(); });
+
+            var panel = document.createElement('div');
+            panel.className = 'nm-cat-flyout';
+            panel.dataset.depth = depth;
+            panel.addEventListener('mouseenter', clearHide);
+            panel.addEventListener('mouseleave', function () { scheduleHide(depth); });
+
+            var head = document.createElement('a');
+            head.className = 'nm-cat-flyout-head';
+            head.href = info.href;
+            head.innerHTML = '<i class="ti ti-folder"></i><span>' + escapeHtml(info.name) + '</span>';
+            panel.appendChild(head);
+
+            var list = document.createElement('div');
+            list.className = 'nm-cat-flyout-list';
+            var children = item.querySelector(':scope > .cat-children');
+            var childNodes = children ? Array.prototype.slice.call(children.children) : [];
+            var subItems = childNodes.filter(function (el) { return el.classList.contains('cat-item'); });
+            var docItems = childNodes.filter(function (el) { return el.classList.contains('cat-doc-item'); });
+
+            subItems.forEach(function (subItem) {
+                var sub = categoryInfo(subItem);
+                if (!sub) return;
+                var row = createFlyoutItem('a', 'is-sub', 'ti-folder', sub.name, '<i class="ti ti-chevron-right nm-cat-flyout-arrow"></i>');
+                row.href = sub.href;
+                row.addEventListener('mouseenter', function () { openFlyout(subItem, row, depth + 1); });
+                row.addEventListener('focus', function () { openFlyout(subItem, row, depth + 1); });
+                list.appendChild(row);
+            });
+
+            docItems.forEach(function (docItem) {
+                var link = docItem.querySelector('.cat-doc-link');
+                if (!link) return;
+                var titleEl = link.querySelector('span');
+                var title = link.getAttribute('title') || (titleEl ? titleEl.textContent : '未命名文档');
+                var locked = link.querySelector('.cat-lock');
+                var row = createFlyoutItem('a', 'is-doc', 'ti-file-text', title,
+                    locked ? '<i class="ti ti-lock nm-cat-flyout-lock"></i>' : '');
+                row.href = link.getAttribute('href') || '#';
+                if (link.classList.contains('active')) row.classList.add('active');
+                list.appendChild(row);
+            });
+
+            if (!list.children.length) {
+                var empty = document.createElement('div');
+                empty.className = 'nm-cat-flyout-empty';
+                empty.textContent = '该分类下暂无内容';
+                list.appendChild(empty);
+            }
+
+            panel.appendChild(list);
+            document.body.appendChild(panel);
             panel.classList.add('show');
-            positionFlyout(panel, link.getBoundingClientRect());
-            if (flyoutLink && flyoutLink !== link) flyoutLink.classList.remove('is-flyout-open');
-            flyoutLink = link;
-            link.classList.add('is-flyout-open');
+            positionFlyout(panel, anchor.getBoundingClientRect());
+            flyouts.push({ el: panel, item: item, depth: depth });
+
+            if (depth === 0) {
+                if (flyoutLink && flyoutLink !== anchor) flyoutLink.classList.remove('is-flyout-open');
+                flyoutLink = anchor;
+                anchor.classList.add('is-flyout-open');
+            }
         }
 
         function bindFlyoutItems() {
@@ -735,12 +833,14 @@
                 var link = item.querySelector(':scope > .cat-row .cat-link');
                 item.setAttribute('data-flyout-bound', '1');
                 if (!link) return;
-                item.addEventListener('mouseenter', function () { openFlyout(item, link); });
+                item.addEventListener('mouseenter', function () { openFlyout(item, link, 0); });
                 item.addEventListener('mouseleave', function () {
-                    if (isCollapsed()) scheduleHide();
+                    if (isCollapsed()) scheduleHide(0);
                 });
-                link.addEventListener('focus', function () { openFlyout(item, link); });
-                link.addEventListener('blur', scheduleHide);
+                link.addEventListener('focus', function () { openFlyout(item, link, 0); });
+                link.addEventListener('blur', function () {
+                    if (isCollapsed()) scheduleHide(0);
+                });
             });
         }
 
@@ -793,6 +893,40 @@
             }
         }, { passive: true });
         update();
+    }
+
+    function initCapsuleNav() {
+        var linksNav = document.querySelector('.front-nav.is-capsule .front-nav-links');
+        var pill = linksNav && linksNav.querySelector('.front-nav-indicator');
+        if (!linksNav || !pill) return;
+        var links = Array.prototype.slice.call(linksNav.querySelectorAll('.nav-link'));
+        if (!links.length) return;
+        var active = linksNav.querySelector('.nav-link.active');
+
+        function place(link, opacity) {
+            pill.style.width = link.offsetWidth + 'px';
+            pill.style.height = link.offsetHeight + 'px';
+            pill.style.transform = 'translate(' + link.offsetLeft + 'px, -50%)';
+            pill.style.opacity = opacity;
+        }
+
+        function rest() {
+            if (active && active.offsetWidth > 0) {
+                place(active, '.55');
+            } else {
+                pill.style.opacity = '0';
+            }
+        }
+
+        links.forEach(function (link) {
+            link.addEventListener('pointerenter', function () {
+                place(link, '1');
+            });
+        });
+        linksNav.addEventListener('pointerleave', rest);
+        window.addEventListener('resize', rest);
+        window.addEventListener('load', rest);
+        rest();
     }
 
     function initCategoryCollapse() {
@@ -885,6 +1019,39 @@
             }
         }, { passive: true });
         updateActive();
+    }
+
+    function initReadingProgress() {
+        var bar = document.querySelector('[data-reading-progress]');
+        var body = document.querySelector('[data-article-body]');
+        if (!bar || !body) return;
+
+        var timeEl = document.querySelector('[data-reading-time]');
+        var timeText = document.querySelector('[data-reading-time-text]');
+        if (timeEl && timeText) {
+            var chars = (body.textContent || '').replace(/\s+/g, '').length;
+            if (chars > 0) {
+                timeText.textContent = '约 ' + Math.max(1, Math.ceil(chars / 350)) + ' 分钟阅读';
+                timeEl.hidden = false;
+            }
+        }
+
+        var ticking = false;
+        function update() {
+            ticking = false;
+            var rect = body.getBoundingClientRect();
+            var extent = rect.height - window.innerHeight + 140;
+            var ratio = extent <= 0 ? (rect.top < 80 ? 1 : 0) : (80 - rect.top) / extent;
+            bar.style.transform = 'scaleX(' + Math.max(0, Math.min(1, ratio)) + ')';
+        }
+        function request() {
+            if (ticking) return;
+            ticking = true;
+            window.requestAnimationFrame(update);
+        }
+        window.addEventListener('scroll', request, { passive: true });
+        window.addEventListener('resize', request);
+        update();
     }
 
     function initLightbox() {

@@ -33,12 +33,22 @@ class Settings extends Base
             'login_fail_limit'    => '5',
             'login_lock_minutes'  => '10',
             'admin_session_hours' => '24',
+            'maintenance_enabled' => '0',
+            'maintenance_template'=> 'macos',
+            'maintenance_reason'  => '',
+            'maintenance_until'   => '',
         ];
         $uploadCategories = upload_categories();
         foreach ($uploadCategories as $key => $category) {
             $settings['upload_' . $key . '_ext'] = $category['ext'];
             $settings['upload_' . $key . '_max_mb'] = (string) $category['max_mb'];
         }
+
+        $untilRaw = trim((string) ($settings['maintenance_until'] ?? ''));
+        $untilTs = $untilRaw !== '' ? (int) strtotime($untilRaw) : 0;
+        $maintenanceExpired = (string) ($settings['maintenance_enabled'] ?? '0') === '1'
+            && $untilTs > 0 && $untilTs <= time();
+        $maintenanceUntilInput = $untilTs > 0 && !$maintenanceExpired ? date('Y-m-d\TH:i', $untilTs) : '';
 
         $view = $this->viewData('系统设置', '站点信息、SEO 优化、上传限制、登录安全与管理员资料', 'settings') + [
             'settings'         => $settings,
@@ -52,6 +62,9 @@ class Settings extends Base
             'auditCount'       => Db::name('audit_logs')->count(),
             'uploadCategories' => $uploadCategories,
             'phpUploadMax'     => (string) ini_get('upload_max_filesize'),
+            'maintenanceTemplates'   => maintenance_templates(),
+            'maintenanceUntilInput'  => $maintenanceUntilInput,
+            'maintenanceExpired'     => $maintenanceExpired,
         ];
         $view['seoPreview'] = [
             'url'         => ($view['siteUrl'] !== '' ? $view['siteUrl'] : site_base_url()) . '/',
@@ -89,6 +102,14 @@ class Settings extends Base
         if (!in_array($sessionHours, [12, 24, 168], true)) {
             $sessionHours = 24;
         }
+        $maintenanceEnabled = (int) $this->request->post('maintenance_enabled', 0) === 1 ? '1' : '0';
+        $maintenanceTemplate = (string) $this->request->post('maintenance_template', 'macos');
+        if (!array_key_exists($maintenanceTemplate, maintenance_templates())) {
+            $maintenanceTemplate = 'macos';
+        }
+        $maintenanceReason = trim((string) $this->request->post('maintenance_reason', ''));
+        $maintenanceUntilRaw = trim((string) $this->request->post('maintenance_until', ''));
+        $maintenanceUntil = '';
         $removeLogo = (int) $this->request->post('logo_remove', 0) === 1;
         $logoUrl = normalize_media_url((string) $this->request->post('logo_url', ''));
 
@@ -121,6 +142,22 @@ class Settings extends Base
         if ($logoUrl === null) {
             admin_flash('Logo 在线链接格式不正确，请填写 http(s) 链接或以 /uploads/ 开头的站内路径', 'danger');
             return redirect('/admin/settings');
+        }
+        if (mb_strlen($maintenanceReason) > 500) {
+            admin_flash('维护说明不能超过 500 个字符', 'danger');
+            return redirect('/admin/settings');
+        }
+        if ($maintenanceUntilRaw !== '') {
+            $untilTs = strtotime(str_replace('T', ' ', $maintenanceUntilRaw));
+            if ($untilTs === false) {
+                admin_flash('维护结束时间格式不正确，请重新选择', 'danger');
+                return redirect('/admin/settings');
+            }
+            if ($untilTs <= time()) {
+                admin_flash('维护结束时间需要晚于当前时间，留空表示不限时', 'danger');
+                return redirect('/admin/settings');
+            }
+            $maintenanceUntil = date('Y-m-d H:i:s', $untilTs);
         }
 
         $siteName = mb_substr($siteName, 0, 50);
@@ -205,6 +242,10 @@ class Settings extends Base
             'login_fail_limit'    => (string) $failLimit,
             'login_lock_minutes'  => (string) $lockMinutes,
             'admin_session_hours' => (string) $sessionHours,
+            'maintenance_enabled' => $maintenanceEnabled,
+            'maintenance_template'=> $maintenanceTemplate,
+            'maintenance_reason'  => mb_substr($maintenanceReason, 0, 500),
+            'maintenance_until'   => $maintenanceUntil,
         ] + $uploadData;
 
         if ($newLogo !== null) {
@@ -227,7 +268,7 @@ class Settings extends Base
             $this->deleteLogo($oldLogo);
         }
 
-        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/上传设置/登录安全）');
+        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/上传设置/登录安全/维护模式）');
         admin_flash('系统设置已保存');
         return redirect('/admin/settings');
     }

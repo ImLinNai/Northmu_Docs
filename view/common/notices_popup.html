@@ -1,0 +1,29 @@
+{if !empty($noticePopups)}
+<div class="nm-notice-modal" id="nmNoticeModal" hidden>
+    <div class="nm-notice-modal-backdrop" data-notice-dismiss></div>
+    <div class="nm-notice-modal-panel" role="dialog" aria-modal="true" aria-label="站点公告">
+        <div class="nm-notice-modal-head">
+            <span class="nm-notice-modal-eyebrow"><i class="ti ti-pin"></i>站点公告</span>
+            <button type="button" class="nm-notice-modal-close" data-notice-dismiss aria-label="关闭公告">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+        <div class="nm-notice-modal-stack">
+            {foreach $noticePopups as $notice}
+            <div class="nm-notice-popup" data-notice-popup data-id="{$notice.id}" data-cooldown="{$notice.popup_cooldown}" data-level="{$notice.level}" hidden>
+                <div class="nm-notice-popup-mark"><i class="ti {$notice.level_icon}"></i></div>
+                <span class="nm-notice-popup-level">{$notice.level_label}</span>
+                <h2 class="nm-notice-popup-title">{$notice.title}</h2>
+                <div class="nm-notice-popup-content">{$notice.content_html|raw}</div>
+                <div class="nm-notice-popup-actions">
+                    {if $notice.link_url}
+                    <a class="btn btn-outline-secondary" href="{$notice.link_url}"{if $notice.link_target == '_blank'} target="_blank" rel="noopener"{/if} data-notice-link>查看详情<i class="ti ti-arrow-up-right ms-1"></i></a>
+                    {/if}
+                    <button type="button" class="btn btn-primary" data-notice-dismiss>知道了</button>
+                </div>
+            </div>
+            {/foreach}
+        </div>
+    </div>
+</div>
+{/if}

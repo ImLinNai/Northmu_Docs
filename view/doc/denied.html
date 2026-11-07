@@ -1,17 +1,17 @@
 {include file="common/public_header" /}
 
-<main class="denied-page">
+<main class="denied-page" id="main-content" tabindex="-1">
     <div class="container-xl">
         <div class="card denied-card">
             <div class="card-body">
                 <div class="denied-icon">
                     {if $statusCode == 404}
-                    <i class="ti ti-error-404"></i>
+                    <i class="ti ti-file-off"></i>
                     {else}
                     <i class="ti ti-lock-off"></i>
                     {/if}
                 </div>
-                <div class="denied-code">{$statusCode}</div>
+                <div class="denied-code">错误 {$statusCode}</div>
                 <h1 class="denied-title">{$statusCode == 404 ? '页面不存在' : '无权访问'}</h1>
                 <p class="denied-message">{$message}</p>
                 <div class="d-flex gap-2 justify-content-center flex-wrap">
@@ -21,6 +21,9 @@
                     <a href="/docs" class="btn btn-primary">
                         <i class="ti ti-files me-1"></i>浏览公开文档
                     </a>
+                    <button type="button" class="btn btn-ghost-secondary" data-search-open>
+                        <i class="ti ti-search me-1"></i>搜索文档
+                    </button>
                 </div>
             </div>
         </div>

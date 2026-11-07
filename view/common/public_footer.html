@@ -1,18 +1,5 @@
     {if empty($hideFooter)}
-    <footer class="footer footer-transparent d-print-none">
-        <div class="container-xl">
-            <div class="row text-center align-items-center">
-                <div class="col-12">
-                    <div class="text-secondary small">
-                        {$copyright}
-                        {if $siteIcp}
-                        <span class="mx-2">·</span><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener" class="text-secondary text-decoration-none">{$siteIcp}</a>
-                        {/if}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    {include file="common/public_footer_inner" /}
     {/if}
 </div>
 
@@ -30,7 +17,7 @@
         <div class="nm-search-hint">
             <span><kbd>Enter</kbd> 回车搜索</span>
             <span><kbd>Esc</kbd> 关闭</span>
-            <span class="nm-search-brand">Northmu Docs</span>
+            <span class="nm-search-brand">{$siteName|default='Northmu Docs'}</span>
         </div>
     </div>
 </div>
@@ -39,8 +26,15 @@
     <i class="ti ti-arrow-up"></i>
 </button>
 
+{if !empty($noticePopups)}
+{include file="common/notices_popup" /}
+{/if}
 {$extraScripts|raw}
 <script src="/static/vendor/tabler/js/tabler.min.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="/static/js/apple-ui.js"></script>
+{if !empty($noticePopups) || !empty($noticeBanner)}
+<script src="/static/js/notices.js"></script>
+{/if}
 </body>
 </html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#f6f5f2">
+    <title>维护中 - {$siteName}</title>
+    <link rel="icon" href="{$faviconUrl}">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/maintenance.css">
+</head>
+<body class="nm-maint nm-maint-minimal" data-maintenance-until="{$untilTs}">
+<div class="minimal-wrap">
+    <header class="minimal-top"><i class="ti ti-book-2"></i><span>{$siteName}</span></header>
+    <main class="minimal-main" role="status" aria-live="polite">
+        <p class="minimal-eyebrow">Maintenance</p>
+        <h1 class="minimal-title">暂时离开一下</h1>
+        <div class="minimal-reason">{$reasonHtml|raw}</div>
+        <div class="minimal-meta">
+            <div>
+                <span class="minimal-meta-label">当前状态</span>
+                <strong>维护中</strong>
+            </div>
+            <div>
+                <span class="minimal-meta-label">预计恢复</span>
+                <strong>{if $untilTs}{$untilText}{else}时间待定{/if}</strong>
+                {if $untilTs}<span class="minimal-count" data-countdown>--:--</span>{/if}
+            </div>
+        </div>
+    </main>
+    <footer class="minimal-foot">
+        <span>{$siteName}</span>
+        <a href="/admin/login">管理员入口</a>
+    </footer>
+</div>
+<script src="/static/js/maintenance.js" defer></script>
+</body>
+</html>

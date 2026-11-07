@@ -3,13 +3,14 @@
 use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Session;
+use think\facade\View;
 
 /**
  * 当前程序版本
  */
 function app_version(): string
 {
-    return '1.5.0';
+    return '1.6.0';
 }
 
 /**
@@ -264,6 +265,163 @@ function sys_setting(?string $name = null, $default = null)
 }
 
 /**
+ * 维护模式可选的页面模板
+ */
+function maintenance_templates(): array
+{
+    return [
+        'macos'     => 'macOS 风格',
+        'cyberpunk' => '赛博朋克',
+        'code'      => '代码终端',
+        'minimal'   => '极简留白',
+    ];
+}
+
+/**
+ * 维护模式当前状态；设置结束时间后到期自动恢复前台访问
+ */
+function maintenance_state(): array
+{
+    static $state = null;
+    if ($state !== null) {
+        return $state;
+    }
+
+    $configured = (string) sys_setting('maintenance_enabled', '0') === '1';
+    $template = (string) sys_setting('maintenance_template', 'macos');
+    if (!array_key_exists($template, maintenance_templates())) {
+        $template = 'macos';
+    }
+
+    $untilTs = 0;
+    $untilRaw = trim((string) sys_setting('maintenance_until', ''));
+    if ($untilRaw !== '') {
+        $parsed = strtotime($untilRaw);
+        if ($parsed !== false && $parsed > 0) {
+            $untilTs = $parsed;
+        }
+    }
+
+    $expired = $configured && $untilTs > 0 && $untilTs <= time();
+
+    return $state = [
+        'configured' => $configured,
+        'enabled'    => $configured && !$expired,
+        'expired'    => $expired,
+        'template'   => $template,
+        'reason'     => trim((string) sys_setting('maintenance_reason', '')),
+        'until'      => $untilTs,
+    ];
+}
+
+/**
+ * 渲染维护页面，供中间件与后台预览共用
+ */
+function maintenance_render(string $template, ?array $state = null): string
+{
+    if (!array_key_exists($template, maintenance_templates())) {
+        $template = 'macos';
+    }
+    $state ??= maintenance_state();
+    $siteName = (string) sys_setting('site_name', 'Northmu Docs');
+    $reason = trim((string) ($state['reason'] ?? ''));
+    if ($reason === '') {
+        $reason = '站点正在进行维护升级，我们会尽快恢复访问。';
+    }
+    $untilTs = (int) ($state['until'] ?? 0);
+
+    return View::fetch('maintenance/' . $template, [
+        'template'   => $template,
+        'siteName'   => $siteName,
+        'faviconUrl' => site_favicon_url(),
+        'reasonHtml' => nl2br(e($reason)),
+        'untilTs'    => $untilTs,
+        'untilText'  => $untilTs > 0 ? date('Y-m-d H:i', $untilTs) : '',
+    ]);
+}
+
+/**
+ * 公告重要等级
+ */
+function notice_levels(): array
+{
+    return [
+        'info'    => ['label' => '普通信息', 'icon' => 'ti-info-circle'],
+        'success' => ['label' => '更新发布', 'icon' => 'ti-circle-check'],
+        'warning' => ['label' => '注意事项', 'icon' => 'ti-alert-triangle'],
+        'danger'  => ['label' => '重要通知', 'icon' => 'ti-alert-circle'],
+    ];
+}
+
+/**
+ * 弹窗「知道了」冷却时长（小时）
+ */
+function notice_cooldowns(): array
+{
+    return [
+        12 => '12 小时后再次显示',
+        24 => '24 小时后再次显示',
+        48 => '48 小时后再次显示',
+        72 => '72 小时后再次显示',
+    ];
+}
+
+/**
+ * 读取启用的公告并按展示位置过滤，结果带 Redis 缓存
+ */
+function front_notices(?string $placement = null): array
+{
+    $rows = cache_remember('site:notices', cache_ttl(), function () {
+        try {
+            return Db::name('notices')
+                ->where('is_enabled', 1)
+                ->order('sort', 'desc')
+                ->order('id', 'desc')
+                ->select()
+                ->toArray();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    });
+    if (!is_array($rows)) {
+        return [];
+    }
+
+    $levels = notice_levels();
+    $cooldowns = notice_cooldowns();
+    $items = [];
+    foreach ($rows as $row) {
+        if ($placement === 'banner' && empty($row['show_banner'])) {
+            continue;
+        }
+        if ($placement === 'popup' && empty($row['show_popup'])) {
+            continue;
+        }
+        $level = (string) ($row['level'] ?? 'info');
+        if (!isset($levels[$level])) {
+            $level = 'info';
+        }
+        $cooldown = (int) ($row['popup_cooldown'] ?? 24);
+        if (!isset($cooldowns[$cooldown])) {
+            $cooldown = 24;
+        }
+        $items[] = [
+            'id'             => (int) $row['id'],
+            'title'          => (string) $row['title'],
+            'content'        => (string) $row['content'],
+            'content_html'   => nl2br(e((string) $row['content'])),
+            'level'          => $level,
+            'level_label'    => $levels[$level]['label'],
+            'level_icon'     => $levels[$level]['icon'],
+            'link_url'       => trim((string) ($row['link_url'] ?? '')),
+            'link_target'    => ($row['link_target'] ?? '') === '_self' ? '_self' : '_blank',
+            'popup_cooldown' => $cooldown,
+        ];
+    }
+    return $items;
+}
+
+/**
  * 前台公共分类（含继承后的有效可见性），带 Redis 缓存
  */
 function site_categories(): array
@@ -370,7 +528,7 @@ function site_front_config(): array
     return [
         'brandMode'  => in_array($brandMode, ['icon_text', 'image'], true) ? $brandMode : 'icon_text',
         'brandImage' => (string) sys_setting('site_brand_image', ''),
-        'navStyle'   => in_array($navStyle, ['top', 'floating'], true) ? $navStyle : 'top',
+        'navStyle'   => in_array($navStyle, ['top', 'floating', 'capsule'], true) ? $navStyle : 'top',
         'navLogin'   => (string) sys_setting('site_nav_login', '1') === '1',
     ];
 }
@@ -1375,6 +1533,7 @@ function admin_nav_groups(): array
         ]],
         ['label' => '内容管理', 'icon' => 'ti-article', 'items' => [
             ['key' => 'documents', 'title' => '文档管理', 'url' => '/admin/documents', 'icon' => 'ti-file-text', 'desc' => '创建、发布与维护全部文档'],
+            ['key' => 'notices', 'title' => '公告通知', 'url' => '/admin/notices', 'icon' => 'ti-pin', 'desc' => '前台横幅与访客弹窗'],
             ['key' => 'categories', 'title' => '分类管理', 'url' => '/admin/categories', 'icon' => 'ti-folders', 'desc' => '维护多级分类与可见性'],
             ['key' => 'tags', 'title' => '标签管理', 'url' => '/admin/tags', 'icon' => 'ti-tags', 'desc' => '整理标签、重命名与合并'],
             ['key' => 'attachments', 'title' => '附件管理', 'url' => '/admin/attachments', 'icon' => 'ti-paperclip', 'desc' => '查看、上传与清理附件'],

@@ -20,6 +20,9 @@
                 <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsSecurityTab" role="tab" aria-controls="settingsSecurityTab" aria-selected="false">
                     <i class="ti ti-shield-lock"></i>登录安全
                 </button>
+                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsMaintenanceTab" role="tab" aria-controls="settingsMaintenanceTab" aria-selected="false">
+                    <i class="ti ti-tool"></i>维护模式
+                </button>
             </div>
 
             <div class="tab-content">
@@ -298,6 +301,95 @@
                                 </label>
                             </div>
                             <div class="form-hint mt-2">从登录成功时开始计时，到期后需要重新登录。修改后对下一次登录生效，当前登录态不受影响；手动退出后重新登录会重新计算。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="settingsMaintenanceTab" role="tabpanel">
+                    <div class="card nm-settings-section" id="maintenance">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-tool me-1"></i>维护模式</h3>
+                            <div class="card-actions">
+                                {if $settings.maintenance_enabled == '1' && !$maintenanceExpired}
+                                <span class="badge bg-warning-lt text-warning">已开启</span>
+                                {else}
+                                <span class="badge bg-secondary-lt text-secondary">已关闭</span>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {if $maintenanceExpired}
+                            <div class="alert alert-warning">
+                                <i class="ti ti-alert-triangle me-1"></i>预设的维护时间已结束，前台已自动恢复访问。如需继续维护，请重新设置结束时间。
+                            </div>
+                            {/if}
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="maintenance_enabled" value="1" id="maintenanceEnabled" {if $settings.maintenance_enabled == '1' && !$maintenanceExpired}checked{/if}>
+                                <span class="form-check-label">开启维护模式</span>
+                            </label>
+                            <div class="form-hint">开启后，除管理员外所有访客都会看到维护页面；后台登录与管理不受影响。</div>
+
+                            <div class="mt-4">
+                                <label class="form-label">维护页面模板</label>
+                                <div class="nm-maint-grid">
+                                    <label class="nm-choice-card nm-choice-card-select nm-maint-choice">
+                                        <input class="form-check-input" type="radio" name="maintenance_template" value="macos" {if $settings.maintenance_template == 'macos'}checked{/if}>
+                                        <span class="nm-maint-choice-body">
+                                            <span class="nm-maint-thumb is-macos" aria-hidden="true"><span class="nm-maint-thumb-window"></span></span>
+                                            <span class="nm-choice-title">macOS 风格</span>
+                                            <span class="nm-choice-desc">毛玻璃窗口与桌面质感，冷静克制。</span>
+                                        </span>
+                                    </label>
+                                    <label class="nm-choice-card nm-choice-card-select nm-maint-choice">
+                                        <input class="form-check-input" type="radio" name="maintenance_template" value="cyberpunk" {if $settings.maintenance_template == 'cyberpunk'}checked{/if}>
+                                        <span class="nm-maint-choice-body">
+                                            <span class="nm-maint-thumb is-cyberpunk" aria-hidden="true"><span class="nm-maint-thumb-glow"></span></span>
+                                            <span class="nm-choice-title">赛博朋克</span>
+                                            <span class="nm-choice-desc">霓虹网格与故障效果，强烈醒目。</span>
+                                        </span>
+                                    </label>
+                                    <label class="nm-choice-card nm-choice-card-select nm-maint-choice">
+                                        <input class="form-check-input" type="radio" name="maintenance_template" value="code" {if $settings.maintenance_template == 'code'}checked{/if}>
+                                        <span class="nm-maint-choice-body">
+                                            <span class="nm-maint-thumb is-code" aria-hidden="true"><span class="nm-maint-thumb-lines"></span></span>
+                                            <span class="nm-choice-title">代码终端</span>
+                                            <span class="nm-choice-desc">终端命令行风格，面向开发者。</span>
+                                        </span>
+                                    </label>
+                                    <label class="nm-choice-card nm-choice-card-select nm-maint-choice">
+                                        <input class="form-check-input" type="radio" name="maintenance_template" value="minimal" {if $settings.maintenance_template == 'minimal'}checked{/if}>
+                                        <span class="nm-maint-choice-body">
+                                            <span class="nm-maint-thumb is-minimal" aria-hidden="true"><span class="nm-maint-thumb-title"></span></span>
+                                            <span class="nm-choice-title">极简留白</span>
+                                            <span class="nm-choice-desc">大留白排版，安静不打扰。</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="nm-maint-previews">
+                                    <span>预览模板：</span>
+                                    {foreach $maintenanceTemplates as $key => $label}
+                                    <a href="/maintenance/preview/{$key}" target="_blank" rel="noopener">{$label}</a>
+                                    {/foreach}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-7">
+                                    <label class="form-label" for="maintenanceReason">维护说明</label>
+                                    <textarea class="form-control" id="maintenanceReason" name="maintenance_reason" rows="4" maxlength="500" placeholder="例如：正在升级文档索引与存储结构，预计一小时内恢复。">{$settings.maintenance_reason|htmlspecialchars}</textarea>
+                                    <div class="form-hint">显示在维护页面的正文区域，支持换行，最多 500 个字符；留空时显示默认说明。</div>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label" for="maintenanceUntil">预计恢复时间</label>
+                                    <input type="datetime-local" class="form-control" id="maintenanceUntil" name="maintenance_until" value="{$maintenanceUntilInput}">
+                                    <div class="form-hint">可选。到达该时间后自动恢复前台访问；留空表示手动关闭维护模式。</div>
+                                </div>
+                            </div>
+
+                            <div class="nm-maint-note">
+                                <i class="ti ti-info-circle"></i>
+                                <span>管理员登录后仍可浏览前台，顶部会显示维护提示；退出登录后立即进入维护页面。</span>
+                            </div>
                         </div>
                     </div>
                 </div>

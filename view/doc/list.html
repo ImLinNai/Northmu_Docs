@@ -1,6 +1,6 @@
 {include file="common/public_header" /}
 
-<main class="doc-page">
+<main class="doc-page" id="main-content" tabindex="-1">
     <div class="doc-shell doc-shell-list">
         <aside class="doc-sidebar" data-doc-sidebar>
             {include file="doc/sidebar" /}
@@ -15,8 +15,24 @@
                 <span class="doc-mobile-title text-truncate">{$listTitle}</span>
             </div>
 
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb doc-breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">首页</a></li>
+                    <li class="breadcrumb-item"><a href="/docs">文档</a></li>
+                    {if $isSearch}
+                    <li class="breadcrumb-item active" aria-current="page">搜索</li>
+                    {elseif $activeCat}
+                    <li class="breadcrumb-item active" aria-current="page">{$listTitle}</li>
+                    {/if}
+                </ol>
+            </nav>
+
             <div class="doc-list-head">
                 <div class="doc-list-head-text">
+                    <div class="doc-list-eyebrow">
+                        <i class="ti {if $isSearch}ti-search{elseif $activeCat}ti-folder{else}ti-library{/if}"></i>
+                        <span>{if $isSearch}全文搜索{elseif $activeCat}分类浏览{else}文档库{/if}</span>
+                    </div>
                     <h1 class="doc-list-title">{$listTitle}</h1>
                     <div class="doc-list-meta">
                         <span><i class="ti ti-file-text me-1"></i>{$listSubtitle}</span>
@@ -82,8 +98,13 @@
                 </a>
             </div>
             {/if}
+
+            <div class="doc-main-foot">
+                {include file="common/public_footer_inner" /}
+            </div>
         </section>
     </div>
 </main>
 
+{assign name="hideFooter" value="1" /}
 {include file="common/public_footer" /}

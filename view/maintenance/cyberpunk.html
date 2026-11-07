@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#04030a">
+    <title>维护中 - {$siteName}</title>
+    <link rel="icon" href="{$faviconUrl}">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/maintenance.css">
+</head>
+<body class="nm-maint nm-maint-cyberpunk" data-maintenance-until="{$untilTs}">
+<div class="cyber-bg" aria-hidden="true">
+    <div class="cyber-glow"></div>
+    <div class="cyber-floor"></div>
+    <div class="cyber-scan"></div>
+</div>
+<header class="cyber-head">
+    <span class="cyber-brand"><i class="ti ti-bolt"></i>{$siteName}</span>
+    <span class="cyber-status"><i></i>System Offline</span>
+</header>
+<main class="cyber-main">
+    <p class="cyber-kicker">// Maintenance Protocol</p>
+    <h1 class="cyber-title" data-text="MAINTENANCE">MAINTENANCE</h1>
+    <p class="cyber-sub">系统维护中 · 服务暂时离线</p>
+    <section class="cyber-panel" role="status" aria-live="polite">
+        <p class="cyber-panel-label">MESSAGE</p>
+        <div class="cyber-reason">{$reasonHtml|raw}</div>
+        <div class="cyber-grid-meta">
+            <div><span>STATUS</span><strong>OFFLINE</strong></div>
+            <div><span>RESTORE ETA</span><strong>{if $untilTs}{$untilText}{else}UNKNOWN{/if}</strong></div>
+        </div>
+        {if $untilTs}
+        <div class="cyber-countdown"><span data-countdown>--:--</span><small>REMAINING</small></div>
+        {/if}
+    </section>
+    <p class="cyber-foot">Access Restricted // <a href="/admin/login">Admin Login</a></p>
+</main>
+<script src="/static/js/maintenance.js" defer></script>
+</body>
+</html>

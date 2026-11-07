@@ -5,6 +5,8 @@ return [
     \think\middleware\SessionInit::class,
     // 安装检测
     \app\middleware\InstallCheck::class,
+    // 维护模式
+    \app\middleware\Maintenance::class,
     // 表单令牌校验
     \app\middleware\Csrf::class,
 ];

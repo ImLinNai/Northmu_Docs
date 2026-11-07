@@ -21,6 +21,7 @@ abstract class Base extends BaseController
             'themeColor'   => site_theme_color(),
             'admin'        => admin_profile(),
             'copyright'    => sys_setting('site_copyright', '© ' . date('Y') . ' ' . $siteName),
+            'maintenance'  => maintenance_state(),
             'flash'        => admin_flash_pull(),
             'uploadLimitsJson' => json_encode(upload_limits_payload(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'extraHead'    => '',

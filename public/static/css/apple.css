@@ -1,0 +1,3653 @@
+/* ============================================================
+   Northmu Docs · Apple Design Layer
+   统一全站排版、材质、层级、反馈与动效。
+   仅承载视觉与交互表达，不改变页面布局结构。
+   ============================================================ */
+
+:root {
+    --nm-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+    --nm-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+    --nm-tracking-display: -.028em;
+    --nm-tracking-title: -.02em;
+    --nm-tracking-body: -.006em;
+    --nm-tracking-caps: .012em;
+
+    --nm-leading-display: 1.05;
+    --nm-leading-title: 1.18;
+    --nm-leading-body: 1.58;
+
+    --nm-ease-enter: cubic-bezier(.2, .8, .2, 1);
+    --nm-ease-exit: cubic-bezier(.8, .2, .8, 1);
+    --nm-ease-standard: cubic-bezier(.32, .72, 0, 1);
+    --nm-ease-momentum: cubic-bezier(.34, 1.24, .64, 1);
+
+    --nm-dur-1: 100ms;
+    --nm-dur-2: 180ms;
+    --nm-dur-3: 260ms;
+    --nm-dur-4: 380ms;
+
+    --nm-radius-xs: 7px;
+    --nm-radius-sm: 10px;
+    --nm-radius-md: 14px;
+    --nm-radius-lg: 20px;
+    --nm-radius-xl: 26px;
+    --nm-radius-pill: 999px;
+
+    --nm-material-thin: rgba(255, 255, 255, .62);
+    --nm-material: rgba(255, 255, 255, .78);
+    --nm-material-thick: rgba(255, 255, 255, .9);
+    --nm-material-edge: rgba(255, 255, 255, .55);
+    --nm-scrim: rgba(16, 24, 40, .36);
+
+    --nm-text: #1d1d1f;
+    --nm-text-muted: #52525b;
+
+    --nm-shadow-xs: 0 1px 2px rgba(16, 24, 40, .05);
+    --nm-shadow-sm: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px -18px rgba(16, 24, 40, .3);
+    --nm-shadow-md: 0 2px 6px rgba(16, 24, 40, .05), 0 24px 48px -28px rgba(16, 24, 40, .38);
+    --nm-shadow-lg: 0 8px 16px rgba(16, 24, 40, .06), 0 40px 96px -40px rgba(16, 24, 40, .5);
+
+    --nm-focus-ring: 0 0 0 4px rgba(var(--tblr-primary-rgb), .16);
+    --nm-control-height: 2.5rem;
+}
+
+[data-bs-theme="dark"] {
+    --nm-material-thin: rgba(22, 22, 24, .62);
+    --nm-material: rgba(22, 22, 24, .76);
+    --nm-material-thick: rgba(28, 28, 30, .9);
+    --nm-material-edge: rgba(255, 255, 255, .08);
+    --nm-scrim: rgba(0, 0, 0, .56);
+
+    --nm-text: #f5f5f7;
+    --nm-text-muted: #a1a1a6;
+
+    --nm-shadow-xs: 0 1px 2px rgba(0, 0, 0, .4);
+    --nm-shadow-sm: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px -18px rgba(0, 0, 0, .8);
+    --nm-shadow-md: 0 2px 6px rgba(0, 0, 0, .4), 0 24px 48px -28px rgba(0, 0, 0, .9);
+    --nm-shadow-lg: 0 8px 16px rgba(0, 0, 0, .45), 0 40px 96px -40px rgba(0, 0, 0, .95);
+}
+
+/* ---------- 排版 ---------- */
+:root,
+[data-bs-theme="light"] {
+    --tblr-font-sans-serif: var(--nm-font-sans);
+    --tblr-font-monospace: var(--nm-font-mono);
+}
+
+body {
+    font-family: var(--nm-font-sans);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: var(--nm-tracking-body);
+}
+
+body.nm-front {
+    font-size: .9375rem;
+    line-height: var(--nm-leading-body);
+}
+
+body.nm-admin-body {
+    font-size: .875rem;
+    line-height: 1.55;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: 640;
+    letter-spacing: var(--nm-tracking-title);
+    line-height: var(--nm-leading-title);
+}
+
+h1, .h1 {
+    letter-spacing: var(--nm-tracking-display);
+    line-height: var(--nm-leading-display);
+}
+
+.display-1, .display-2, .display-3,
+.display-4, .display-5, .display-6 {
+    font-weight: 660;
+    letter-spacing: var(--nm-tracking-display);
+    line-height: var(--nm-leading-display);
+}
+
+p {
+    line-height: var(--nm-leading-body);
+}
+
+small, .small {
+    letter-spacing: 0;
+}
+
+b, strong {
+    font-weight: 640;
+}
+
+code, kbd, pre, samp {
+    font-family: var(--nm-font-mono);
+}
+
+kbd {
+    border-radius: 6px;
+    font-size: .72em;
+    letter-spacing: 0;
+}
+
+::selection {
+    background: rgba(var(--tblr-primary-rgb), .22);
+}
+
+/* ---------- 基础交互 ---------- */
+html {
+    scroll-behavior: smooth;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid rgba(var(--tblr-primary-rgb), .75);
+    outline-offset: 2px;
+}
+
+:where(.btn, .btn-icon, .nav-link, .dropdown-item, .form-control, .form-select,
+    .cat-link, .doc-list-item, .nm-pressable, [role="button"]) {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn,
+.btn-icon,
+.nav-link,
+.dropdown-item,
+.nm-pressable,
+[role="button"] {
+    transition:
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        border-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+.btn:active,
+.btn.is-pressed,
+.btn-icon:active,
+.btn-icon.is-pressed,
+.nm-pressable:active,
+.nm-pressable.is-pressed,
+[role="button"]:active {
+    scale: .97;
+}
+
+.btn-icon:active,
+.btn-icon.is-pressed {
+    scale: .92;
+}
+
+.btn:disabled,
+.btn.disabled {
+    scale: 1;
+}
+
+/* ---------- 按钮 ---------- */
+.btn {
+    border-radius: var(--nm-radius-sm);
+    font-weight: 590;
+    letter-spacing: -.01em;
+    --tblr-btn-focus-box-shadow: var(--nm-focus-ring);
+}
+
+.btn-sm {
+    border-radius: 9px;
+}
+
+.btn-lg {
+    border-radius: var(--nm-radius-md);
+}
+
+.btn-icon {
+    border-radius: var(--nm-radius-pill);
+}
+
+.btn-primary {
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, .08),
+        0 10px 24px -16px rgba(var(--tblr-primary-rgb), .7);
+}
+
+.btn-primary:hover {
+    box-shadow:
+        0 2px 4px rgba(16, 24, 40, .1),
+        0 14px 30px -16px rgba(var(--tblr-primary-rgb), .8);
+}
+
+.btn-primary:active {
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .1);
+}
+
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-ghost-secondary {
+    border-color: var(--tblr-border-color);
+}
+
+.btn-ghost-secondary {
+    border-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .btn-ghost-secondary:hover {
+        background-color: color-mix(in srgb, var(--tblr-secondary) 10%, transparent);
+    }
+}
+
+/* ---------- 表单 ---------- */
+.form-control,
+.form-select {
+    min-height: var(--nm-control-height);
+    padding: .5rem .75rem;
+    border-radius: var(--nm-radius-sm);
+    border-color: var(--tblr-border-color);
+    background-color: var(--tblr-bg-surface);
+    font-size: .875rem;
+    transition:
+        border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+.form-control::placeholder {
+    color: color-mix(in srgb, var(--tblr-secondary) 70%, transparent);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba(var(--tblr-primary-rgb), .55);
+    box-shadow: var(--nm-focus-ring);
+}
+
+.form-select {
+    padding-right: 2.2rem;
+}
+
+.form-label {
+    margin-bottom: .4rem;
+    font-size: .8125rem;
+    font-weight: 580;
+    letter-spacing: 0;
+    color: var(--tblr-secondary);
+}
+
+.form-text,
+.form-hint {
+    font-size: .75rem;
+    letter-spacing: 0;
+    color: var(--tblr-secondary);
+}
+
+.form-control-sm,
+.form-select-sm {
+    min-height: 2rem;
+    border-radius: 8px;
+}
+
+.form-check-input {
+    border-radius: 6px;
+    transition: background-color var(--nm-dur-1), border-color var(--nm-dur-1), box-shadow var(--nm-dur-2);
+}
+
+.form-check-input[type="radio"] {
+    border-radius: 50%;
+}
+
+.form-check-input:focus {
+    box-shadow: var(--nm-focus-ring);
+}
+
+.input-group-text {
+    border-radius: var(--nm-radius-sm);
+    border-color: var(--tblr-border-color);
+    background-color: var(--tblr-bg-surface-secondary);
+    font-size: .8125rem;
+    color: var(--tblr-secondary);
+}
+
+/* ---------- 卡片与表面 ---------- */
+.card {
+    border-radius: var(--nm-radius-lg);
+    border-color: var(--tblr-border-color);
+    background-color: var(--tblr-bg-surface);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+.card-header,
+.card-footer {
+    border-color: var(--tblr-border-color);
+    background-color: transparent;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+a.card,
+.card-hover,
+[data-card-hover] {
+    transition:
+        translate var(--nm-dur-3) var(--nm-ease-enter),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        border-color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    a.card:hover,
+    .card-hover:hover,
+    [data-card-hover]:hover {
+        translate: 0 -2px;
+        box-shadow: var(--nm-shadow-md);
+    }
+}
+
+/* ---------- 表格 ---------- */
+.table {
+    --tblr-table-bg: transparent;
+    vertical-align: middle;
+}
+
+.table > thead th {
+    border-bottom-color: var(--tblr-border-color);
+    background: transparent;
+    font-size: .75rem;
+    font-weight: 580;
+    letter-spacing: 0;
+    color: var(--tblr-secondary);
+}
+
+.table > tbody > tr > * {
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+.table-hover > tbody > tr:hover > * {
+    --tblr-table-accent-bg: color-mix(in srgb, var(--tblr-primary) 4%, transparent);
+}
+
+.table > :not(caption) > * > * {
+    border-bottom-color: color-mix(in srgb, var(--tblr-border-color) 82%, transparent);
+}
+
+/* ---------- 徽章 ---------- */
+.badge {
+    border-radius: var(--nm-radius-pill);
+    font-weight: 560;
+    letter-spacing: 0;
+}
+
+/* ---------- 下拉、弹出与浮层 ---------- */
+.dropdown-menu {
+    padding: .35rem;
+    border-radius: var(--nm-radius-md);
+    border: 1px solid var(--nm-material-edge);
+    background-color: var(--nm-material-thick);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+    box-shadow: var(--nm-shadow-md);
+    transform-origin: top left;
+}
+
+.dropdown-menu-end {
+    transform-origin: top right;
+}
+
+.dropup .dropdown-menu,
+.dropstart .dropdown-menu {
+    transform-origin: bottom left;
+}
+
+.dropup .dropdown-menu-end,
+.dropend .dropdown-menu {
+    transform-origin: bottom right;
+}
+
+.dropdown-menu.show {
+    animation: nm-materialize var(--nm-dur-3) var(--nm-ease-enter) both;
+    will-change: opacity, scale, translate;
+}
+
+.dropdown-item {
+    padding: .5rem .65rem;
+    border-radius: var(--nm-radius-xs);
+    font-size: .875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+.dropdown-item:active {
+    scale: .985;
+}
+
+.dropdown-header {
+    padding: .35rem .65rem;
+    font-size: .75rem;
+    font-weight: 580;
+    letter-spacing: 0;
+    color: var(--tblr-secondary);
+}
+
+.dropdown-divider {
+    margin: .3rem 0;
+    border-color: var(--tblr-border-color);
+    opacity: .7;
+}
+
+.dropdown-menu .dropdown-item i,
+.dropdown-menu .dropdown-item .ti {
+    opacity: .82;
+}
+
+.popover {
+    border-radius: var(--nm-radius-md);
+    border: 1px solid var(--nm-material-edge);
+    background-color: var(--nm-material-thick);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+    box-shadow: var(--nm-shadow-md);
+}
+
+.popover-header {
+    border-bottom-color: var(--tblr-border-color);
+    background-color: transparent;
+    font-weight: 600;
+}
+
+.tooltip-inner {
+    padding: .32rem .55rem;
+    border-radius: 8px;
+    background-color: rgba(29, 29, 31, .94);
+    font-size: .75rem;
+    letter-spacing: 0;
+}
+
+/* ---------- 模态、抽屉 ---------- */
+.modal-content {
+    border-radius: var(--nm-radius-xl);
+    border: 1px solid var(--nm-material-edge);
+    background-color: var(--nm-material-thick);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    backdrop-filter: saturate(180%) blur(30px);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--tblr-border-color);
+}
+
+.modal-backdrop.show {
+    opacity: .42;
+}
+
+.modal.fade .modal-dialog {
+    opacity: 0;
+    transform: translateY(10px) scale(.97);
+    transition:
+        transform var(--nm-dur-3) var(--nm-ease-exit),
+        opacity var(--nm-dur-2) var(--nm-ease-exit);
+}
+
+.modal.show .modal-dialog {
+    opacity: 1;
+    transform: none;
+    transition-timing-function: var(--nm-ease-enter);
+}
+
+.offcanvas {
+    background-color: var(--nm-material-thick);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    backdrop-filter: saturate(180%) blur(30px);
+    box-shadow: var(--nm-shadow-lg);
+    transition: transform var(--nm-dur-3) var(--nm-ease-exit);
+}
+
+.offcanvas.showing,
+.offcanvas.show:not(.hiding) {
+    transition-timing-function: var(--nm-ease-enter);
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid var(--tblr-border-color);
+}
+
+/* ---------- Toast ---------- */
+.nm-toast {
+    border-radius: var(--nm-radius-md);
+    border: 1px solid var(--nm-material-edge);
+    background-color: var(--nm-material-thick);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+    box-shadow: var(--nm-shadow-md);
+}
+
+.nm-toast-wrap {
+    gap: .5rem;
+}
+
+/* ---------- 分页 ---------- */
+.nm-pagination .page-link,
+.nm-pagination .page-item .page-link {
+    border-radius: var(--nm-radius-sm);
+    font-weight: 560;
+}
+
+/* ---------- 状态与细节 ---------- */
+.nm-skeleton {
+    background-color: color-mix(in srgb, var(--tblr-secondary) 12%, transparent);
+}
+
+hr {
+    border-color: var(--tblr-border-color);
+    opacity: .8;
+}
+
+/* 只在浮层真正覆盖内容时淡化边缘 */
+.nm-scroll-edge {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+}
+
+@keyframes nm-materialize {
+    from {
+        opacity: 0;
+        scale: .96;
+        translate: 0 -4px;
+    }
+
+    to {
+        opacity: 1;
+        scale: 1;
+        translate: 0 0;
+    }
+}
+
+@keyframes nm-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ---------- 无障碍偏好 ---------- */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .dropdown-menu.show {
+        animation: nm-fade-in var(--nm-dur-2) ease both;
+    }
+
+    .modal.fade .modal-dialog,
+    .modal.show .modal-dialog {
+        opacity: 1;
+        transform: none !important;
+        transition: opacity var(--nm-dur-2) ease !important;
+    }
+
+    .btn,
+    .btn-icon,
+    .nav-link,
+    .dropdown-item,
+    .nm-pressable,
+    [role="button"],
+    .card,
+    .form-control,
+    .form-select,
+    .nm-toast {
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+    }
+
+    .btn:active,
+    .btn.is-pressed,
+    .btn-icon:active,
+    .btn-icon.is-pressed,
+    .nm-pressable:active,
+    .nm-pressable.is-pressed,
+    [role="button"]:active {
+        scale: 1;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .dropdown-menu,
+    .popover,
+    .modal-content,
+    .offcanvas,
+    .nm-toast {
+        background-color: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .dropdown-menu,
+    .popover,
+    .modal-content,
+    .offcanvas,
+    .nm-toast {
+        background-color: var(--tblr-bg-surface) !important;
+        border-color: var(--tblr-border-color-strong, var(--tblr-border-color)) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .btn,
+    .form-control,
+    .form-select,
+    .card {
+        border-width: 1.5px;
+    }
+}
+
+/* ============================================================
+   阶段 2 · 前台全站
+   导航 / 搜索 / 文档三栏 / 列表 / 阅读 / 解锁 / 首页
+   ============================================================ */
+
+/* ---------- 前台导航：浮动材质层 ---------- */
+body.nm-front .front-nav {
+    border-bottom-color: color-mix(in srgb, var(--tblr-border-color) 66%, transparent);
+    background: color-mix(in srgb, var(--tblr-body-bg) 80%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    transition: background-color var(--nm-dur-3) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        border-color var(--nm-dur-3) var(--nm-ease-standard);
+}
+
+body.nm-front .front-nav.is-scrolled {
+    background: var(--nm-material);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--tblr-border-color) 60%, transparent),
+        0 12px 32px -28px rgba(16, 24, 40, .5);
+}
+
+body.nm-front .front-nav.is-floating {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 70%, transparent);
+    border-radius: var(--nm-radius-lg);
+    background: var(--nm-material);
+    box-shadow: var(--nm-shadow-md);
+}
+
+body.nm-front .front-nav.is-floating.is-scrolled {
+    background: var(--nm-material-thick);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+body.nm-front .front-nav .nav-link {
+    padding: .4rem .72rem;
+    border-radius: var(--nm-radius-pill);
+    font-weight: 550;
+    letter-spacing: -.008em;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-front .front-nav .nav-link:hover {
+    background: color-mix(in srgb, var(--tblr-body-color) 6%, transparent);
+    color: var(--tblr-body-color);
+}
+
+body.nm-front .front-nav .nav-link.active {
+    background: var(--tblr-primary-lt);
+    color: var(--tblr-primary);
+}
+
+.nm-search-trigger {
+    border-radius: var(--nm-radius-pill);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 72%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface) 72%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+.nm-search-trigger:hover {
+    background: var(--tblr-bg-surface);
+    box-shadow: var(--nm-focus-ring);
+}
+
+.nm-user-toggle {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 72%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface) 76%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.nm-user-toggle:hover,
+.nm-user-toggle[aria-expanded="true"] {
+    border-color: color-mix(in srgb, var(--tblr-primary) 45%, var(--tblr-border-color));
+    box-shadow: var(--nm-focus-ring);
+}
+
+.front-nav .dropdown-menu {
+    margin-top: .5rem !important;
+    border-radius: var(--nm-radius-md);
+    padding: .35rem;
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 65%, transparent);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+.front-nav .dropdown-item {
+    border-radius: var(--nm-radius-sm);
+    padding: .48rem .65rem;
+    font-weight: 500;
+}
+
+/* 沉浸首页：未滚动时保持完全透明，滚动后再物质化 */
+body.nm-front .front-nav.is-immersive:not(.is-scrolled) {
+    background: transparent;
+    border-bottom-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.nm-front .front-nav.is-immersive.is-floating:not(.is-scrolled) {
+    background: rgba(2, 6, 23, .2);
+    border-color: rgba(255, 255, 255, .16);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
+    backdrop-filter: blur(10px) saturate(160%);
+    box-shadow: none;
+}
+
+body.nm-front .front-nav.is-immersive:not(.is-scrolled) .nav-link:hover {
+    background: rgba(15, 23, 42, .24);
+    color: #fff;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+body.nm-front .front-nav.is-immersive:not(.is-scrolled) .nav-link.active {
+    background: rgba(15, 23, 42, .3);
+    color: #fff;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+/* ---------- 胶囊导航：居中胶囊 + 滑动高亮 ---------- */
+body.nm-front .front-nav.is-capsule {
+    top: .85rem;
+    width: fit-content;
+    max-width: calc(100% - 1.5rem);
+    margin: .85rem auto 0;
+    padding: .3rem .45rem;
+    border: 1px solid color-mix(in srgb, var(--tblr-border-color) 70%, transparent);
+    border-radius: var(--nm-radius-pill);
+    background: var(--nm-material-thick);
+    box-shadow: var(--nm-shadow-md);
+}
+
+body.nm-front .front-nav.is-capsule:hover,
+body.nm-front .front-nav.is-capsule:focus-within {
+    border-color: color-mix(in srgb, var(--tblr-body-color) 30%, transparent);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+body.nm-front .front-nav.is-capsule.is-scrolled {
+    background: var(--nm-material-thick);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+body.nm-front .front-nav.is-capsule .container-xl {
+    max-width: none;
+    padding: 0 .15rem;
+}
+
+body.nm-front .front-nav.is-capsule .navbar-brand {
+    margin: 0;
+    padding: .1rem .4rem .1rem .1rem;
+}
+
+body.nm-front .front-nav.is-capsule .navbar-brand .fw-bold {
+    display: none;
+}
+
+body.nm-front .front-nav.is-capsule .brand-logo,
+body.nm-front .front-nav.is-capsule .brand-image,
+body.nm-front .front-nav.is-capsule .brand-mark {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+body.nm-front .front-nav.is-capsule .front-nav-links {
+    position: relative;
+    margin-left: .1rem;
+}
+
+.front-nav-indicator {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 0;
+    width: 0;
+    height: 2.1rem;
+    border-radius: var(--nm-radius-pill);
+    background: color-mix(in srgb, var(--tblr-primary) 15%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(0, -50%);
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1),
+        width .3s cubic-bezier(.22, 1, .36, 1),
+        height .3s cubic-bezier(.22, 1, .36, 1),
+        opacity var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-front .front-nav.is-capsule .front-nav-links .nav-link {
+    position: relative;
+    z-index: 1;
+}
+
+body.nm-front .front-nav.is-capsule .nav-link:hover,
+body.nm-front .front-nav.is-capsule .nav-link.active {
+    background: transparent;
+}
+
+body.nm-front .front-nav.is-capsule .btn-icon {
+    width: 2.1rem;
+    height: 2.1rem;
+}
+
+body.nm-front .front-nav.is-capsule a.btn-primary {
+    height: 2.1rem;
+    padding: 0 1.05rem;
+    border-radius: var(--nm-radius-pill);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+body.nm-front .front-nav.is-capsule .nm-user-toggle {
+    height: 2.1rem;
+    padding: 0 .3rem;
+    border-color: transparent;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.nm-front .front-nav.is-capsule .nm-user-name {
+    display: none;
+}
+
+body.nm-front .front-nav.is-capsule .nm-nav-avatar {
+    width: 1.8rem;
+    height: 1.8rem;
+}
+
+body.nm-front .front-nav.is-immersive.is-capsule:not(.is-scrolled) {
+    background: rgba(2, 6, 23, .38);
+    border-color: rgba(255, 255, 255, .16);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+    box-shadow: none;
+}
+
+body.nm-front .front-nav.is-immersive.is-capsule:not(.is-scrolled):hover {
+    border-color: rgba(255, 255, 255, .34);
+}
+
+body.nm-front .front-nav.is-immersive.is-capsule.is-scrolled {
+    background: var(--nm-material-thick);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 70%, transparent);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+body.nm-front .front-nav.is-immersive.is-capsule:not(.is-scrolled) .nav-link:hover,
+body.nm-front .front-nav.is-immersive.is-capsule:not(.is-scrolled) .nav-link.active {
+    background: transparent;
+    color: #fff;
+}
+
+body.nm-front .front-nav.is-immersive.is-capsule:not(.is-scrolled) .front-nav-indicator {
+    background: rgba(255, 255, 255, .18);
+}
+
+@media (max-width: 575.98px) {
+    body.nm-front .front-nav.is-capsule {
+        top: .6rem;
+        max-width: calc(100% - 1rem);
+        margin: .6rem auto 0;
+        padding: .25rem .35rem;
+    }
+
+    body.nm-front .front-nav.is-capsule .btn-icon {
+        width: 1.9rem;
+        height: 1.9rem;
+    }
+
+    body.nm-front .front-nav.is-capsule a.btn-primary {
+        padding: 0 .8rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .front-nav-indicator {
+        transition: opacity var(--nm-dur-2) linear;
+    }
+}
+
+/* ---------- 搜索弹窗：材质 + 可抓取 ---------- */
+.nm-search-backdrop {
+    background: var(--nm-scrim);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+}
+
+.nm-search-dialog {
+    width: min(660px, calc(100vw - 2rem));
+    margin-top: 12vh;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+    border-radius: var(--nm-radius-xl);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: var(--nm-shadow-lg);
+    transform: none !important;
+    translate: 0 -10px;
+    scale: .985;
+    opacity: 0;
+    transition: translate var(--nm-dur-3) var(--nm-ease-enter),
+        scale var(--nm-dur-3) var(--nm-ease-enter),
+        opacity var(--nm-dur-2) linear;
+    will-change: translate, scale;
+}
+
+.nm-search-modal.is-open .nm-search-dialog {
+    transform: none !important;
+    translate: 0 0;
+    scale: 1;
+    opacity: 1;
+}
+
+.nm-search-dialog.is-dragging {
+    transition: none;
+}
+
+.nm-search-dialog {
+    touch-action: none;
+}
+
+.nm-search-dialog input,
+.nm-search-dialog textarea {
+    touch-action: auto;
+}
+
+.nm-search-form {
+    padding: 1.05rem 1.2rem;
+    border-bottom-color: color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+}
+
+.nm-search-form-icon {
+    font-size: 1.3rem;
+    color: var(--tblr-primary);
+}
+
+.nm-search-form input {
+    font-size: 1.0625rem;
+    font-weight: 450;
+    letter-spacing: -.012em;
+}
+
+.nm-search-close {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: var(--nm-radius-pill);
+    background: color-mix(in srgb, var(--tblr-body-color) 7%, transparent);
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+.nm-search-close:hover {
+    background: color-mix(in srgb, var(--tblr-body-color) 11%, transparent);
+}
+
+.nm-search-close:active {
+    scale: .9;
+}
+
+.nm-search-hint {
+    padding: .7rem 1.2rem;
+    background: color-mix(in srgb, var(--tblr-body-color) 4%, transparent);
+    font-size: .75rem;
+    letter-spacing: .012em;
+}
+
+.nm-search-hint kbd {
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--tblr-bg-surface) 70%, transparent);
+}
+
+body.nm-search-open {
+    overflow: hidden;
+}
+
+/* ---------- 文档三栏：材质侧栏与目录 ---------- */
+body.nm-front .doc-sidebar,
+body.nm-front .doc-toc {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface) 74%, transparent);
+    scrollbar-gutter: stable;
+}
+
+body.nm-front .doc-panel-head {
+    padding-bottom: .1rem;
+}
+
+body.nm-front .doc-panel-title {
+    font-size: .9rem;
+    font-weight: 640;
+    letter-spacing: -.012em;
+}
+
+body.nm-front .doc-panel-search {
+    border-radius: var(--nm-radius-sm);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 70%, transparent);
+    background: color-mix(in srgb, var(--tblr-body-color) 4.5%, transparent);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-front .doc-panel-search:hover {
+    border-color: color-mix(in srgb, var(--tblr-primary) 40%, var(--tblr-border-color));
+    background: color-mix(in srgb, var(--tblr-primary) 7%, transparent);
+}
+
+body.nm-front .doc-cat-nav .cat-all,
+body.nm-front .doc-cat-nav .cat-link,
+body.nm-front .doc-cat-nav .cat-row {
+    border-radius: var(--nm-radius-sm);
+}
+
+body.nm-front .doc-cat-nav .cat-link {
+    padding-top: .45rem;
+    padding-bottom: .45rem;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-front .doc-cat-nav .cat-link:hover {
+    background: color-mix(in srgb, var(--tblr-body-color) 6%, transparent);
+}
+
+body.nm-front .doc-toc-title {
+    font-size: .78rem;
+    font-weight: 640;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--tblr-secondary);
+}
+
+body.nm-front .doc-toc .toc-link,
+body.nm-front .doc-toc-nav .toc-link {
+    padding: .34rem .6rem;
+    border-left: 0;
+    border-radius: var(--nm-radius-xs);
+    font-size: .83rem;
+    line-height: 1.4;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        translate var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-front .doc-toc .toc-link:hover,
+body.nm-front .doc-toc-nav .toc-link:hover {
+    background: color-mix(in srgb, var(--tblr-body-color) 5.5%, transparent);
+}
+
+body.nm-front .doc-toc .toc-link.active,
+body.nm-front .doc-toc-nav .toc-link.active {
+    border-left: 0;
+    background: color-mix(in srgb, var(--tblr-primary) 9%, transparent);
+    color: var(--tblr-primary);
+    font-weight: 600;
+}
+
+body.nm-front .doc-toc .toc-level-3,
+body.nm-front .doc-toc-nav .toc-level-3 {
+    padding-left: 1.15rem;
+}
+
+body.nm-front .doc-toc .toc-level-4,
+body.nm-front .doc-toc-nav .toc-level-4 {
+    padding-left: 1.8rem;
+}
+
+/* 折叠轨道的悬浮菜单 */
+.nm-cat-flyout {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+    border-radius: var(--nm-radius-md);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    backdrop-filter: blur(26px) saturate(180%);
+    box-shadow: var(--nm-shadow-lg);
+    transform: none !important;
+    translate: -6px 0;
+    scale: .985;
+    opacity: 1;
+    transition: translate var(--nm-dur-2) var(--nm-ease-enter),
+        scale var(--nm-dur-2) var(--nm-ease-enter),
+        opacity var(--nm-dur-2) linear,
+        visibility var(--nm-dur-2) linear;
+}
+
+.nm-cat-flyout.show {
+    transform: none !important;
+    translate: 0 0;
+    scale: 1;
+}
+
+.nm-cat-flyout-item {
+    border-radius: var(--nm-radius-xs);
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+/* ---------- 文档列表：行 → 卡片 ---------- */
+body.nm-front .doc-shell-list .doc-list-head {
+    padding-bottom: 1.35rem;
+    border-bottom: 0;
+}
+
+body.nm-front .doc-list-eyebrow {
+    letter-spacing: .14em;
+    font-size: .7rem;
+}
+
+body.nm-front .doc-list-title {
+    font-size: clamp(1.7rem, 2.4vw, 2.05rem);
+    font-weight: 660;
+    letter-spacing: -.032em;
+    line-height: 1.14;
+}
+
+body.nm-front .doc-list-meta {
+    font-size: .81rem;
+    letter-spacing: -.004em;
+}
+
+body.nm-front .doc-search-flag {
+    background: color-mix(in srgb, var(--tblr-primary) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tblr-primary) 22%, transparent);
+}
+
+body.nm-front .doc-shell-list .doc-list {
+    gap: .75rem;
+    padding-top: 1.2rem;
+}
+
+body.nm-front .doc-list-item {
+    padding: 1.15rem 1.25rem 1.2rem;
+    margin: 0;
+    border: 1px solid color-mix(in srgb, var(--tblr-border-color) 78%, transparent);
+    border-radius: var(--nm-radius-md);
+    background: color-mix(in srgb, var(--tblr-bg-surface) 92%, transparent);
+    box-shadow: var(--nm-shadow-xs);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter),
+        background-color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-front .doc-list-item::before {
+    display: none;
+}
+
+body.nm-front .doc-list-item:hover {
+    translate: 0 -2px;
+    border-color: color-mix(in srgb, var(--tblr-primary) 28%, var(--tblr-border-color));
+    background: var(--tblr-bg-surface);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+body.nm-front .doc-list-item:hover .doc-card-title {
+    color: var(--tblr-primary);
+}
+
+body.nm-front .doc-card-head {
+    gap: .5rem;
+    margin-bottom: .45rem;
+}
+
+body.nm-front .doc-card-title {
+    font-size: 1.0625rem;
+    font-weight: 640;
+    letter-spacing: -.018em;
+    line-height: 1.35;
+}
+
+body.nm-front .doc-badge-top,
+body.nm-front .doc-badge-lock {
+    font-weight: 600;
+    letter-spacing: .01em;
+}
+
+body.nm-front .doc-card-excerpt {
+    font-size: .89rem;
+    line-height: 1.66;
+    color: var(--tblr-secondary);
+}
+
+body.nm-front .doc-list-item .doc-card-foot {
+    gap: .85rem;
+    font-size: .78rem;
+}
+
+body.nm-front .doc-tag {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--tblr-body-color) 7%, transparent);
+    font-weight: 500;
+}
+
+body.nm-front .doc-read-link {
+    font-weight: 590;
+    gap: .3rem;
+}
+
+body.nm-front .doc-read-link i {
+    transition: translate var(--nm-dur-2) var(--nm-ease-enter);
+}
+
+body.nm-front .doc-list-item:hover .doc-read-link i {
+    translate: 2px 0;
+}
+
+body.nm-front .doc-empty {
+    padding: 4rem 1rem;
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 70%, transparent);
+    border-radius: var(--nm-radius-lg);
+    background: color-mix(in srgb, var(--tblr-bg-surface) 70%, transparent);
+}
+
+body.nm-front .doc-empty-icon {
+    border-radius: var(--nm-radius-lg);
+}
+
+/* ---------- 阅读页 ---------- */
+body.nm-front .doc-mobile-bar {
+    position: sticky;
+    top: calc(57px + .5rem);
+    z-index: 5;
+    padding: .45rem .55rem;
+    margin-bottom: 1rem;
+    border: 1px solid color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+    border-radius: var(--nm-radius-md);
+    background: var(--nm-material);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+}
+
+body.nm-front .doc-article > .doc-title {
+    font-size: clamp(1.75rem, 2.6vw, 2.2rem);
+    font-weight: 660;
+    letter-spacing: -.036em;
+    line-height: 1.1;
+    margin-bottom: .9rem;
+}
+
+body.nm-front .doc-meta {
+    font-size: .8rem;
+    gap: 1.1rem;
+}
+
+body.nm-front .doc-meta-item {
+    gap: .35rem;
+}
+
+body.nm-front .doc-article > .doc-divider {
+    margin: 1.5rem 0 2rem;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 65%, transparent);
+    opacity: 1;
+}
+
+body.nm-front .article-body {
+    font-size: 1.0625rem;
+    line-height: 1.78;
+    letter-spacing: -.005em;
+    color: color-mix(in srgb, var(--tblr-body-color) 94%, var(--tblr-secondary));
+}
+
+body.nm-front .article-body h1,
+body.nm-front .article-body h2,
+body.nm-front .article-body h3,
+body.nm-front .article-body h4 {
+    letter-spacing: -.026em;
+    line-height: 1.22;
+    font-weight: 660;
+}
+
+body.nm-front .article-body h1 { font-size: 1.8rem; }
+body.nm-front .article-body h2 { font-size: 1.48rem; }
+body.nm-front .article-body h3 { font-size: 1.2rem; letter-spacing: -.018em; }
+body.nm-front .article-body h4 { font-size: 1.05rem; letter-spacing: -.014em; }
+
+body.nm-front .article-body h2 {
+    padding-bottom: .35em;
+    border-bottom: 1px solid color-mix(in srgb, var(--tblr-border-color) 62%, transparent);
+}
+
+body.nm-front .article-body a {
+    color: var(--tblr-primary);
+    text-underline-offset: .18em;
+    text-decoration-thickness: .075em;
+    text-decoration-color: color-mix(in srgb, var(--tblr-primary) 34%, transparent);
+}
+
+body.nm-front .article-body a:hover {
+    text-decoration-color: currentColor;
+}
+
+body.nm-front .article-body img {
+    border-radius: var(--nm-radius-md);
+    box-shadow: var(--nm-shadow-md);
+}
+
+body.nm-front .article-body pre {
+    border: 1px solid color-mix(in srgb, var(--tblr-border-color) 35%, transparent);
+    border-radius: var(--nm-radius-md);
+    padding: 1.1rem 1.2rem;
+    font-size: .855rem;
+    line-height: 1.7;
+    box-shadow: var(--nm-shadow-sm);
+}
+
+body.nm-front .article-body :not(pre) > code {
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--tblr-body-color) 6.5%, transparent);
+    color: color-mix(in srgb, var(--tblr-primary) 88%, var(--tblr-body-color));
+    font-size: .86em;
+    padding: .16em .38em;
+}
+
+body.nm-front .article-body blockquote {
+    padding: .95rem 1.1rem;
+    border-left: 3px solid color-mix(in srgb, var(--tblr-primary) 70%, transparent);
+    border-radius: 0 var(--nm-radius-sm) var(--nm-radius-sm) 0;
+    background: color-mix(in srgb, var(--tblr-primary) 6%, transparent);
+    color: color-mix(in srgb, var(--tblr-body-color) 82%, var(--tblr-secondary));
+}
+
+body.nm-front .article-body blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+body.nm-front .article-body table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--nm-radius-sm);
+    overflow: hidden;
+    font-size: .9rem;
+}
+
+body.nm-front .article-body th {
+    background: color-mix(in srgb, var(--tblr-body-color) 4.5%, transparent);
+    font-weight: 640;
+}
+
+body.nm-front .article-body hr {
+    margin: 2.4rem 0;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 65%, transparent);
+    opacity: 1;
+}
+
+body.nm-front .doc-article-footer {
+    margin-top: 2.75rem;
+    padding-top: 1.5rem;
+    border-top-color: color-mix(in srgb, var(--tblr-border-color) 65%, transparent);
+}
+
+body.nm-front .doc-main-foot {
+    border-top: 0;
+}
+
+/* 阅读进度条：更细腻的材质渐变 */
+.doc-reading-progress {
+    height: 2.5px;
+    background: transparent;
+}
+
+.doc-reading-progress > span {
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--tblr-primary) 70%, transparent),
+        var(--tblr-primary) 55%,
+        #38bdf8);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--tblr-primary) 45%, transparent);
+    transition: transform .08s linear;
+}
+
+/* ---------- 解锁页 / 错误页 ---------- */
+body.nm-front .doc-lock-card {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 55%, transparent);
+    border-radius: 26px;
+    background: color-mix(in srgb, var(--tblr-bg-surface) 86%, transparent);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: 0 34px 90px -50px rgba(15, 23, 42, .6),
+        inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+
+body.nm-front .doc-lock-mark {
+    border-radius: 1.35rem;
+}
+
+body.nm-front .doc-lock-eyebrow {
+    letter-spacing: .2em;
+    font-size: .69rem;
+}
+
+body.nm-front .doc-unlock-field {
+    border-radius: 14px;
+}
+
+body.nm-front .doc-unlock-submit {
+    border-radius: 14px;
+    font-weight: 620;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    body.nm-front .doc-lock-card {
+        background: var(--tblr-bg-surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+body.nm-front .doc-lock-back {
+    font-weight: 500;
+}
+
+body.nm-front .denied-page {
+    background:
+        radial-gradient(60% 55% at 50% 0%,
+            color-mix(in srgb, var(--tblr-primary) 10%, transparent),
+            transparent 70%),
+        var(--tblr-bg-surface);
+}
+
+body.nm-front .denied-card {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+    border-radius: var(--nm-radius-xl);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+/* ---------- 首页 Hero ---------- */
+body.nm-front .hero-wrap {
+    padding: clamp(4.5rem, 9vw, 7.5rem) 0 clamp(3.5rem, 7vw, 5.5rem);
+}
+
+body.nm-front .hero-inner {
+    max-width: 800px;
+}
+
+body.nm-front .hero-badge {
+    padding: .38rem .85rem;
+    border-radius: var(--nm-radius-pill);
+    background: color-mix(in srgb, var(--tblr-primary) 10%, transparent);
+    border-color: color-mix(in srgb, var(--tblr-primary) 20%, transparent);
+    font-size: .78rem;
+    font-weight: 590;
+    letter-spacing: -.004em;
+}
+
+body.nm-front .hero-title {
+    font-size: clamp(2.4rem, 5.4vw, 4.15rem);
+    font-weight: 680;
+    letter-spacing: -.042em;
+    line-height: 1.04;
+    margin-bottom: 1.15rem;
+    text-wrap: balance;
+}
+
+body.nm-front .hero-text {
+    max-width: 640px;
+    margin-bottom: 2.1rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    letter-spacing: -.006em;
+    text-wrap: pretty;
+}
+
+body.nm-front .hero-actions {
+    gap: .65rem;
+}
+
+body.nm-front .hero-actions .btn {
+    min-height: 2.75rem;
+    padding: .65rem 1.5rem;
+    border-radius: var(--nm-radius-pill);
+    font-size: .935rem;
+    font-weight: 590;
+    letter-spacing: -.01em;
+}
+
+body.nm-front .hero-actions .btn-primary {
+    box-shadow: 0 10px 26px -10px rgba(var(--tblr-primary-rgb), .5);
+}
+
+body.nm-front .hero-actions .btn-primary:hover {
+    box-shadow: 0 14px 34px -10px rgba(var(--tblr-primary-rgb), .55);
+}
+
+body.nm-front .hero-wrap.has-bg .hero-actions .btn-outline-secondary,
+body.nm-front .hero-wrap.has-bg .hero-actions .hero-btn-outline {
+    border-color: rgba(255, 255, 255, .28);
+    background: rgba(15, 23, 42, .22);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+    color: #fff;
+}
+
+body.nm-front .hero-wrap.has-bg .hero-actions .btn-outline-secondary:hover,
+body.nm-front .hero-wrap.has-bg .hero-actions .hero-btn-outline:hover {
+    background: rgba(255, 255, 255, .94);
+    border-color: rgba(255, 255, 255, .94);
+    color: #111827;
+}
+
+body.nm-front .hero-note {
+    margin-top: 1.4rem;
+    font-size: .84rem;
+    letter-spacing: -.003em;
+}
+
+body.nm-front .hero-visual-card {
+    border-color: color-mix(in srgb, var(--tblr-border-color) 60%, transparent);
+    border-radius: var(--nm-radius-xl);
+    background: var(--nm-material);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+body.nm-front .hero-visual-head {
+    padding-bottom: 1rem;
+}
+
+body.nm-front .hero-visual-item {
+    border-top-color: color-mix(in srgb, var(--tblr-border-color) 62%, transparent);
+}
+
+body.nm-front .hero-visual-icon {
+    border-radius: var(--nm-radius-sm);
+}
+
+body.nm-front .hero-wrap.home-template-minimal .hero-title {
+    font-size: clamp(2.1rem, 4vw, 3.1rem);
+    letter-spacing: -.038em;
+}
+
+body.nm-front .hero-footer {
+    font-size: .8rem;
+}
+
+/* ---------- 右键菜单 / 返回顶部 ---------- */
+.nm-context-menu {
+    padding: .4rem;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 55%, transparent);
+    border-radius: var(--nm-radius-md);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    box-shadow: var(--nm-shadow-lg);
+    transform: none !important;
+    translate: 0 4px;
+    scale: .975;
+    transition: opacity var(--nm-dur-2) linear,
+        translate var(--nm-dur-2) var(--nm-ease-enter),
+        scale var(--nm-dur-2) var(--nm-ease-enter),
+        visibility var(--nm-dur-2) linear;
+}
+
+.nm-context-menu.is-open {
+    transform: none !important;
+    translate: 0 0;
+    scale: 1;
+}
+
+.nm-context-item {
+    padding: .5rem .6rem;
+    border-radius: var(--nm-radius-xs);
+    font-size: .82rem;
+    font-weight: 500;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+.nm-context-item kbd {
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--tblr-body-color) 6%, transparent);
+}
+
+.nm-context-sep {
+    background: color-mix(in srgb, var(--tblr-border-color) 62%, transparent);
+}
+
+.nm-back-top {
+    width: 2.9rem;
+    height: 2.9rem;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 55%, transparent);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+    box-shadow: var(--nm-shadow-md);
+    transform: none !important;
+    translate: 0 12px;
+    scale: .9;
+    transition: opacity var(--nm-dur-3) linear,
+        translate var(--nm-dur-3) var(--nm-ease-enter),
+        scale var(--nm-dur-3) var(--nm-ease-enter),
+        visibility var(--nm-dur-3) linear,
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        border-color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+.nm-back-top.is-visible {
+    transform: none !important;
+    translate: 0 0;
+    scale: 1;
+}
+
+.nm-back-top:hover {
+    border-color: color-mix(in srgb, var(--tblr-primary) 42%, var(--tblr-border-color));
+    box-shadow: var(--nm-shadow-lg);
+}
+
+/* ---------- 移动端分类抽屉：可拖拽关闭 ---------- */
+@media (max-width: 767.98px) {
+    body.nm-front .doc-sidebar {
+        width: min(86vw, 320px);
+        transform: none !important;
+        translate: -102% 0;
+        border-right: 0;
+        border-radius: 0 var(--nm-radius-xl) var(--nm-radius-xl) 0;
+        background: var(--nm-material-thick);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        backdrop-filter: blur(30px) saturate(180%);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--tblr-border-color) 45%, transparent),
+            24px 0 64px -32px rgba(16, 24, 40, .55);
+        transition: translate var(--nm-dur-3) var(--nm-ease-enter);
+        will-change: translate;
+        touch-action: pan-y;
+    }
+
+    body.nm-front .doc-sidebar.show {
+        transform: none !important;
+        translate: 0 0;
+    }
+
+    body.nm-front .doc-sidebar.is-dragging {
+        transition: none;
+    }
+
+    body.nm-front .doc-sidebar-backdrop {
+        background: var(--nm-scrim);
+        opacity: 0;
+        transition: opacity var(--nm-dur-3) linear;
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+    }
+
+    body.nm-front .doc-sidebar-backdrop.show {
+        opacity: 1;
+    }
+
+    body.nm-front .doc-sidebar-backdrop.is-dragging {
+        transition: none;
+    }
+
+    body.nm-front .doc-mobile-bar {
+        top: .5rem;
+    }
+
+    body.nm-front .doc-list-title {
+        font-size: 1.55rem;
+    }
+
+    body.nm-front .doc-article > .doc-title {
+        font-size: 1.55rem;
+        letter-spacing: -.03em;
+    }
+
+    body.nm-front .article-body {
+        font-size: 1.0125rem;
+        line-height: 1.75;
+    }
+
+    body.nm-front .hero-title {
+        font-size: clamp(2.05rem, 9vw, 2.75rem);
+        letter-spacing: -.036em;
+    }
+
+    body.nm-front .hero-actions .btn {
+        min-height: 2.65rem;
+        padding: .6rem 1.35rem;
+    }
+
+    .nm-search-dialog {
+        width: calc(100vw - 1.25rem);
+        margin-top: 8vh;
+        border-radius: var(--nm-radius-lg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.nm-front .doc-sidebar,
+    body.nm-front .doc-sidebar-backdrop,
+    .nm-search-dialog,
+    .nm-cat-flyout,
+    .nm-context-menu,
+    .nm-back-top {
+        transition-duration: 1ms !important;
+    }
+
+    body.nm-front .doc-list-item:hover {
+        translate: 0 0;
+    }
+
+    body.nm-front .hero-title,
+    body.nm-front .hero-text {
+        text-wrap: wrap;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    body.nm-front .front-nav,
+    body.nm-front .front-nav.is-floating,
+    body.nm-front .front-nav.is-scrolled,
+    .nm-search-dialog,
+    .nm-cat-flyout,
+    .nm-context-menu,
+    .nm-back-top,
+    body.nm-front .doc-sidebar,
+    body.nm-front .doc-toc,
+    body.nm-front .doc-mobile-bar,
+    body.nm-front .doc-lock-card,
+    body.nm-front .denied-card,
+    body.nm-front .hero-visual-card {
+        background: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .nm-search-backdrop,
+    body.nm-front .doc-sidebar-backdrop {
+        background: var(--nm-scrim) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+
+    body.nm-front .hero-wrap.has-bg .hero-visual-card {
+        background: rgba(15, 23, 42, .92) !important;
+    }
+}
+
+/* ============================================================
+   阶段 3 · 后台外壳、登录与仪表盘
+   ============================================================ */
+
+/* admin.css 在 body 级别定义了局部圆角 token，覆盖为更连贯的层级 */
+body.nm-admin-body,
+body.nm-auth-body {
+    --nm-radius-xl: 26px;
+    --nm-radius-lg: 20px;
+    --nm-radius: 14px;
+    --nm-radius-sm: 10px;
+}
+
+/* ---------- 侧栏材质 ---------- */
+body.nm-admin-body .nm-admin-sidebar.navbar-vertical {
+    border-right-color: color-mix(in srgb, var(--nm-border) 72%, transparent);
+    background: color-mix(in srgb, var(--nm-surface) 80%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+}
+
+@media (min-width: 992px) {
+    body.nm-admin-body .nm-admin-sidebar.navbar-vertical {
+        transition: width var(--nm-dur-4) var(--nm-ease-enter);
+    }
+
+    body.nm-admin-body .nm-admin-sidebar.navbar-vertical ~ .page-wrapper {
+        transition: margin-left var(--nm-dur-4) var(--nm-ease-enter);
+    }
+}
+
+body.nm-admin-body .nm-admin-sidebar .nm-admin-brand {
+    border-bottom-color: color-mix(in srgb, var(--nm-border) 62%, transparent);
+}
+
+body.nm-admin-body .nm-brand-mark {
+    border-radius: 12px;
+    box-shadow: 0 10px 22px -12px rgba(var(--tblr-primary-rgb), .7),
+        inset 0 1px 0 rgba(255, 255, 255, .34);
+    transition: scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .nm-admin-brand a:active .nm-brand-mark {
+    scale: .94;
+}
+
+body.nm-admin-body .nm-admin-brand-name {
+    font-weight: 650;
+    letter-spacing: -.018em;
+}
+
+body.nm-admin-body .nm-admin-brand-sub {
+    font-size: .6rem;
+    letter-spacing: .18em;
+}
+
+body.nm-admin-body .nm-admin-nav-scroll {
+    padding: .6rem .75rem .8rem;
+}
+
+body.nm-admin-body .nm-nav-section {
+    margin: .95rem .5rem .35rem;
+    font-size: .615rem;
+    letter-spacing: .15em;
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-link {
+    gap: .62rem;
+    padding: .4rem .6rem;
+    border-radius: 11px;
+    font-size: .845rem;
+    font-weight: 520;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-link:active {
+    scale: .985;
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-link:hover {
+    background: color-mix(in srgb, var(--nm-text) 5.5%, transparent);
+    transform: none;
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-link-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--nm-text) 4.5%, transparent);
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-item:not(.active) .nav-link:hover .nav-link-icon {
+    background: color-mix(in srgb, var(--nm-text) 8%, transparent);
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-item.active .nav-link {
+    background: linear-gradient(92deg,
+        color-mix(in srgb, var(--tblr-primary) 15%, transparent),
+        color-mix(in srgb, var(--tblr-primary) 4%, transparent));
+    font-weight: 620;
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-item.active .nav-link:hover {
+    background: linear-gradient(92deg,
+        color-mix(in srgb, var(--tblr-primary) 18%, transparent),
+        color-mix(in srgb, var(--tblr-primary) 6%, transparent));
+    color: var(--tblr-primary);
+    transform: none;
+}
+
+body.nm-admin-body .nm-admin-sidebar .nav-item.active .nav-link-icon,
+body.nm-admin-body .nm-admin-sidebar .nav-item.active .nav-link:hover .nav-link-icon {
+    background: var(--tblr-primary);
+    color: var(--tblr-primary-fg);
+    border-radius: 9px;
+    box-shadow: 0 8px 18px -10px rgba(var(--tblr-primary-rgb), .8),
+        inset 0 1px 0 rgba(255, 255, 255, .28);
+}
+
+body.nm-admin-body .nm-admin-sidebar-foot {
+    border-top-color: color-mix(in srgb, var(--nm-border) 62%, transparent);
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--nm-surface-2) 62%, transparent));
+}
+
+body.nm-admin-body .nm-sidebar-user {
+    border-radius: 12px;
+    border-color: color-mix(in srgb, var(--nm-border) 75%, transparent);
+    background: color-mix(in srgb, var(--nm-surface) 70%, transparent);
+}
+
+body.nm-admin-body .nm-admin-collapse-btn {
+    border-radius: 10px;
+}
+
+/* ---------- 顶栏材质 ---------- */
+body.nm-admin-body .nm-admin-topbar {
+    background: color-mix(in srgb, var(--nm-surface) 72%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--nm-border) 62%, transparent);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    transition: background-color var(--nm-dur-3) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        border-color var(--nm-dur-3) var(--nm-ease-standard);
+}
+
+body.nm-admin-body .nm-admin-topbar.is-scrolled {
+    background: color-mix(in srgb, var(--nm-surface) 88%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--nm-border) 50%, transparent),
+        0 16px 36px -32px rgba(16, 24, 40, .55);
+}
+
+body.nm-admin-body .nm-breadcrumb {
+    font-size: .78rem;
+    font-weight: 520;
+}
+
+body.nm-admin-body .nm-breadcrumb .is-current {
+    font-weight: 620;
+    letter-spacing: -.008em;
+}
+
+body.nm-admin-body .nm-icon-btn {
+    border-radius: 11px;
+    border-color: color-mix(in srgb, var(--nm-border) 75%, transparent);
+    background: color-mix(in srgb, var(--nm-surface) 62%, transparent);
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        border-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        translate var(--nm-dur-2) var(--nm-ease-enter),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .nm-icon-btn:hover,
+body.nm-admin-body .nm-icon-btn:focus-visible {
+    transform: none;
+    translate: 0 -1px;
+    background: var(--nm-surface);
+}
+
+body.nm-admin-body .nm-icon-btn:active {
+    scale: .93;
+}
+
+body.nm-admin-body .nm-topbar-create {
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--tblr-primary) 11%, transparent);
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .nm-topbar-create:active {
+    scale: .97;
+}
+
+body.nm-admin-body .nm-topbar-user {
+    border-radius: 11px;
+}
+
+body.nm-admin-body .nm-topbar-user:hover {
+    transform: none;
+}
+
+body.nm-admin-body .nm-topbar-divider {
+    background: color-mix(in srgb, var(--nm-border) 68%, transparent);
+}
+
+body.nm-admin-body .admin-avatar,
+body.nm-admin-body .admin-avatar-img {
+    border-radius: 10px;
+    box-shadow: 0 8px 18px -12px rgba(var(--tblr-primary-rgb), .8),
+        inset 0 1px 0 rgba(255, 255, 255, .24);
+}
+
+/* ---------- 页头 / 卡片 ---------- */
+body.nm-admin-body .nm-admin-page .page-header {
+    padding: 1.55rem 0 1.1rem;
+}
+
+body.nm-admin-body .nm-page-eyebrow {
+    padding: .26rem .6rem;
+    font-size: .665rem;
+    letter-spacing: .09em;
+}
+
+body.nm-admin-body .nm-page-desc {
+    margin-top: .6rem;
+    font-size: .87rem;
+    line-height: 1.62;
+}
+
+body.nm-admin-body .nm-admin-page .card {
+    border-radius: var(--nm-radius-lg);
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    box-shadow: var(--nm-shadow-sm);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter);
+}
+
+body.nm-admin-body .nm-admin-page .card:hover {
+    box-shadow: var(--nm-shadow-md);
+}
+
+body.nm-admin-body .nm-admin-page .card-header {
+    padding: 1.05rem 1.3rem;
+}
+
+body.nm-admin-body .nm-admin-page .card-title {
+    font-size: .925rem;
+    font-weight: 620;
+    letter-spacing: -.014em;
+}
+
+body.nm-admin-body .nm-admin-page .card-footer {
+    border-top-color: color-mix(in srgb, var(--nm-border) 70%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-2) 55%, transparent);
+}
+
+body.nm-admin-body .nm-section-icon {
+    border-radius: 10px;
+}
+
+/* ---------- 仪表盘 ---------- */
+body.nm-admin-body .nm-hero {
+    padding: 1.75rem 1.85rem;
+    border-radius: var(--nm-radius-xl);
+    background:
+        radial-gradient(620px 260px at 88% -32%, rgba(255, 255, 255, .3), transparent 70%),
+        radial-gradient(420px 220px at 4% 120%, rgba(255, 255, 255, .12), transparent 65%),
+        linear-gradient(122deg, var(--tblr-primary-darken), var(--tblr-primary) 56%, #0ea5e9 132%);
+    box-shadow: 0 28px 64px -38px rgba(var(--tblr-primary-rgb), .75),
+        inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+
+body.nm-admin-body .nm-hero-eyebrow {
+    padding: .3rem .65rem;
+    font-size: .68rem;
+    font-weight: 590;
+    letter-spacing: .03em;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+body.nm-admin-body .nm-hero-title {
+    margin: .75rem 0 .4rem;
+    font-size: clamp(1.5rem, 1.2rem + .8vw, 1.95rem);
+    font-weight: 660;
+    letter-spacing: -.036em;
+    line-height: 1.12;
+}
+
+body.nm-admin-body .nm-hero-desc {
+    color: rgba(255, 255, 255, .78);
+    font-size: .875rem;
+    line-height: 1.62;
+    letter-spacing: -.004em;
+}
+
+body.nm-admin-body .nm-hero-actions {
+    margin-top: 1.25rem;
+}
+
+body.nm-admin-body .nm-hero .btn {
+    border-radius: 11px;
+    font-weight: 590;
+}
+
+body.nm-admin-body .nm-stat {
+    padding: 1.2rem 1.25rem;
+    border-radius: var(--nm-radius-lg);
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    box-shadow: var(--nm-shadow-sm);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter);
+}
+
+body.nm-admin-body a.nm-stat:hover {
+    transform: none;
+    translate: 0 -3px;
+    border-color: color-mix(in srgb, var(--tblr-primary) 30%, var(--nm-border));
+    box-shadow: var(--nm-shadow-md);
+}
+
+body.nm-admin-body .nm-stat-label {
+    font-size: .765rem;
+    font-weight: 550;
+}
+
+body.nm-admin-body .nm-stat-value {
+    margin-top: .5rem;
+    font-size: 2rem;
+    font-weight: 660;
+    letter-spacing: -.042em;
+    line-height: 1.08;
+}
+
+body.nm-admin-body .nm-stat-foot {
+    font-size: .735rem;
+    letter-spacing: -.002em;
+}
+
+body.nm-admin-body .nm-stat-icon {
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 11px;
+}
+
+body.nm-admin-body .nm-quick-item {
+    border-radius: 12px;
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    background: color-mix(in srgb, var(--nm-surface) 68%, transparent);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter);
+}
+
+body.nm-admin-body .nm-quick-item:hover {
+    transform: none;
+    translate: 0 -2px;
+}
+
+body.nm-admin-body .nm-quick-item .nm-section-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+}
+
+body.nm-admin-body .nm-meta-item {
+    border-radius: 11px;
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-2) 68%, transparent);
+}
+
+body.nm-admin-body .nm-meta-value {
+    font-size: .78rem;
+    letter-spacing: -.004em;
+}
+
+/* ---------- 表格 / 标签 / 空态 ---------- */
+body.nm-admin-body .nm-admin-page .table thead th {
+    padding: .72rem 1rem;
+    background: color-mix(in srgb, var(--nm-text) 3.6%, transparent);
+    font-size: .655rem;
+    letter-spacing: .095em;
+}
+
+body.nm-admin-body .nm-admin-page .table tbody td {
+    border-color: color-mix(in srgb, var(--nm-border) 74%, transparent);
+}
+
+body.nm-admin-body .nm-admin-page .table tbody tr:hover > * {
+    background: color-mix(in srgb, var(--tblr-primary) 4.5%, transparent);
+}
+
+body.nm-admin-body .nm-cell-title {
+    font-weight: 620;
+    letter-spacing: -.008em;
+}
+
+body.nm-admin-body .badge {
+    border-radius: var(--nm-radius-pill);
+    font-weight: 560;
+    letter-spacing: 0;
+}
+
+body.nm-admin-body .nm-admin-page .btn-icon.btn-sm {
+    border-radius: 9px;
+}
+
+body.nm-admin-body .nm-empty {
+    padding: 3rem 1rem;
+}
+
+body.nm-admin-body .nm-empty-icon {
+    border-radius: 14px;
+}
+
+/* ---------- Toast 材质 ---------- */
+body.nm-admin-body .nm-toast {
+    padding: .78rem .95rem;
+    border-radius: 16px;
+    border-color: color-mix(in srgb, var(--nm-border) 65%, transparent);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    backdrop-filter: blur(26px) saturate(180%);
+    box-shadow: var(--nm-shadow-lg);
+    transform: none !important;
+    translate: 0 16px;
+    scale: .97;
+    transition: opacity var(--nm-dur-2) linear,
+        translate var(--nm-dur-3) var(--nm-ease-enter),
+        scale var(--nm-dur-3) var(--nm-ease-enter);
+}
+
+body.nm-admin-body .nm-toast.show {
+    transform: none !important;
+    translate: 0 0;
+    scale: 1;
+}
+
+body.nm-admin-body .nm-toast.hide {
+    transform: none !important;
+    translate: 0 10px;
+    scale: .98;
+}
+
+body.nm-admin-body .nm-toast-icon-tile {
+    border-radius: 10px;
+}
+
+body.nm-admin-body .nm-toast-close {
+    border-radius: 8px;
+}
+
+/* ---------- 登录页 ---------- */
+body.nm-auth-body .nm-auth-panel {
+    width: min(27.5rem, 100%);
+    padding: clamp(1.55rem, 3vw, 2.15rem);
+    border-radius: var(--nm-radius-xl);
+    border-color: color-mix(in srgb, var(--nm-border) 60%, transparent);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: var(--nm-shadow-lg);
+    animation: nm-materialize var(--nm-dur-4) var(--nm-ease-enter) both;
+}
+
+[data-bs-theme="dark"] body.nm-auth-body .nm-auth-panel {
+    background: var(--nm-material-thick);
+}
+
+body.nm-auth-body .nm-auth-logo {
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgba(var(--tblr-primary-rgb), .18),
+        inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+
+body.nm-auth-body .nm-auth-title {
+    font-size: 1.36rem;
+    font-weight: 680;
+    letter-spacing: -.032em;
+    line-height: 1.18;
+}
+
+body.nm-auth-body .nm-auth-sub {
+    font-size: .795rem;
+    line-height: 1.55;
+}
+
+body.nm-auth-body .nm-auth-form .form-label {
+    font-size: .775rem;
+    font-weight: 600;
+    letter-spacing: -.004em;
+}
+
+body.nm-auth-body .nm-auth-input .form-control {
+    min-height: 2.95rem;
+    border-radius: 12px;
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-2) 78%, transparent);
+    font-size: .9rem;
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-auth-body .nm-auth-input .form-control:focus {
+    box-shadow: var(--nm-focus-ring);
+}
+
+body.nm-auth-body .nm-auth-input > i {
+    font-size: 1.02rem;
+}
+
+body.nm-auth-body .nm-auth-captcha img {
+    height: 2.95rem;
+    border-radius: 11px;
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    background: var(--nm-surface-2);
+}
+
+body.nm-auth-body .nm-auth-submit {
+    min-height: 2.95rem;
+    margin-top: 1.45rem;
+    border-radius: 12px;
+    font-size: .915rem;
+    font-weight: 620;
+    letter-spacing: -.008em;
+    box-shadow: 0 14px 30px -14px rgba(var(--tblr-primary-rgb), .7),
+        inset 0 1px 0 rgba(255, 255, 255, .25);
+    transition: filter var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-2) var(--nm-ease-enter),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-auth-body .nm-auth-submit:hover {
+    transform: none;
+    translate: 0 -1px;
+}
+
+body.nm-auth-body .nm-auth-submit:active {
+    transform: none;
+    scale: .985;
+}
+
+body.nm-auth-body .nm-auth-chips {
+    border-top-color: color-mix(in srgb, var(--nm-border) 68%, transparent);
+}
+
+body.nm-auth-body .nm-auth-chip {
+    padding: .3rem .58rem;
+    background: color-mix(in srgb, var(--nm-surface-2) 72%, transparent);
+    font-size: .675rem;
+    font-weight: 520;
+}
+
+body.nm-auth-body .nm-auth-brandline-name {
+    font-weight: 650;
+    letter-spacing: -.016em;
+}
+
+body.nm-auth-body .nm-auth-brandline-sub {
+    letter-spacing: .18em;
+}
+
+@media (max-width: 575.98px) {
+    body.nm-auth-body .nm-auth-panel {
+        border-radius: var(--nm-radius-xl);
+    }
+
+    body.nm-auth-body .nm-auth-captcha {
+        flex-wrap: wrap;
+        gap: .55rem;
+    }
+
+    body.nm-auth-body .nm-auth-captcha .nm-auth-input {
+        flex: 1 1 100%;
+    }
+
+    body.nm-auth-body .nm-auth-captcha img {
+        height: auto;
+        max-width: 100%;
+        border-radius: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.nm-admin-body .nm-toast,
+    body.nm-admin-body .nm-icon-btn,
+    body.nm-admin-body .nm-topbar-create,
+    body.nm-auth-body .nm-auth-submit {
+        transition-duration: 1ms !important;
+    }
+
+    body.nm-auth-body .nm-auth-panel {
+        animation: nm-fade-in var(--nm-dur-2) linear both;
+    }
+
+    body.nm-admin-body a.nm-stat:hover,
+    body.nm-admin-body .nm-quick-item:hover {
+        translate: 0 0;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    body.nm-admin-body .nm-admin-sidebar.navbar-vertical,
+    body.nm-admin-body .nm-admin-topbar,
+    body.nm-admin-body .nm-toast,
+    body.nm-auth-body .nm-auth-panel {
+        background: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+/* ============================================================
+   阶段 4 · 后台内容页面
+   分类 / 文档 / 编辑 / 版本 / 回收站 / 标签 / 附件
+   ============================================================ */
+
+/* ---------- 工具栏与筛选 ---------- */
+body.nm-admin-body .nm-toolbar {
+    padding: 1rem 1.2rem;
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    border-radius: var(--nm-radius-lg);
+    background: color-mix(in srgb, var(--nm-surface) 84%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+body.nm-admin-body .nm-toolbar-title {
+    font-size: .89rem;
+    font-weight: 640;
+    letter-spacing: -.012em;
+}
+
+body.nm-admin-body .nm-toolbar .nm-section-icon {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 9px;
+    font-size: .95rem;
+}
+
+body.nm-admin-body .nm-toolbar-meta {
+    font-size: .755rem;
+    letter-spacing: -.002em;
+}
+
+body.nm-admin-body .nm-toolbar-actions .btn,
+body.nm-admin-body .nm-filter-actions .btn {
+    border-radius: 10px;
+}
+
+body.nm-admin-body .nm-filter-grid .form-label {
+    margin-bottom: .35rem;
+    color: var(--nm-muted);
+    font-size: .71rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+body.nm-admin-body .nm-filter-grid .form-control,
+body.nm-admin-body .nm-filter-grid .form-select {
+    min-height: 2.55rem;
+    border-radius: 10px;
+    border-color: color-mix(in srgb, var(--nm-border) 86%, transparent);
+    background-color: color-mix(in srgb, var(--nm-surface-2) 62%, transparent);
+    font-size: .84rem;
+}
+
+/* ---------- 表格 ---------- */
+body.nm-admin-body .nm-table-wrap {
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    border-radius: var(--nm-radius-lg);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+body.nm-admin-body .nm-table-wrap .card-header {
+    padding: .95rem 1.2rem;
+    border-bottom-color: color-mix(in srgb, var(--nm-border) 72%, transparent);
+}
+
+body.nm-admin-body .nm-table-wrap .card-footer {
+    padding: .85rem 1.2rem;
+}
+
+body.nm-admin-body .nm-admin-page .table tbody td {
+    padding: .88rem 1rem;
+}
+
+body.nm-admin-body .nm-admin-page .table tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+body.nm-admin-body .nm-admin-page .table .form-check-input {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: .1rem;
+}
+
+body.nm-admin-body .nm-row-actions {
+    gap: .3rem;
+}
+
+body.nm-admin-body .nm-row-actions .btn {
+    border-radius: 9px;
+}
+
+body.nm-admin-body .nm-cell-sub {
+    font-size: .745rem;
+    line-height: 1.5;
+}
+
+/* ---------- 分类树 ---------- */
+body.nm-admin-body .cat-name-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    min-width: 0;
+}
+
+body.nm-admin-body .cat-name-cell > .ti {
+    flex: 0 0 auto;
+    margin-top: .18rem;
+    font-size: 1.02rem;
+}
+
+body.nm-admin-body .cat-tree-branch {
+    flex: 0 0 auto;
+    margin-top: .16rem;
+    color: color-mix(in srgb, var(--nm-muted) 70%, transparent);
+    font-size: .9rem;
+}
+
+body.nm-admin-body .cat-name-cell .nm-cell-sub:last-child {
+    opacity: .7;
+}
+
+/* ---------- 抽屉 / 侧滑表单 ---------- */
+body.nm-admin-body .offcanvas.nm-drawer {
+    border-left-color: color-mix(in srgb, var(--nm-border) 55%, transparent);
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: var(--nm-shadow-lg);
+}
+
+body.nm-admin-body .nm-drawer .offcanvas-header {
+    border-bottom-color: color-mix(in srgb, var(--nm-border) 65%, transparent);
+}
+
+body.nm-admin-body .nm-drawer .offcanvas-title {
+    font-size: 1.02rem;
+    font-weight: 660;
+    letter-spacing: -.022em;
+}
+
+body.nm-admin-body .nm-drawer .offcanvas-title .nm-section-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    font-size: .98rem;
+}
+
+body.nm-admin-body .nm-drawer .offcanvas-footer {
+    border-top-color: color-mix(in srgb, var(--nm-border) 65%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-2) 62%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+}
+
+@media (min-width: 576px) {
+    body.nm-admin-body .offcanvas.nm-drawer {
+        border-radius: var(--nm-radius-xl) 0 0 var(--nm-radius-xl);
+    }
+}
+
+/* ---------- 文档编辑器 ---------- */
+body.nm-admin-body .nm-editor-title {
+    font-size: clamp(1.35rem, 1.15rem + .7vw, 1.72rem) !important;
+    font-weight: 660;
+    letter-spacing: -.032em;
+    line-height: 1.22;
+}
+
+body.nm-admin-body .nm-editor-title::placeholder {
+    color: color-mix(in srgb, var(--nm-muted) 62%, transparent);
+}
+
+body.nm-admin-body .nm-editor-chrome {
+    overflow: hidden;
+}
+
+body.nm-admin-body .nm-editor-chrome .card-header {
+    padding: .72rem .95rem;
+    background: color-mix(in srgb, var(--nm-surface-2) 58%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--nm-border) 70%, transparent);
+}
+
+body.nm-admin-body .nm-editor-mode {
+    padding: .18rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--nm-text) 4.5%, transparent);
+}
+
+body.nm-admin-body .nm-editor-mode .btn {
+    border: 0;
+    border-radius: 8px;
+    color: var(--nm-muted);
+    font-size: .76rem;
+    font-weight: 560;
+}
+
+body.nm-admin-body .nm-editor-mode .btn.active {
+    background: var(--nm-surface);
+    color: var(--nm-text);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .08), 0 6px 14px -10px rgba(16, 24, 40, .4);
+}
+
+body.nm-admin-body .md-toolbar {
+    padding: .6rem .9rem;
+    border-bottom-color: color-mix(in srgb, var(--nm-border) 70%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-2) 52%, transparent);
+}
+
+body.nm-admin-body .md-editor textarea {
+    background: color-mix(in srgb, var(--nm-surface) 90%, transparent);
+    font-size: .875rem;
+    line-height: 1.75;
+}
+
+body.nm-admin-body .md-preview {
+    background: color-mix(in srgb, var(--nm-surface) 94%, transparent);
+}
+
+body.nm-admin-body .nm-savebar {
+    border-color: color-mix(in srgb, var(--nm-border) 62%, transparent);
+    border-radius: 16px;
+    background: var(--nm-material-thick);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: var(--nm-shadow-md);
+}
+
+body.nm-admin-body .nm-savebar-status {
+    font-size: .735rem;
+    letter-spacing: -.002em;
+}
+
+body.nm-admin-body .nm-savebar .btn {
+    border-radius: 10px;
+}
+
+/* ---------- 标签选择 ---------- */
+body.nm-admin-body .nm-tag-option-label {
+    padding: .38rem .7rem;
+    border-color: color-mix(in srgb, var(--nm-border-strong) 82%, transparent);
+    background: color-mix(in srgb, var(--nm-surface) 82%, transparent);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .nm-tag-option-label:active {
+    scale: .96;
+}
+
+body.nm-admin-body .nm-tag-option-input:checked + .nm-tag-option-label {
+    border-color: color-mix(in srgb, var(--tblr-primary) 60%, transparent);
+    background: color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tblr-primary) 26%, transparent);
+}
+
+body.nm-admin-body .nm-tag-option-input:focus-visible + .nm-tag-option-label {
+    outline: 2px solid rgba(var(--tblr-primary-rgb), .55);
+    outline-offset: 2px;
+}
+
+body.nm-admin-body .nm-tag-pill {
+    padding: .35rem .68rem;
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-2) 66%, transparent);
+}
+
+/* ---------- SEO / 推送状态 ---------- */
+body.nm-admin-body .nm-seo-preview {
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--nm-surface-2) 60%, transparent);
+}
+
+body.nm-admin-body .nm-seo-preview-title {
+    font-weight: 600;
+    letter-spacing: -.008em;
+}
+
+body.nm-admin-body .nm-push-channel {
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--nm-surface-2) 60%, transparent);
+}
+
+/* ---------- 上传与附件 ---------- */
+body.nm-admin-body .nm-upload-zone {
+    border-color: color-mix(in srgb, var(--nm-border-strong) 78%, transparent);
+    border-radius: var(--nm-radius-lg);
+    background:
+        radial-gradient(420px 180px at 12% -40%, rgba(var(--tblr-primary-rgb), .08), transparent 70%),
+        color-mix(in srgb, var(--nm-surface-2) 58%, transparent);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard);
+}
+
+body.nm-admin-body .nm-upload-zone.is-dragover {
+    border-color: color-mix(in srgb, var(--tblr-primary) 70%, transparent);
+    background-color: color-mix(in srgb, var(--tblr-primary) 8%, transparent);
+    box-shadow: var(--nm-focus-ring);
+}
+
+body.nm-admin-body .nm-upload-zone-icon {
+    width: 3.1rem;
+    height: 3.1rem;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tblr-primary) 18%, transparent);
+}
+
+body.nm-admin-body .nm-upload-zone-title {
+    font-size: .92rem;
+    font-weight: 640;
+    letter-spacing: -.012em;
+}
+
+body.nm-admin-body .nm-upload-zone-desc {
+    font-size: .76rem;
+    line-height: 1.6;
+}
+
+body.nm-admin-body .nm-upload-zone .btn {
+    border-radius: 10px;
+}
+
+body.nm-admin-body .nm-attachment-thumb,
+body.nm-admin-body .nm-attachment-file {
+    border-color: color-mix(in srgb, var(--nm-border) 78%, transparent);
+    border-radius: 11px;
+}
+
+body.nm-admin-body .nm-attachment-thumb {
+    box-shadow: 0 6px 14px -10px rgba(16, 24, 40, .5);
+}
+
+body.nm-admin-body .nm-attachment-name {
+    letter-spacing: -.006em;
+}
+
+body.nm-admin-body .nm-attach-card {
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--nm-surface) 86%, transparent);
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter);
+}
+
+body.nm-admin-body .nm-attach-card:hover {
+    transform: none;
+    translate: 0 -2px;
+}
+
+body.nm-admin-body .nm-attach-card.is-selected {
+    border-color: color-mix(in srgb, var(--tblr-primary) 60%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tblr-primary) 16%, transparent);
+}
+
+body.nm-admin-body .nm-attach-card-thumb {
+    border-radius: 8px;
+}
+
+body.nm-admin-body .nm-attach-preview {
+    border-color: color-mix(in srgb, var(--nm-border) 78%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--nm-surface-2) 55%, transparent);
+}
+
+body.nm-admin-body .nm-attach-preview-media {
+    border-radius: 10px;
+}
+
+/* ---------- 版本对比 ---------- */
+body.nm-admin-body .diff-output {
+    border-radius: 12px;
+    overflow: auto;
+}
+
+/* ---------- 动效与材质降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+    body.nm-admin-body .nm-attach-card,
+    body.nm-admin-body .nm-tag-option-label,
+    body.nm-admin-body .nm-upload-zone {
+        transition-duration: 1ms !important;
+    }
+
+    body.nm-admin-body .nm-attach-card:hover {
+        translate: 0 0;
+    }
+
+    body.nm-admin-body .nm-tag-option-label:active {
+        scale: 1;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    body.nm-admin-body .nm-toolbar,
+    body.nm-admin-body .offcanvas.nm-drawer,
+    body.nm-admin-body .nm-drawer .offcanvas-footer,
+    body.nm-admin-body .nm-savebar,
+    body.nm-admin-body .nm-upload-zone {
+        background: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+/* ============================================================
+   阶段 5 · 后台系统页面
+   前台设置 / 系统设置 / 缓存 / 备份 / 日志 / 检测更新
+   ============================================================ */
+
+/* ---------- 设置标签栏 ---------- */
+body.nm-admin-body .nm-settings-tabs {
+    padding: .3rem;
+    border-color: color-mix(in srgb, var(--nm-border) 78%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--nm-surface) 82%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: var(--nm-shadow-sm);
+    scrollbar-width: none;
+}
+
+body.nm-admin-body .nm-settings-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+body.nm-admin-body .nm-settings-tabs .nav-link {
+    padding: .5rem .8rem;
+    border-radius: 11px;
+    font-size: .79rem;
+    font-weight: 570;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .nm-settings-tabs .nav-link:active {
+    scale: .97;
+}
+
+body.nm-admin-body .nm-settings-tabs .nav-link.active {
+    background: color-mix(in srgb, var(--tblr-primary) 11%, transparent);
+    color: var(--tblr-primary);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tblr-primary) 18%, transparent),
+        0 6px 14px -12px rgba(var(--tblr-primary-rgb), .6);
+}
+
+/* ---------- 分区标题 ---------- */
+body.nm-admin-body .nm-section-head {
+    gap: .85rem;
+}
+
+body.nm-admin-body .nm-section-head .nm-section-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 11px;
+    font-size: 1.02rem;
+}
+
+body.nm-admin-body .nm-section-head-title {
+    font-size: 1.02rem;
+    font-weight: 650;
+    letter-spacing: -.02em;
+}
+
+body.nm-admin-body .nm-section-head-desc {
+    font-size: .775rem;
+    line-height: 1.6;
+}
+
+body.nm-admin-body .nm-settings-section {
+    overflow: hidden;
+}
+
+/* ---------- 选择卡片 ---------- */
+body.nm-admin-body .nm-choice-card {
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--nm-surface-2) 62%, transparent);
+}
+
+body.nm-admin-body .nm-choice-grid {
+    gap: .7rem;
+}
+
+body.nm-admin-body .nm-choice-title {
+    font-size: .845rem;
+    font-weight: 620;
+    letter-spacing: -.008em;
+}
+
+body.nm-admin-body .nm-choice-desc {
+    font-size: .745rem;
+    line-height: 1.55;
+}
+
+body.nm-admin-body .nm-choice-card-select {
+    border-radius: 14px;
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter);
+}
+
+body.nm-admin-body .nm-choice-card-select:hover {
+    transform: none;
+    translate: 0 -2px;
+    border-color: color-mix(in srgb, var(--tblr-primary) 28%, var(--nm-border));
+}
+
+body.nm-admin-body .nm-choice-card-select:has(.form-check-input:checked) {
+    border-color: color-mix(in srgb, var(--tblr-primary) 55%, transparent);
+    background: color-mix(in srgb, var(--tblr-primary) 8%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+}
+
+/* ---------- 外观预览 ---------- */
+body.nm-admin-body .appearance-preview {
+    padding: .85rem;
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(var(--tblr-primary-rgb), .03), transparent 55%),
+        color-mix(in srgb, var(--nm-surface-2) 64%, transparent);
+}
+
+body.nm-admin-body .appearance-preview-nav {
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 12px 24px -22px rgba(16, 24, 40, .5);
+}
+
+body.nm-admin-body .appearance-preview-brand {
+    font-weight: 600;
+    letter-spacing: -.012em;
+}
+
+body.nm-admin-body .appearance-preview-link {
+    padding: .18rem .5rem;
+    border-radius: 999px;
+    transition: background-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard);
+}
+
+body.nm-admin-body .appearance-preview-link.is-active {
+    background: color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+}
+
+body.nm-admin-body .home-preview,
+body.nm-admin-body .login-preview {
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    border-radius: 18px;
+}
+
+body.nm-admin-body .home-preview-title {
+    letter-spacing: -.03em;
+}
+
+body.nm-admin-body .login-preview-card {
+    border-radius: 16px;
+}
+
+body.nm-admin-body .settings-logo-preview,
+body.nm-admin-body .settings-logo-placeholder {
+    border-radius: 12px;
+}
+
+body.nm-admin-body .settings-favicon-preview,
+body.nm-admin-body .settings-video-preview {
+    border-radius: 10px;
+}
+
+body.nm-admin-body .brand-image-preview {
+    border-radius: 8px;
+}
+
+body.nm-admin-body .theme-swatch {
+    padding: .42rem .75rem;
+    border-radius: 11px;
+    transition: border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard),
+        translate var(--nm-dur-3) var(--nm-ease-enter),
+        scale var(--nm-dur-1) var(--nm-ease-exit);
+}
+
+body.nm-admin-body .theme-swatch:hover {
+    transform: none;
+    translate: 0 -1px;
+}
+
+body.nm-admin-body .theme-swatch:active {
+    scale: .97;
+}
+
+body.nm-admin-body .theme-swatch.is-active {
+    border-color: color-mix(in srgb, var(--tblr-primary) 55%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+}
+
+body.nm-admin-body .theme-swatch-dot {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .14), 0 1px 2px rgba(0, 0, 0, .18);
+}
+
+/* ---------- 日志 ---------- */
+body.nm-admin-body .nm-user-chip {
+    border-color: color-mix(in srgb, var(--nm-border) 80%, transparent);
+    background: color-mix(in srgb, var(--nm-surface-3) 70%, transparent);
+}
+
+body.nm-admin-body .nm-log-detail {
+    font-size: .81rem;
+    line-height: 1.6;
+    letter-spacing: -.004em;
+}
+
+body.nm-admin-body .nm-log-meta {
+    font-size: .725rem;
+}
+
+body.nm-admin-body .nm-log-action {
+    padding: .22rem .55rem;
+    font-size: .695rem;
+    letter-spacing: .01em;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* ---------- 检测更新 ---------- */
+body.nm-admin-body .nm-update-hero {
+    border-color: color-mix(in srgb, var(--nm-border) 82%, transparent);
+    border-radius: var(--nm-radius-lg);
+    background:
+        radial-gradient(420px 200px at 92% -45%, rgba(var(--tblr-primary-rgb), .16), transparent 70%),
+        color-mix(in srgb, var(--nm-surface-2) 66%, transparent);
+}
+
+body.nm-admin-body .nm-update-icon {
+    border-radius: 14px;
+    background: linear-gradient(150deg,
+        color-mix(in srgb, var(--tblr-primary) 18%, transparent),
+        color-mix(in srgb, var(--tblr-primary) 9%, transparent));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tblr-primary) 20%, transparent),
+        0 12px 24px -18px rgba(var(--tblr-primary-rgb), .7);
+}
+
+body.nm-admin-body .nm-update-version {
+    font-size: 1.12rem;
+    font-weight: 650;
+    letter-spacing: -.025em;
+}
+
+body.nm-admin-body .nm-update-meta {
+    font-size: .77rem;
+    line-height: 1.55;
+}
+
+body.nm-admin-body .nm-update-notes {
+    font-size: .82rem;
+    line-height: 1.65;
+}
+
+/* ---------- 备份 / 缓存 ---------- */
+body.nm-admin-body .nm-meta-item {
+    padding: .65rem .8rem;
+}
+
+body.nm-admin-body .nm-admin-page .alert {
+    border-radius: 13px;
+}
+
+body.nm-admin-body .nm-admin-page .progress {
+    border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.nm-admin-body .nm-settings-tabs .nav-link,
+    body.nm-admin-body .theme-swatch,
+    body.nm-admin-body .nm-choice-card-select {
+        transition-duration: 1ms !important;
+    }
+
+    body.nm-admin-body .theme-swatch:hover,
+    body.nm-admin-body .nm-choice-card-select:hover {
+        translate: 0 0;
+    }
+
+    body.nm-admin-body .nm-settings-tabs .nav-link:active,
+    body.nm-admin-body .theme-swatch:active {
+        scale: 1;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    body.nm-admin-body .nm-settings-tabs {
+        background: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+/* ============================================================
+   阶段 6 · 安装向导、共享组件收口与无障碍
+   ============================================================ */
+
+/* ---------- 共享无障碍：跳到主要内容 ---------- */
+.nm-skip-link {
+    position: fixed;
+    top: .75rem;
+    left: .75rem;
+    z-index: 2000;
+    padding: .55rem .9rem;
+    border-radius: var(--nm-radius-sm);
+    background: var(--tblr-primary);
+    color: #fff;
+    font-size: .82rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-decoration: none;
+    box-shadow: var(--nm-shadow-md);
+    translate: 0 calc(-100% - 1.25rem);
+    transition: translate var(--nm-dur-2) var(--nm-ease-enter);
+}
+
+.nm-skip-link:focus,
+.nm-skip-link:focus-visible {
+    translate: 0 0;
+    color: #fff;
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+}
+
+#main-content:focus {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nm-skip-link {
+        transition: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .nm-skip-link:focus,
+    .nm-skip-link:focus-visible {
+        background: Highlight;
+        color: HighlightText;
+    }
+
+    .dropdown-menu,
+    .popover,
+    .modal-content,
+    .offcanvas,
+    .nm-toast,
+    .card {
+        border-color: CanvasText;
+    }
+
+    .badge {
+        border: 1px solid CanvasText;
+    }
+}
+
+/* ---------- 安装向导外壳 ---------- */
+.install-page {
+    background:
+        radial-gradient(48% 42% at 6% -8%, rgba(var(--tblr-primary-rgb), .14), transparent 70%),
+        radial-gradient(40% 38% at 100% 0%, color-mix(in srgb, var(--tblr-azure) 10%, transparent), transparent 72%),
+        var(--tblr-body-bg);
+    padding: 3rem 1.25rem 4.5rem;
+    font-size: .9375rem;
+    letter-spacing: var(--nm-tracking-body);
+}
+
+.install-shell {
+    max-width: 1000px;
+}
+
+.install-page .brand-mark-lg {
+    border-radius: 17px;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .18),
+        0 14px 30px -18px rgba(var(--tblr-primary-rgb), .85);
+}
+
+.install-page h1.h2 {
+    font-weight: 660;
+    letter-spacing: var(--nm-tracking-display);
+}
+
+/* ---------- 部署进度 ---------- */
+.install-progress-card {
+    border-radius: var(--nm-radius-lg);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 82%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface) 84%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+.install-progress-card .card-body {
+    padding: 1.1rem 1.25rem;
+}
+
+.install-progress-card .progress {
+    height: .4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tblr-secondary) 12%, transparent);
+}
+
+.install-progress-card .progress-bar {
+    border-radius: 999px;
+    background-image: linear-gradient(90deg,
+        color-mix(in srgb, var(--tblr-primary) 82%, #fff),
+        var(--tblr-primary));
+    transition: width var(--nm-dur-4) var(--nm-ease-enter);
+}
+
+.install-steps {
+    gap: .45rem;
+}
+
+.install-steps li {
+    gap: .5rem;
+    font-size: .78rem;
+    letter-spacing: 0;
+}
+
+.install-steps li + li::before {
+    background: color-mix(in srgb, var(--tblr-border-color) 90%, transparent);
+}
+
+.install-steps li.is-done + li::before {
+    background: color-mix(in srgb, var(--tblr-primary) 38%, transparent);
+}
+
+.install-step-dot {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--nm-radius-pill);
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary) 78%, transparent);
+    font-size: .73rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    transition:
+        background-color var(--nm-dur-2) var(--nm-ease-standard),
+        border-color var(--nm-dur-2) var(--nm-ease-standard),
+        color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard);
+}
+
+.install-steps li.is-current .install-step-dot {
+    border-color: color-mix(in srgb, var(--tblr-primary) 70%, transparent);
+    background: var(--tblr-primary);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, .16),
+        0 0 0 4px color-mix(in srgb, var(--tblr-primary) 15%, transparent);
+}
+
+.install-steps li.is-done .install-step-dot {
+    border-color: color-mix(in srgb, var(--tblr-primary) 30%, transparent);
+    background: color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+    color: var(--tblr-primary);
+}
+
+.install-steps li.is-current .install-step-label {
+    font-weight: 620;
+    letter-spacing: -.008em;
+}
+
+/* ---------- 步骤面板 ---------- */
+.install-panel {
+    border-radius: var(--nm-radius-lg);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 86%, transparent);
+    background: var(--tblr-bg-surface);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+.install-panel:not([hidden]) {
+    animation: nm-install-panel-in var(--nm-dur-4) var(--nm-ease-enter) both;
+}
+
+@keyframes nm-install-panel-in {
+    from {
+        opacity: 0;
+        translate: 0 8px;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+.install-panel .card-header {
+    padding: 1.15rem 1.35rem;
+    align-items: center;
+}
+
+.install-panel .card-body {
+    padding: 1.2rem 1.35rem 1.35rem;
+}
+
+.install-panel .card-footer {
+    padding: .85rem 1.35rem;
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary) 46%, transparent);
+}
+
+.install-panel .card-title {
+    font-size: 1.16rem;
+    font-weight: 650;
+    letter-spacing: -.022em;
+}
+
+.install-step-kicker {
+    margin-bottom: .2rem;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .09em;
+}
+
+.install-panel .lead {
+    font-size: .95rem;
+    line-height: 1.68;
+    color: var(--nm-text-muted);
+}
+
+.install-panel .alert {
+    border-radius: 13px;
+    border-color: color-mix(in srgb, currentColor 14%, transparent);
+    font-size: .84rem;
+    line-height: 1.6;
+}
+
+.install-panel-actions {
+    gap: .6rem;
+}
+
+/* ---------- 特性卡片 ---------- */
+.install-feature {
+    padding: .95rem 1rem;
+    border-radius: var(--nm-radius-md);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 78%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary) 58%, transparent);
+    transition:
+        translate var(--nm-dur-3) var(--nm-ease-enter),
+        border-color var(--nm-dur-2) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .install-feature:hover {
+        translate: 0 -2px;
+        border-color: color-mix(in srgb, var(--tblr-primary) 26%, var(--tblr-border-color));
+        box-shadow: var(--nm-shadow-sm);
+    }
+}
+
+.install-feature > i {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 11px;
+    background: linear-gradient(150deg,
+        color-mix(in srgb, var(--tblr-primary) 17%, transparent),
+        color-mix(in srgb, var(--tblr-primary) 8%, transparent));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tblr-primary) 18%, transparent);
+    font-size: 1.08rem;
+}
+
+.install-feature .fw-semibold {
+    font-size: .875rem;
+    font-weight: 620;
+    letter-spacing: -.012em;
+}
+
+.install-feature .small {
+    margin-top: .1rem;
+    font-size: .765rem;
+    line-height: 1.55;
+}
+
+/* ---------- 环境检测 ---------- */
+.check-item {
+    padding: .62rem .8rem;
+    border-radius: 12px;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 78%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary) 50%, transparent);
+    font-size: .83rem;
+}
+
+.check-item > i {
+    font-size: 1.05rem;
+    flex: 0 0 auto;
+}
+
+.check-item .check-value {
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 配置摘要 ---------- */
+.install-summary {
+    border-radius: var(--nm-radius-md);
+    border-color: color-mix(in srgb, var(--tblr-border-color) 82%, transparent);
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary) 42%, transparent);
+}
+
+.install-summary-row {
+    padding: .66rem .95rem;
+    font-size: .84rem;
+}
+
+.install-summary-row + .install-summary-row {
+    border-top-color: color-mix(in srgb, var(--tblr-border-color) 72%, transparent);
+}
+
+.install-summary-label {
+    font-size: .78rem;
+    letter-spacing: 0;
+}
+
+.install-summary-value {
+    font-weight: 560;
+    letter-spacing: -.005em;
+}
+
+/* ---------- 部署阶段 ---------- */
+.install-deploy-stage {
+    padding: .7rem .9rem;
+    border-radius: 13px;
+    border-color: color-mix(in srgb, var(--tblr-border-color) 80%, transparent);
+    transition:
+        background-color var(--nm-dur-3) var(--nm-ease-standard),
+        border-color var(--nm-dur-3) var(--nm-ease-standard),
+        box-shadow var(--nm-dur-3) var(--nm-ease-standard);
+}
+
+.install-deploy-icon {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary) 85%, transparent);
+}
+
+.install-deploy-stage .fw-semibold {
+    font-size: .855rem;
+    font-weight: 620;
+    letter-spacing: -.01em;
+}
+
+.install-deploy-status {
+    font-size: .75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.install-deploy-stage.is-running {
+    border-color: color-mix(in srgb, var(--tblr-primary) 38%, transparent);
+    background: color-mix(in srgb, var(--tblr-primary) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+}
+
+.install-deploy-stage.is-running .install-deploy-status {
+    color: var(--tblr-primary);
+    font-weight: 600;
+}
+
+.install-deploy-stage.is-done {
+    border-color: color-mix(in srgb, var(--tblr-success) 28%, transparent);
+    background: color-mix(in srgb, var(--tblr-success) 5%, transparent);
+}
+
+.install-deploy-stage.is-error .install-deploy-status {
+    letter-spacing: 0;
+}
+
+.install-deploy-stage .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: .14em;
+}
+
+/* ---------- 完成页 ---------- */
+.install-success-icon {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 26%,
+        color-mix(in srgb, var(--tblr-success) 24%, transparent),
+        color-mix(in srgb, var(--tblr-success) 9%, transparent) 70%);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--tblr-success) 22%, transparent),
+        0 20px 44px -26px color-mix(in srgb, var(--tblr-success) 80%, transparent);
+    font-size: 2.15rem;
+}
+
+.install-success h3 {
+    font-size: 1.3rem;
+    font-weight: 650;
+    letter-spacing: -.026em;
+}
+
+.install-panel-actions-end {
+    gap: .6rem;
+}
+
+/* ---------- 安装向导无障碍 ---------- */
+.install-steps li:focus-visible,
+.install-summary-row:focus-visible {
+    outline: 2px solid rgba(var(--tblr-primary-rgb), .75);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .install-panel:not([hidden]) {
+        animation: none;
+    }
+
+    .install-progress-card .progress-bar {
+        transition-duration: 1ms;
+    }
+
+    .install-feature,
+    .install-deploy-stage,
+    .install-step-dot {
+        transition-duration: 1ms;
+    }
+
+    .install-feature:hover {
+        translate: 0 0;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .install-progress-card {
+        background: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .install-panel,
+    .install-progress-card,
+    .install-feature,
+    .check-item,
+    .install-summary,
+    .install-deploy-stage {
+        border-width: 1.5px !important;
+        border-color: var(--tblr-border-color-strong, var(--tblr-border-color)) !important;
+    }
+
+    .install-progress-card {
+        background: var(--tblr-bg-surface) !important;
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+    }
+
+    .install-steps li.is-current .install-step-dot {
+        box-shadow: 0 0 0 3px var(--tblr-primary);
+    }
+}
+
+@media (forced-colors: active) {
+    :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
+
+    .install-step-dot,
+    .install-deploy-icon,
+    .install-success-icon {
+        border: 1px solid ButtonBorder;
+    }
+
+    .install-steps li.is-current .install-step-dot {
+        forced-color-adjust: none;
+        background: Highlight;
+        color: HighlightText;
+    }
+
+    .install-progress-card .progress-bar {
+        background-image: none;
+        background-color: Highlight;
+    }
+}
+
+/* ============================================================
+   细节修复 · 链接下划线、分类选中、折叠图标与背景拼接
+   ============================================================ */
+
+a:hover,
+a:focus,
+a:active,
+.breadcrumb a:hover,
+.btn-link:hover,
+.btn-link:focus-visible {
+    text-decoration: none;
+}
+
+body.nm-front .article-body a {
+    text-decoration: underline;
+}
+
+body.nm-front .doc-cat-nav .cat-all.active,
+body.nm-front .doc-cat-nav .cat-row.active {
+    background: color-mix(in srgb, var(--tblr-primary) 10%, transparent);
+}
+
+body.nm-front .doc-cat-nav .cat-doc-link.active {
+    background: color-mix(in srgb, var(--tblr-primary) 8%, transparent);
+}
+
+body.nm-front .doc-cat-nav .cat-children {
+    margin-top: .18rem;
+}
+
+body.nm-front .doc-cat-nav .cat-doc-item + .cat-doc-item {
+    margin-top: .12rem;
+}

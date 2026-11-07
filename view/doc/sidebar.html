@@ -10,11 +10,6 @@
             </button>
         </div>
     </div>
-    <button type="button" class="doc-panel-search" data-search-open aria-label="搜索公开文档（Ctrl+K）" title="搜索文档（Ctrl+K）">
-        <i class="ti ti-search"></i>
-        <span class="doc-panel-text">搜索文档...</span>
-        <kbd class="doc-panel-text">Ctrl K</kbd>
-    </button>
     <nav class="doc-cat-nav">
         <a class="cat-all{if $allActive} active{/if}" href="/docs" title="全部文档">
             <i class="ti ti-layout-list"></i><span class="doc-panel-text">全部文档</span>
@@ -38,6 +33,6 @@
         {/if}
     </nav>
     <div class="doc-panel-foot">
-        <i class="ti ti-lock"></i><span class="doc-panel-text">仅展示公开与加密分类</span>
+        <i class="ti ti-lock"></i><span class="doc-panel-text">{$docSidebarNote}</span>
     </div>
 </div>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#0b0f14">
+    <title>维护中 - {$siteName}</title>
+    <link rel="icon" href="{$faviconUrl}">
+    <link rel="stylesheet" href="/static/css/maintenance.css">
+</head>
+<body class="nm-maint nm-maint-code" data-maintenance-until="{$untilTs}">
+<div class="code-stage">
+    <section class="code-term" role="status" aria-live="polite">
+        <div class="code-bar">
+            <span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="code-bar-title">maintenance.sh — {$siteName}</span>
+        </div>
+        <div class="code-body">
+            <div class="code-line"><span class="code-prompt">$</span><span class="code-cmd">systemctl status northmu-docs</span></div>
+            <div class="code-line code-out"><span class="code-danger">●</span> northmu-docs.service — Active: <span class="code-danger">maintenance</span></div>
+            <div class="code-line code-out">HTTP/1.1 <span class="code-danger">503 Service Unavailable</span></div>
+            <div class="code-line"><span class="code-prompt">#</span><span class="code-comment">维护说明 / message</span></div>
+            <div class="code-reason">{$reasonHtml|raw}</div>
+            <div class="code-line"><span class="code-prompt">#</span><span class="code-comment">预计恢复 / eta: {if $untilTs}{$untilText} · 剩余 <span data-countdown>--:--</span>{else}待定 / unknown{/if}</span></div>
+            <div class="code-line"><span class="code-prompt">$</span><span class="code-cursor" aria-hidden="true"></span></div>
+        </div>
+    </section>
+</div>
+<script src="/static/js/maintenance.js" defer></script>
+</body>
+</html>

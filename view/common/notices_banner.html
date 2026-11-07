@@ -1,0 +1,16 @@
+{if !empty($noticeBanner)}
+<div class="nm-notice-banners{if $noticePlacement == 'home'} nm-notice-banners--home{/if}" role="region" aria-label="站点公告">
+    {foreach $noticeBanner as $notice}
+    <div class="nm-notice-banner" data-level="{$notice.level}">
+        <span class="nm-notice-banner-icon" aria-hidden="true"><i class="ti {$notice.level_icon}"></i></span>
+        <div class="nm-notice-banner-body">
+            <span class="nm-notice-banner-title">{$notice.title}</span>
+            <span class="nm-notice-banner-track"><span class="nm-notice-banner-text" data-notice-text>{$notice.content}</span></span>
+        </div>
+        {if $notice.link_url}
+        <a class="nm-notice-banner-link" href="{$notice.link_url}"{if $notice.link_target == '_blank'} target="_blank" rel="noopener"{/if}>查看详情<i class="ti ti-arrow-up-right"></i></a>
+        {/if}
+    </div>
+    {/foreach}
+</div>
+{/if}

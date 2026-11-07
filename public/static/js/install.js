@@ -11,6 +11,7 @@
     var stepCounter = document.getElementById('stepCounter');
     var stepPercent = document.getElementById('stepPercent');
     var stepProgress = document.getElementById('stepProgress');
+    var stepProgressBar = document.getElementById('stepProgressBar');
     var envBadge = document.getElementById('envBadge');
     var envAlert = document.getElementById('envAlert');
     var envChecks = document.getElementById('envChecks');
@@ -173,6 +174,9 @@
         }
         if (stepProgress) {
             stepProgress.style.width = percent + '%';
+        }
+        if (stepProgressBar) {
+            stepProgressBar.setAttribute('aria-valuenow', String(percent));
         }
     }
 

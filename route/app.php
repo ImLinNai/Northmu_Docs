@@ -12,6 +12,11 @@ Route::get('docs/search', 'Doc/search');
 Route::get('doc/:id', 'Doc/read')->pattern(['id' => '\d+(?:\.html)?']);
 Route::post('doc/:id/unlock', 'Doc/unlock')->pattern(['id' => '\d+']);
 
+// 维护页面预览（仅管理员）
+Route::get('maintenance/preview/:template', 'Maintenance/preview')
+    ->pattern(['template' => 'macos|cyberpunk|code|minimal'])
+    ->middleware(\app\middleware\AdminAuth::class);
+
 // 安装向导
 Route::get('install', 'Install/index');
 Route::post('install/check', 'Install/check');
@@ -49,6 +54,14 @@ Route::group('admin', function () {
     Route::post('documents/push/:id', 'admin.Document/push')->pattern(['id' => '\d+']);
     Route::post('documents/draft', 'admin.Document/saveDraft');
     Route::post('documents/draft/discard', 'admin.Document/discardDraft');
+
+    // 公告通知
+    Route::get('notices', 'admin.Notice/index');
+    Route::get('notices/create', 'admin.Notice/create');
+    Route::get('notices/edit/:id', 'admin.Notice/edit')->pattern(['id' => '\d+']);
+    Route::post('notices/save', 'admin.Notice/save');
+    Route::post('notices/toggle', 'admin.Notice/toggle');
+    Route::post('notices/delete', 'admin.Notice/delete');
 
     // 标签
     Route::get('tags', 'admin.Tag/index');

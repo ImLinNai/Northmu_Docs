@@ -1,0 +1,224 @@
+{include file="common/header" /}
+
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title"><span class="nm-section-icon"><i class="ti ti-pin"></i></span>共 {$notices|count} 条公告</div>
+    <div class="nm-toolbar-meta">公告可同时用于前台横幅与访客弹窗，支持重要等级配色与自动滚动</div>
+    <div class="nm-toolbar-actions">
+        <a href="/admin/notices/create" class="btn btn-primary">
+            <i class="ti ti-plus me-1"></i>新建公告
+        </a>
+    </div>
+</div>
+
+<div class="card nm-table-wrap">
+    <div class="card-header">
+        <h3 class="card-title"><i class="ti ti-pin"></i>全部公告</h3>
+        <div class="card-actions">
+            <span class="badge bg-secondary-lt">{$notices|count} 条</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter">
+            <thead>
+            <tr>
+                <th>公告</th>
+                <th class="w-1">等级</th>
+                <th class="w-1">展示方式</th>
+                <th class="w-1">状态</th>
+                <th class="w-1">更新时间</th>
+                <th class="w-1 text-end">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {volist name="notices" id="notice"}
+            <tr>
+                <td>
+                    <div class="nm-notice-cell">
+                        <div class="nm-notice-cell-title">{$notice.title}</div>
+                        <div class="nm-notice-cell-excerpt">{$notice.excerpt}</div>
+                        {if $notice.link_url}
+                        <div class="nm-notice-cell-link"><i class="ti ti-external-link"></i>{$notice.link_url}</div>
+                        {/if}
+                    </div>
+                </td>
+                <td>
+                    <span class="nm-notice-level nm-notice-level--{$notice.level}">{$notice.level_label}</span>
+                </td>
+                <td>
+                    <div class="nm-notice-modes">
+                        {if $notice.show_banner}
+                        <span class="nm-notice-mode"><i class="ti ti-layout-navbar"></i>横幅</span>
+                        {/if}
+                        {if $notice.show_popup}
+                        <span class="nm-notice-mode"><i class="ti ti-article"></i>弹窗 · {$notice.popup_cooldown}h</span>
+                        {/if}
+                    </div>
+                </td>
+                <td>
+                    <form action="/admin/notices/toggle" method="post" class="d-inline">
+                        {:csrf_field()}
+                        <input type="hidden" name="id" value="{$notice.id}">
+                        <button type="submit" class="nm-notice-status {if $notice.is_enabled}is-on{else}is-off{/if}" data-nm-tip="{if $notice.is_enabled}点击停用{else}点击启用{/if}">
+                            <span class="nm-notice-status-dot" aria-hidden="true"></span>
+                            {if $notice.is_enabled}已启用{else}已停用{/if}
+                        </button>
+                    </form>
+                </td>
+                <td class="text-secondary small text-nowrap">{$notice.updated_at}</td>
+                <td>
+                    <div class="nm-row-actions">
+                        <a href="/admin/notices/edit/{$notice.id}" class="btn btn-sm btn-icon btn-ghost-secondary" data-nm-tip="编辑">
+                            <i class="ti ti-pencil"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-icon btn-ghost-secondary"
+                                data-bs-toggle="dropdown" aria-expanded="false" data-nm-tip="更多操作">
+                            <i class="ti ti-dots"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <form action="/admin/notices/toggle" method="post">
+                                {:csrf_field()}
+                                <input type="hidden" name="id" value="{$notice.id}">
+                                <button type="submit" class="dropdown-item">
+                                    <i class="ti {if $notice.is_enabled}ti-eye-off{else}ti-eye{/if}"></i>{if $notice.is_enabled}停用公告{else}启用公告{/if}
+                                </button>
+                            </form>
+                            <div class="dropdown-divider"></div>
+                            <form action="/admin/notices/delete" method="post"
+                                  data-confirm="删除公告「{$notice.title}」？该公告将立即从前台移除。" data-confirm-tone="danger" data-confirm-title="删除公告">
+                                {:csrf_field()}
+                                <input type="hidden" name="id" value="{$notice.id}">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="ti ti-trash"></i>删除公告
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {/volist}
+            {empty name="notices"}
+            <tr>
+                <td colspan="6">
+                    <div class="nm-empty">
+                        <span class="nm-empty-icon"><i class="ti ti-pin"></i></span>
+                        <div class="nm-empty-title">还没有公告</div>
+                        <div class="nm-empty-desc">公告可以显示在首页与文档页顶部，也可以作为访客首次访问时的弹窗提醒。</div>
+                        <a href="/admin/notices/create" class="btn btn-primary">
+                            <i class="ti ti-plus me-1"></i>创建第一条公告
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end nm-drawer nm-drawer-wide" tabindex="-1" id="noticeFormDrawer" aria-labelledby="noticeFormTitle" data-notice-open="{$openForm}">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="noticeFormTitle">
+            <span class="nm-section-icon"><i class="ti ti-pin"></i></span>
+            {if $editing}编辑公告{else}新建公告{/if}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="关闭"></button>
+    </div>
+    <form method="post" action="/admin/notices/save" class="d-flex flex-column flex-grow-1 min-h-0">
+        {:csrf_field()}
+        {if $editing}
+        <input type="hidden" name="id" value="{$editing.id}">
+        {/if}
+        <div class="offcanvas-body">
+            <div class="mb-3">
+                <label class="form-label required" for="noticeTitle">标题</label>
+                <input type="text" class="form-control" id="noticeTitle" name="title" maxlength="100" required
+                       value="{$editing.title|default=''}" placeholder="例如：站点维护与功能更新说明">
+            </div>
+            <div class="mb-3">
+                <label class="form-label required" for="noticeContent">内容</label>
+                <textarea class="form-control" id="noticeContent" name="content" rows="5" maxlength="2000" required
+                          placeholder="填写公告正文，支持换行。">{if $editing}{$editing.content}{/if}</textarea>
+                <div class="form-hint">纯文本展示，换行会保留；建议控制在 200 字以内。</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">重要等级</label>
+                <div class="nm-choice-grid nm-choice-grid-2">
+                    {foreach $levels as $key => $level}
+                    <label class="nm-choice-card nm-choice-card-select nm-notice-level-choice" data-level="{$key}">
+                        <input class="form-check-input" type="radio" name="level" value="{$key}"
+                               {if ($editing && $editing.level == $key) || (!$editing && $key == 'info')}checked{/if}>
+                        <span class="nm-choice-body">
+                            <span class="nm-choice-title"><span class="nm-notice-level-dot"></span>{$level.label}</span>
+                        </span>
+                    </label>
+                    {/foreach}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="noticeLinkUrl">点击跳转链接</label>
+                <input type="text" class="form-control" id="noticeLinkUrl" name="link_url" maxlength="500"
+                       value="{$editing.link_url|default=''}" placeholder="https://example.com 或 /docs">
+                <div class="form-hint">留空表示公告不可点击跳转。</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="noticeLinkTarget">打开方式</label>
+                <select class="form-select" id="noticeLinkTarget" name="link_target">
+                    <option value="_blank" {if !$editing || $editing.link_target == '_blank'}selected{/if}>新标签页打开</option>
+                    <option value="_self" {if $editing && $editing.link_target == '_self'}selected{/if}>当前页打开</option>
+                </select>
+            </div>
+
+            <div class="nm-notice-form-block">
+                <div class="nm-notice-form-block-title">展示方式</div>
+                <label class="form-check form-switch nm-notice-form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" name="show_banner" value="1" id="noticeShowBanner"
+                           {if !$editing || $editing.show_banner}checked{/if}>
+                    <span class="form-check-label">前台横幅</span>
+                </label>
+                <div class="form-hint ms-0">首页显示在标题标签上方，文档页显示在顶栏与正文之间；内容超出宽度时自动滚动。</div>
+                <label class="form-check form-switch nm-notice-form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" name="show_popup" value="1" id="noticeShowPopup"
+                           {if $editing && $editing.show_popup}checked{/if}>
+                    <span class="form-check-label">访问弹窗</span>
+                </label>
+                <div class="form-hint ms-0">访客打开站点后以弹窗展示，需点击「知道了」关闭。</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="noticeCooldown">弹窗再次显示</label>
+                <select class="form-select" id="noticeCooldown" name="popup_cooldown" data-notice-cooldown>
+                    {foreach $cooldowns as $hours => $label}
+                    <option value="{$hours}" {if ($editing && $editing.popup_cooldown == $hours) || (!$editing && $hours == 24)}selected{/if}>{$label}</option>
+                    {/foreach}
+                </select>
+                <div class="form-hint">仅对勾选「访问弹窗」的公告生效，按访客浏览器的记录计算。</div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label" for="noticeSort">排序</label>
+                    <input type="number" class="form-control" id="noticeSort" name="sort" step="1"
+                           value="{$editing.sort|default='0'}">
+                    <div class="form-hint">数值越大越靠前。</div>
+                </div>
+                <div class="col-6 d-flex flex-column justify-content-center">
+                    <label class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" name="is_enabled" value="1"
+                               {if !$editing || $editing.is_enabled}checked{/if}>
+                        <span class="form-check-label">启用公告</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="offcanvas-footer d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="offcanvas">取消</button>
+            <button type="submit" class="btn btn-primary">
+                <i class="ti ti-check me-1"></i>{if $editing}保存修改{else}创建公告{/if}
+            </button>
+        </div>
+    </form>
+</div>
+
+{include file="common/footer" /}

@@ -1,6 +1,6 @@
 {include file="common/public_header" /}
 
-<main class="hero-wrap home-template-{$home.template}{if $home.bgType != 'none'} has-bg{/if}"{if $home.bgType != 'none'} style="--home-overlay:{$home.overlayAlpha}"{/if}>
+<main class="hero-wrap home-template-{$home.template}{if $home.bgType != 'none'} has-bg{/if}" id="main-content" tabindex="-1"{if $home.bgType != 'none'} style="--home-overlay:{$home.overlayAlpha}"{/if}>
     {if $home.bgType == 'image'}
     <div class="hero-bg" aria-hidden="true"><img src="{$home.bgImage}" alt=""></div>
     {elseif $home.bgType == 'video'}
@@ -16,6 +16,9 @@
 
     <div class="hero-inner">
         <div class="hero-copy">
+            {if !empty($noticeBanner)}
+            {include file="common/notices_banner" /}
+            {/if}
             {if $home.badge}
             <div class="hero-badge">
                 <i class="ti ti-sparkles"></i>

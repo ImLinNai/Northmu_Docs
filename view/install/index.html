@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/apple.css">
 </head>
 <body>
 <div class="position-fixed top-0 end-0 p-3" style="z-index:1030">
@@ -42,9 +43,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
                     <div class="fw-semibold"><i class="ti ti-route me-1"></i>部署进度</div>
-                    <div class="text-secondary small"><span id="stepCounter">第 1 步 / 共 7 步</span> · <span id="stepPercent">0%</span></div>
+                    <div class="text-secondary small" aria-live="polite"><span id="stepCounter">第 1 步 / 共 7 步</span> · <span id="stepPercent">0%</span></div>
                 </div>
-                <div class="progress progress-sm mb-3">
+                <div class="progress progress-sm mb-3" role="progressbar" aria-label="安装进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="stepProgressBar">
                     <div class="progress-bar" id="stepProgress" style="width:0%"></div>
                 </div>
                 <ol class="install-steps" id="installSteps">
@@ -155,25 +156,25 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-8">
-                            <label class="form-label required">数据库地址</label>
-                            <input type="text" class="form-control" name="db_host" value="{$old.db_host}" required>
+                            <label class="form-label required" for="installDbHost">数据库地址</label>
+                            <input type="text" class="form-control" id="installDbHost" name="db_host" value="{$old.db_host}" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label required">端口</label>
-                            <input type="text" class="form-control" name="db_port" value="{$old.db_port}" required>
+                            <label class="form-label required" for="installDbPort">端口</label>
+                            <input type="text" class="form-control" id="installDbPort" name="db_port" value="{$old.db_port}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label required">数据库名</label>
-                            <input type="text" class="form-control" name="db_name" value="{$old.db_name}" required>
-                            <small class="form-hint">不存在时程序会尝试自动创建；仅允许字母、数字、下划线</small>
+                            <label class="form-label required" for="installDbName">数据库名</label>
+                            <input type="text" class="form-control" id="installDbName" name="db_name" value="{$old.db_name}" required aria-describedby="installDbNameHint">
+                            <small class="form-hint" id="installDbNameHint">不存在时程序会尝试自动创建；仅允许字母、数字、下划线</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label required">数据库用户名</label>
-                            <input type="text" class="form-control" name="db_user" value="{$old.db_user}" required>
+                            <label class="form-label required" for="installDbUser">数据库用户名</label>
+                            <input type="text" class="form-control" id="installDbUser" name="db_user" value="{$old.db_user}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">数据库密码</label>
-                            <input type="password" class="form-control" name="db_pass" value="" autocomplete="new-password">
+                            <label class="form-label" for="installDbPass">数据库密码</label>
+                            <input type="password" class="form-control" id="installDbPass" name="db_pass" value="" autocomplete="new-password">
                         </div>
                     </div>
                     <div id="dbResult" class="alert d-none mt-3" role="status"></div>
@@ -212,29 +213,29 @@
                     <div class="text-secondary small mb-3">不启用时站点直接读取数据库，可随时在后台「缓存管理」中开启。启用后站点设置、分类树与文档内容会写入 Redis 加速访问。</div>
                     <div id="redisFields" class="row g-3">
                         <div class="col-md-8">
-                            <label class="form-label">Redis 地址</label>
-                            <input type="text" class="form-control" name="redis_host" value="{$old.redis_host}" maxlength="120">
+                            <label class="form-label" for="installRedisHost">Redis 地址</label>
+                            <input type="text" class="form-control" id="installRedisHost" name="redis_host" value="{$old.redis_host}" maxlength="120">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">端口</label>
-                            <input type="number" class="form-control" name="redis_port" value="{$old.redis_port}" min="1" max="65535">
+                            <label class="form-label" for="installRedisPort">端口</label>
+                            <input type="number" class="form-control" id="installRedisPort" name="redis_port" value="{$old.redis_port}" min="1" max="65535">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">密码</label>
-                            <input type="password" class="form-control" name="redis_password" value="" autocomplete="new-password" placeholder="无密码可留空">
+                            <label class="form-label" for="installRedisPassword">密码</label>
+                            <input type="password" class="form-control" id="installRedisPassword" name="redis_password" value="" autocomplete="new-password" placeholder="无密码可留空">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">数据库编号</label>
-                            <input type="number" class="form-control" name="redis_database" value="{$old.redis_database}" min="0" max="15">
+                            <label class="form-label" for="installRedisDatabase">数据库编号</label>
+                            <input type="number" class="form-control" id="installRedisDatabase" name="redis_database" value="{$old.redis_database}" min="0" max="15">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">缓存有效期（秒）</label>
-                            <input type="number" class="form-control" name="redis_ttl" value="{$old.redis_ttl}" min="60" max="86400">
+                            <label class="form-label" for="installRedisTtl">缓存有效期（秒）</label>
+                            <input type="number" class="form-control" id="installRedisTtl" name="redis_ttl" value="{$old.redis_ttl}" min="60" max="86400">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">键前缀</label>
-                            <input type="text" class="form-control font-monospace" name="redis_prefix" value="{$old.redis_prefix}" maxlength="40">
-                            <small class="form-hint">仅影响本站缓存键，清空缓存不会误删其他应用数据。</small>
+                            <label class="form-label" for="installRedisPrefix">键前缀</label>
+                            <input type="text" class="form-control font-monospace" id="installRedisPrefix" name="redis_prefix" value="{$old.redis_prefix}" maxlength="40" aria-describedby="installRedisPrefixHint">
+                            <small class="form-hint" id="installRedisPrefixHint">仅影响本站缓存键，清空缓存不会误删其他应用数据。</small>
                         </div>
                     </div>
                     <div id="redisResult" class="alert d-none mt-3" role="status"></div>
@@ -264,21 +265,21 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label required">站点名称</label>
-                            <input type="text" class="form-control" name="site_name" value="{$old.site_name}" maxlength="50" required>
+                            <label class="form-label required" for="installSiteName">站点名称</label>
+                            <input type="text" class="form-control" id="installSiteName" name="site_name" value="{$old.site_name}" maxlength="50" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label required">管理员账号</label>
-                            <input type="text" class="form-control" name="admin_user" value="{$old.admin_user}" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]+">
-                            <small class="form-hint">3-30 位字母、数字或下划线</small>
+                            <label class="form-label required" for="installAdminUser">管理员账号</label>
+                            <input type="text" class="form-control" id="installAdminUser" name="admin_user" value="{$old.admin_user}" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]+" aria-describedby="installAdminUserHint">
+                            <small class="form-hint" id="installAdminUserHint">3-30 位字母、数字或下划线</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label required">登录密码</label>
-                            <input type="password" class="form-control" name="admin_pass" value="" required minlength="6" maxlength="64" autocomplete="new-password">
+                            <label class="form-label required" for="installAdminPass">登录密码</label>
+                            <input type="password" class="form-control" id="installAdminPass" name="admin_pass" value="" required minlength="6" maxlength="64" autocomplete="new-password">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label required">确认密码</label>
-                            <input type="password" class="form-control" name="admin_pass2" value="" required minlength="6" maxlength="64" autocomplete="new-password">
+                            <label class="form-label required" for="installAdminPass2">确认密码</label>
+                            <input type="password" class="form-control" id="installAdminPass2" name="admin_pass2" value="" required minlength="6" maxlength="64" autocomplete="new-password">
                         </div>
                     </div>
                     <div id="accountResult" class="alert d-none mt-3" role="status"></div>
@@ -389,6 +390,7 @@
 
 <script src="/static/vendor/tabler/js/tabler.min.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="/static/js/apple-ui.js"></script>
 <script src="/static/js/install.js"></script>
 </body>
 </html>

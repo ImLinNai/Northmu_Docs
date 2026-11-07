@@ -243,6 +243,7 @@ class Doc extends BaseController
         $docMap = $this->documentTreeMap($publicCategories, $allCategories);
         $view += [
             'mode'          => 'read',
+            'isLocked'      => false,
             'doc'           => $doc,
             'contentHtml'   => $contentHtml,
             'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),
@@ -302,22 +303,23 @@ class Doc extends BaseController
     protected function renderUnlock(array $doc, array $allCategories, string $error = '')
     {
         $catPath = category_breadcrumb((int) $doc['category_id'], $allCategories);
-        $categoryName = '未分类';
-        if ($catPath) {
-            $last = end($catPath);
-            $categoryName = (string) $last['name'];
-        }
         $publicCategories = $this->publicCategories($allCategories);
         $tree = build_tree($publicCategories);
         $docMap = $this->documentTreeMap($publicCategories, $allCategories);
+        $docs = [$doc];
+        $this->decorateDocs($docs, $allCategories);
+        $doc = $docs[0];
+        $doc['updated_full'] = $doc['updated_at'] ? date('Y-m-d H:i', strtotime((string) $doc['updated_at'])) : '-';
+
         $view = $this->baseViewData('输入密码 - ' . $doc['title'], 'docs');
         $view += [
-            'doc'           => $doc,
-            'catPath'       => $catPath,
-            'categoryName'  => $categoryName,
-            'publishedText' => !empty($doc['published_at']) ? date('Y-m-d', strtotime((string) $doc['published_at'])) : '-',
-            'error'         => $error,
+            'mode'          => 'read',
+            'isLocked'      => true,
+            'unlockError'   => $error,
             'unlockId'      => (int) $doc['id'],
+            'doc'           => $doc,
+            'contentHtml'   => '',
+            'catPath'       => $catPath,
             'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),
             'uncategorizedDocs' => $docMap[0] ?? [],
             'activeDocId'   => (int) $doc['id'],
@@ -327,14 +329,14 @@ class Doc extends BaseController
         ];
         $seoGlobal = seo_global_config();
         $view = array_merge($view, seo_meta([
-            'title'       => (string) $doc['title'],
+            'title'       => '输入密码 - ' . (string) $doc['title'],
             'description' => $seoGlobal['description'],
             'keywords'    => '',
             'canonical'   => '',
             'robots'      => 'noindex,nofollow',
             'type'        => 'article',
         ]));
-        return view('doc/unlock', $view);
+        return view('doc/read', $view);
     }
 
     protected function documentTreeMap(array $publicCategories, array $allCategories): array
@@ -482,10 +484,12 @@ class Doc extends BaseController
         $siteName = sys_setting('site_name', 'Northmu Docs');
         $seoGlobal = seo_global_config();
         $front = site_front_config();
+        $sidebarNote = trim((string) sys_setting('site_doc_note', ''));
         return [
             'pageTitle'   => $title === '' ? $seoGlobal['title'] : $title . ' - ' . $seoGlobal['title'],
             'navActive'   => $navActive,
             'siteName'    => $siteName,
+            'docSidebarNote' => $sidebarNote !== '' ? $sidebarNote : $siteName,
             'siteLogo'    => (string) sys_setting('site_logo', ''),
             'siteDesc'    => sys_setting('site_desc', '个人文档与笔记管理系统'),
             'siteIcp'     => sys_setting('site_icp', ''),
@@ -499,6 +503,10 @@ class Doc extends BaseController
             'themeColor'  => site_theme_color(),
             'adminLogged' => admin_logged_in(),
             'adminProfile'=> admin_logged_in() ? admin_profile() : null,
+            'maintenanceBanner' => admin_logged_in() ? maintenance_state() : null,
+            'noticeBanner' => front_notices('banner'),
+            'noticePopups' => front_notices('popup'),
+            'noticePlacement' => 'doc',
             'author'      => site_author(),
             'extraHead'   => '',
             'extraScripts'=> '',

@@ -150,8 +150,9 @@
                                 <select class="form-select" id="navStyle" name="site_nav_style">
                                     <option value="top" {if $settings.site_nav_style == 'top'}selected{/if}>顶部通栏（默认）</option>
                                     <option value="floating" {if $settings.site_nav_style == 'floating'}selected{/if}>悬浮圆角</option>
+                                    <option value="capsule" {if $settings.site_nav_style == 'capsule'}selected{/if}>胶囊</option>
                                 </select>
-                                <div class="form-hint">悬浮样式与页面顶部保持距离，并带有圆角与阴影。</div>
+                                <div class="form-hint">悬浮样式与页面顶部保持距离；胶囊样式为居中悬浮的圆角胶囊，菜单悬停带滑动高亮。</div>
                             </div>
                             <div class="col-md-6 d-flex align-items-center">
                                 <label class="form-check form-switch mb-0">
@@ -203,6 +204,22 @@
                             </table>
                         </div>
                         <div class="form-hint mt-2">站内路径以 / 开头（如 /docs），锚点以 # 开头，外链需以 http:// 或 https:// 开头。</div>
+                    </div>
+                </div>
+
+                <div class="card nm-settings-section">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-file-text me-1"></i>文档页</h3>
+                        <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">侧栏底注</span></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label" for="docSidebarNote">分类侧栏底部文字</label>
+                                <input type="text" class="form-control" id="docSidebarNote" name="doc_note" value="{$settings.site_doc_note}" maxlength="60" placeholder="{$settings.site_name}">
+                                <div class="form-hint">显示在文档页左侧分类栏底部，留空时显示站点名称。</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

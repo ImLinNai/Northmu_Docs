@@ -38,6 +38,7 @@ class Appearance extends Base
             'site_login_bg'      => '',
             'site_login_overlay' => '45',
             'site_theme_color'   => 'blue',
+            'site_doc_note'      => '',
         ];
 
         $home = site_home_config();
@@ -76,7 +77,7 @@ class Appearance extends Base
             $brandMode = 'icon_text';
         }
         $navStyle = (string) $this->request->post('site_nav_style', 'top');
-        if (!in_array($navStyle, ['top', 'floating'], true)) {
+        if (!in_array($navStyle, ['top', 'floating', 'capsule'], true)) {
             $navStyle = 'top';
         }
         $navLogin = (int) $this->request->post('site_nav_login', 0) === 1 ? '1' : '0';
@@ -137,6 +138,12 @@ class Appearance extends Base
             $themeColor = 'blue';
         }
 
+        $docNote = trim((string) $this->request->post('doc_note', ''));
+        if (mb_strlen($docNote) > 60) {
+            admin_flash('文档页侧栏底注不能超过 60 个字符', 'warning');
+            return redirect('/admin/appearance');
+        }
+
         $data = [
             'site_name'       => $siteName,
             'site_brand_mode' => $brandMode,
@@ -155,6 +162,7 @@ class Appearance extends Base
             'site_login_desc'   => $loginDesc,
             'site_login_overlay'=> (string) $loginOverlay,
             'site_theme_color'  => $themeColor,
+            'site_doc_note'     => $docNote,
         ];
 
         $oldLogo = (string) sys_setting('site_logo', '');

@@ -23,48 +23,38 @@
     <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/static/css/apple.css">
 </head>
 <body class="nm-auth-body">
-<div class="nm-auth-shell">
-    <aside class="nm-auth-brand{if $loginBg} has-bg{/if}"{if $loginBg} style="background-image:url('{$loginBg}')"{/if}>
-        {if $loginBg}
-        <span class="nm-auth-brand-overlay" style="opacity:{$loginOverlayAlpha}"></span>
-        {/if}
-        <div class="nm-auth-brand-inner">
-            <div class="nm-auth-brand-top">
-                {if $loginIcon}
-                <img src="{$loginIcon}" alt="{$siteName}" class="brand-logo">
-                {elseif $siteLogo}
-                <img src="{$siteLogo}" alt="{$siteName}" class="brand-logo">
-                {else}
-                <span class="nm-brand-mark"><i class="ti ti-book-2"></i></span>
-                {/if}
-                <span>{$siteName}</span>
-            </div>
-            <div class="nm-auth-hero">
-                <h1>{$loginTitle}</h1>
-                <p>{$loginDesc}</p>
-                <div class="nm-auth-features">
-                    <div class="nm-auth-feature"><i class="ti ti-shield-lock"></i><span>管理员专属入口，全程登录态校验</span></div>
-                    <div class="nm-auth-feature"><i class="ti ti-files"></i><span>统一管理文档、分类、标签与附件</span></div>
-                    <div class="nm-auth-feature"><i class="ti ti-chart-dots"></i><span>内置 SEO、缓存与数据备份工具</span></div>
-                </div>
-            </div>
-        </div>
-        <div class="nm-auth-brand-foot">{$copyright}</div>
-    </aside>
+<div class="nm-auth-stage{if $loginBg} has-bg{/if}"{if $loginBg} style="--nm-auth-bg:url('{$loginBg}')"{/if}>
+    {if $loginBg}
+    <span class="nm-auth-overlay" style="opacity:{$loginOverlayAlpha}"></span>
+    {/if}
 
-    <main class="nm-auth-main">
+    <header class="nm-auth-top">
+        <a href="/" class="nm-auth-brandline">
+            {if $siteLogo}
+            <img src="{$siteLogo}" alt="{$siteName}" class="brand-logo">
+            {else}
+            <span class="nm-brand-mark"><i class="ti ti-book-2"></i></span>
+            {/if}
+            <span class="nm-auth-brandline-text">
+                <span class="nm-auth-brandline-name">{$siteName}</span>
+                <span class="nm-auth-brandline-sub">Admin Console</span>
+            </span>
+        </a>
         <div class="nm-auth-theme">
             <button class="nm-icon-btn" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
                 <i class="ti ti-sun theme-icon-sun"></i>
                 <i class="ti ti-moon theme-icon-moon"></i>
             </button>
         </div>
+    </header>
 
-        <div class="nm-auth-card">
-            <div class="nm-auth-card-head">
-                <span class="nm-auth-icon">
+    <main class="nm-auth-center">
+        <section class="nm-auth-panel">
+            <div class="nm-auth-panel-head">
+                <span class="nm-auth-logo">
                     {if $loginIcon}
                     <img src="{$loginIcon}" alt="{$loginTitle}">
                     {elseif $siteLogo}
@@ -73,61 +63,73 @@
                     <i class="ti ti-user-shield"></i>
                     {/if}
                 </span>
-                <h2>{$loginTitle}</h2>
-                <div class="nm-auth-card-desc">{$loginDesc}</div>
+                <div>
+                    <h1 class="nm-auth-title">{$loginTitle}</h1>
+                    <p class="nm-auth-sub">{$loginDesc}</p>
+                </div>
             </div>
 
-            <div class="nm-auth-form">
+            <form class="nm-auth-form" method="post" action="/admin/login" autocomplete="off">
+                {:csrf_field()}
+
                 {if $error}
-                <div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
-                    <i class="ti ti-alert-circle mt-1"></i>
+                <div class="nm-auth-alert" role="alert">
+                    <i class="ti ti-alert-circle"></i>
                     <div>{$error}</div>
                 </div>
                 {/if}
 
-                <form method="post" action="/admin/login" autocomplete="off">
-                    {:csrf_field()}
-                    <div class="mb-3">
-                        <label class="form-label" for="loginUsername">管理员账号</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ti ti-user"></i></span>
-                            <input type="text" class="form-control" id="loginUsername" name="username" value="{$username}" placeholder="请输入账号" required autofocus>
-                        </div>
+                <div class="mb-3">
+                    <label class="form-label" for="loginUsername">管理员账号</label>
+                    <div class="nm-auth-input">
+                        <i class="ti ti-user"></i>
+                        <input type="text" class="form-control" id="loginUsername" name="username" value="{$username}" placeholder="请输入账号" required autofocus>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="loginPassword">登录密码</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ti ti-lock"></i></span>
-                            <input type="password" class="form-control" id="loginPassword" name="password" placeholder="请输入密码" required autocomplete="current-password">
-                        </div>
-                    </div>
-                    {if $captchaOn}
-                    <div class="mb-3">
-                        <label class="form-label" for="loginCaptcha">验证码</label>
-                        <div class="d-flex gap-2 align-items-center">
-                            <div class="input-group flex-fill">
-                                <span class="input-group-text"><i class="ti ti-shield-check"></i></span>
-                                <input type="text" class="form-control" id="loginCaptcha" name="captcha" placeholder="请输入验证码" required autocomplete="off" maxlength="8">
-                            </div>
-                            <img src="/captcha" alt="验证码" class="nm-captcha-img" onclick="this.src='/captcha?'+Date.now()" title="点击刷新">
-                        </div>
-                    </div>
-                    {/if}
-                    <div class="form-footer">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="ti ti-login me-1"></i>登录后台
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
 
-            <a href="/" class="nm-auth-back"><i class="ti ti-arrow-left me-1"></i>返回站点首页</a>
-            <div class="nm-auth-foot">{$copyright}</div>
+                <div class="mb-3">
+                    <label class="form-label" for="loginPassword">登录密码</label>
+                    <div class="nm-auth-input">
+                        <i class="ti ti-lock"></i>
+                        <input type="password" class="form-control" id="loginPassword" name="password" placeholder="请输入密码" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                {if $captchaOn}
+                <div class="mb-3">
+                    <label class="form-label" for="loginCaptcha">验证码</label>
+                    <div class="nm-auth-captcha">
+                        <div class="nm-auth-input">
+                            <i class="ti ti-shield-check"></i>
+                            <input type="text" class="form-control" id="loginCaptcha" name="captcha" placeholder="请输入验证码" required autocomplete="off" maxlength="8">
+                        </div>
+                        <img src="/captcha" alt="验证码" class="nm-captcha-img" onclick="this.src='/captcha?'+Date.now()" title="点击刷新">
+                    </div>
+                </div>
+                {/if}
+
+                <button type="submit" class="nm-auth-submit">
+                    <i class="ti ti-login"></i>登录后台
+                </button>
+            </form>
+
+            <div class="nm-auth-chips">
+                <span class="nm-auth-chip"><i class="ti ti-shield-lock"></i>登录态校验</span>
+                <span class="nm-auth-chip"><i class="ti ti-files"></i>文档与分类管理</span>
+                <span class="nm-auth-chip"><i class="ti ti-chart-dots"></i>SEO / 缓存 / 备份</span>
+            </div>
+        </section>
+
+        <div class="nm-auth-meta">
+            <a href="/"><i class="ti ti-arrow-left"></i> 返回站点首页</a>
+            <span class="sep">·</span>
+            <span>{$copyright}</span>
         </div>
     </main>
 </div>
 
 <script src="/static/vendor/tabler/js/tabler.min.js"></script>
 <script src="/static/js/app.js"></script>
+<script src="/static/js/apple-ui.js"></script>
 </body>
 </html>
