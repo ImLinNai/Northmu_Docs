@@ -14,6 +14,9 @@
                 <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsFrontTab" role="tab" aria-controls="settingsFrontTab" aria-selected="false">
                     <i class="ti ti-layout-navbar"></i>前台交互
                 </button>
+                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsMemorialTab" role="tab" aria-controls="settingsMemorialTab" aria-selected="false">
+                    <i class="ti ti-calendar-event"></i>纪念日
+                </button>
                 <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsUploadTab" role="tab" aria-controls="settingsUploadTab" aria-selected="false">
                     <i class="ti ti-upload"></i>上传设置
                 </button>
@@ -196,18 +199,67 @@
                                     <div class="form-hint">新版菜单提供返回、刷新、复制链接、复制选中文字、搜索文档、切换主题与回到顶部等快捷操作。</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">禁止复制</label>
-                                    <div class="nm-choice-card">
-                                        <div class="d-flex align-items-start gap-2">
-                                            <i class="ti ti-shield-lock text-primary mt-1"></i>
-                                            <div>
-                                                <div class="nm-choice-title">按文档独立控制</div>
-                                                <div class="nm-choice-desc">在文档编辑页「发布设置」中开启；开启后拦截 Ctrl+C、右键复制与拖拽选取，并显示提示。仅对访客端生效，管理员后台不受影响。</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <label class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="copy_guard" value="1" id="copyGuard" {if $settings.copy_guard == '1'}checked{/if}>
+                                        <span class="form-check-label">全站禁止复制</span>
+                                    </label>
+                                    <div class="form-hint">开启后访客无法选中或复制前台任何文字与内容（含右键、Ctrl+C、拖拽选取），仅后台管理不受影响；文档编辑页仍可单独开启某篇文档的复制保护。</div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="settingsMemorialTab" role="tabpanel">
+                    <div class="card" id="memorial">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-calendar-event me-1"></i>纪念日灰度</h3>
+                            <div class="card-actions">
+                                {if $memorialState.active}
+                                <span class="badge bg-warning-lt text-warning">当前生效</span>
+                                {else}
+                                <span class="badge bg-secondary-lt text-secondary">未生效</span>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="memorial_enabled" value="1" id="memorialEnabled" {if $settings.memorial_enabled == '1'}checked{/if}>
+                                <span class="form-check-label">手动开启灰度</span>
+                            </label>
+                            <div class="form-hint">用于纪念日、公祭日等场景：开启后前台页面将以黑白灰度显示，仅影响访客前台，后台与管理操作不受影响。</div>
+
+                            <div class="mt-4">
+                                <label class="form-label">生效范围</label>
+                                <div class="nm-choice-grid">
+                                    <label class="nm-choice-card nm-choice-card-select">
+                                        <input class="form-check-input" type="radio" name="memorial_scope" value="all" {if $settings.memorial_scope != 'home'}checked{/if}>
+                                        <span>
+                                            <span class="nm-choice-title">所有前台页面</span>
+                                            <span class="nm-choice-desc">首页、文档列表、文档详情与错误页均变为灰度。</span>
+                                        </span>
+                                    </label>
+                                    <label class="nm-choice-card nm-choice-card-select">
+                                        <input class="form-check-input" type="radio" name="memorial_scope" value="home" {if $settings.memorial_scope == 'home'}checked{/if}>
+                                        <span>
+                                            <span class="nm-choice-title">仅首页</span>
+                                            <span class="nm-choice-desc">只让首页变为灰度，其他页面保持原样。</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="memorialStart">自动开始时间</label>
+                                    <input type="datetime-local" class="form-control" id="memorialStart" name="memorial_start" value="{$memorialStartInput}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="memorialEnd">自动结束时间</label>
+                                    <input type="datetime-local" class="form-control" id="memorialEnd" name="memorial_end" value="{$memorialEndInput}">
+                                </div>
+                            </div>
+                            <div class="form-hint mt-2">手动开关与时间段满足任一条件即生效；到达结束时间后自动恢复彩色。只填开始或结束时间时按单边时间生效。</div>
                         </div>
                     </div>
                 </div>
@@ -514,7 +566,8 @@
             var tabMap = {
                 siteSeo: '#settingsSeoTab',
                 baiduSeo: '#settingsSeoTab',
-                frontInteraction: '#settingsFrontTab'
+                frontInteraction: '#settingsFrontTab',
+                memorial: '#settingsMemorialTab'
             };
             var target = tabMap[hash];
             if (target && window.bootstrap && window.bootstrap.Tab) {
@@ -567,6 +620,29 @@
         [nameInput, descInput, urlInput, titleInput, descSeoInput].forEach(function (input) {
             if (input) input.addEventListener('input', refreshPreview);
         });
+
+        var copyGuard = document.getElementById('copyGuard');
+        if (copyGuard) {
+            copyGuard.addEventListener('change', function () {
+                if (!copyGuard.checked) return;
+                var revert = function () {
+                    copyGuard.checked = false;
+                    copyGuard.dispatchEvent(new Event('change', { bubbles: true }));
+                };
+                if (window.NorthmuUI && window.NorthmuUI.confirm) {
+                    window.NorthmuUI.confirm({
+                        anchor: copyGuard,
+                        title: '开启全站禁止复制？',
+                        message: '开启后访客无法选中或复制前台任何文字与内容（含右键与 Ctrl+C），可能影响阅读与分享体验。仅前台生效，后台管理不受影响。',
+                        confirmText: '确认开启'
+                    }).then(function (ok) {
+                        if (!ok) revert();
+                    });
+                } else if (!window.confirm('开启后访客无法选中或复制前台文字与内容，确定开启吗？')) {
+                    revert();
+                }
+            });
+        }
     })();
 </script>
 

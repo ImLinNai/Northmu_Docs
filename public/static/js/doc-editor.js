@@ -44,6 +44,7 @@
         dirty = true;
         edits += 1;
         status('有未保存的修改', 'text-warning');
+        form.dispatchEvent(new CustomEvent('nm:dirty', { bubbles: true }));
     }
 
     function currentContent() {
@@ -349,6 +350,258 @@
                 mdInput.dispatchEvent(new Event('input', { bubbles: true }));
                 mdInput.focus();
             });
+        });
+    }
+
+    /* 文档导入：Markdown / 纯文本 / HTML */
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function sanitizeImportedBody(html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        doc.querySelectorAll('script, style, iframe, object, embed, link, meta, form, base').forEach(function (node) {
+            node.remove();
+        });
+        doc.body.querySelectorAll('*').forEach(function (node) {
+            Array.prototype.slice.call(node.attributes).forEach(function (attr) {
+                var name = attr.name.toLowerCase();
+                var value = String(attr.value || '').trim().toLowerCase();
+                if (name.indexOf('on') === 0) {
+                    node.removeAttribute(attr.name);
+                } else if ((name === 'href' || name === 'src' || name === 'xlink:href') && value.indexOf('javascript:') === 0) {
+                    node.removeAttribute(attr.name);
+                }
+            });
+        });
+        return doc.body;
+    }
+
+    function imageBaseName(path) {
+        var clean = String(path || '').split(/[?#]/)[0];
+        try { clean = decodeURIComponent(clean); } catch (e) { }
+        var parts = clean.split(/[\\/]/);
+        return (parts[parts.length - 1] || '').toLowerCase();
+    }
+
+    function isExternalImage(src) {
+        var value = String(src || '').trim();
+        if (value === '') return false;
+        if (/^(https?:)?\/\//i.test(value)) return true;
+        if (/^data:/i.test(value)) return true;
+        return value.charAt(0) === '/';
+    }
+
+    function pickLocalImages() {
+        return new Promise(function (resolve) {
+            var input = document.getElementById('docImportImages');
+            if (!input) {
+                resolve([]);
+                return;
+            }
+            var settled = false;
+            function finish(files) {
+                if (settled) return;
+                settled = true;
+                input.onchange = null;
+                window.removeEventListener('focus', onFocus);
+                resolve(files);
+            }
+            function onFocus() {
+                setTimeout(function () {
+                    if (!settled) finish([]);
+                }, 500);
+            }
+            input.value = '';
+            input.onchange = function () {
+                finish(Array.prototype.slice.call(input.files || []));
+            };
+            window.addEventListener('focus', onFocus);
+            input.click();
+        });
+    }
+
+    function dropEmptyContainer(node, root) {
+        var el = node;
+        while (el && el !== root && el.nodeType === 1) {
+            if (['P', 'DIV', 'SPAN', 'A', 'FIGURE', 'LI'].indexOf(el.tagName) === -1) break;
+            if (el.textContent.trim() !== '' || el.querySelector('img, video, iframe, table, pre, code, hr')) break;
+            var parent = el.parentNode;
+            el.remove();
+            el = parent;
+        }
+    }
+
+    function replaceImageInMarkdown(markdown, src, url) {
+        var escaped = String(src).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var mdPattern = new RegExp('!\\[[^\\]]*\\]\\(\\s*<?' + escaped + '>?(?:\\s+[\'"][^\'"]*[\'"])?\\s*\\)', 'gi');
+        var htmlPattern = new RegExp('<img\\b[^>]*\\bsrc=[\'"]' + escaped + '[\'"][^>]*>', 'gi');
+        var replacement = url ? function (match, offset, whole) {
+            if (match.charAt(0) === '<') return '<img src="' + url + '" alt="">';
+            return '![](' + url + ')';
+        } : '';
+        return markdown.replace(mdPattern, replacement).replace(htmlPattern, replacement);
+    }
+
+    function uniquePush(list, value) {
+        if (value && list.indexOf(value) === -1) list.push(value);
+    }
+
+    function finishImport(sourceText, file, ext) {
+        var markdownSource = null;
+        var rawHtml = '';
+        if (ext === 'html' || ext === 'htm') {
+            rawHtml = sanitizeImportedBody(sourceText).innerHTML;
+        } else {
+            markdownSource = sourceText;
+            try {
+                rawHtml = window.marked
+                    ? marked.parse(sourceText)
+                    : '<p>' + escapeHtml(sourceText).replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
+            } catch (e) {
+                rawHtml = '';
+            }
+            rawHtml = sanitizeImportedBody(rawHtml).innerHTML;
+        }
+
+        var holder = document.createElement('div');
+        holder.innerHTML = rawHtml;
+
+        var refs = [];
+        var localSrcs = [];
+        Array.prototype.slice.call(holder.querySelectorAll('img')).forEach(function (img) {
+            var src = img.getAttribute('src') || '';
+            if (isExternalImage(src)) return;
+            var name = imageBaseName(src);
+            refs.push({ img: img, src: src, name: name });
+            uniquePush(localSrcs, src);
+        });
+
+        var uploadedNames = {};
+        var uploadedCount = 0;
+        var removedCount = 0;
+
+        var chain = Promise.resolve();
+        if (refs.length) {
+            var missing = refs.map(function (ref) { return ref.name || '未命名图片'; });
+            var uniqueMissing = missing.filter(function (name, index) { return missing.indexOf(name) === index; });
+            var message = '文档引用了 ' + refs.length + ' 张本地图片（' + uniqueMissing.slice(0, 4).join('、')
+                + (uniqueMissing.length > 4 ? ' 等' : '')
+                + '），导入后无法显示。是否选择这些图片并上传到附件库？取消将移除这些本地图片。';
+            var ask = window.NorthmuUI && NorthmuUI.confirm
+                ? NorthmuUI.confirm({
+                    anchor: document.getElementById('docImportBtn'),
+                    title: '发现本地图片',
+                    message: message,
+                    confirmText: '选择图片上传'
+                })
+                : Promise.resolve(window.confirm(message));
+
+            chain = ask.then(function (ok) {
+                if (!ok) return;
+                return pickLocalImages().then(function (files) {
+                    if (!files.length) return;
+                    var byName = {};
+                    files.forEach(function (f) {
+                        byName[f.name.toLowerCase()] = f;
+                    });
+                    var queue = Promise.resolve();
+                    Object.keys(byName).forEach(function (name) {
+                        queue = queue.then(function () {
+                            return uploadAttachment(byName[name]).then(function (info) {
+                                uploadedNames[name] = info.url;
+                                uploadedCount += 1;
+                            }).catch(function (err) {
+                                NorthmuAdmin.toast(byName[name].name + ' 上传失败：' + (err.message || '未知错误'), 'error');
+                            });
+                        });
+                    });
+                    return queue;
+                });
+            });
+        }
+
+        chain.then(function () {
+            refs.forEach(function (ref) {
+                var url = ref.name ? uploadedNames[ref.name] : '';
+                if (url) {
+                    ref.img.setAttribute('src', url);
+                    ref.img.removeAttribute('srcset');
+                } else {
+                    var parent = ref.img.parentNode;
+                    ref.img.remove();
+                    removedCount += 1;
+                    dropEmptyContainer(parent, holder);
+                }
+            });
+
+            var finalHtml = holder.innerHTML;
+            if (!finalHtml.trim()) finalHtml = '<p><br></p>';
+
+            var mdText = markdownSource;
+            if (mdText === null) {
+                mdText = htmlToMarkdown(finalHtml);
+            } else {
+                localSrcs.forEach(function (src) {
+                    mdText = replaceImageInMarkdown(mdText, src, uploadedNames[imageBaseName(src)] || '');
+                });
+            }
+
+            if (editor) editor.setHtml(finalHtml);
+            mdInput.value = mdText;
+            renderPreview();
+            syncHidden();
+            updateSeoPreview();
+
+            if (titleInput && !titleInput.value.trim()) {
+                var heading = holder.querySelector('h1, h2, h3');
+                var fallback = file.name.replace(/\.[^.]+$/, '');
+                var title = heading ? heading.textContent.trim() : fallback;
+                if (title) titleInput.value = title.slice(0, 200);
+            }
+
+            markDirty();
+            status('已导入 ' + file.name + '，请检查内容后保存', 'text-success');
+
+            var notes = [];
+            if (uploadedCount) notes.push('已上传 ' + uploadedCount + ' 张图片');
+            if (removedCount) notes.push('已移除 ' + removedCount + ' 张无法显示的图片');
+            NorthmuAdmin.toast('已导入 ' + file.name + (notes.length ? '，' + notes.join('，') : ''), 'success');
+        }).catch(function (err) {
+            NorthmuAdmin.toast('导入失败：' + (err && err.message ? err.message : '未知错误'), 'error');
+        });
+    }
+
+    function startImport(file) {
+        if (!file) return;
+        var ext = (file.name.split('.').pop() || '').toLowerCase();
+        if (['md', 'markdown', 'txt', 'html', 'htm'].indexOf(ext) === -1) {
+            NorthmuAdmin.toast('暂不支持 .' + ext + ' 文件，可导入 .md / .markdown / .txt / .html / .htm', 'error');
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function () {
+            finishImport(String(reader.result || ''), file, ext);
+        };
+        reader.onerror = function () {
+            NorthmuAdmin.toast('读取文件失败，请重试', 'error');
+        };
+        reader.readAsText(file);
+    }
+
+    var importBtn = document.getElementById('docImportBtn');
+    var importFile = document.getElementById('docImportFile');
+    if (importBtn && importFile) {
+        importBtn.addEventListener('click', function () {
+            importFile.value = '';
+            importFile.click();
+        });
+        importFile.addEventListener('change', function () {
+            startImport(importFile.files && importFile.files[0]);
         });
     }
 

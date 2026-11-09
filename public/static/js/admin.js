@@ -104,8 +104,50 @@
         });
     }
 
+    function serializeForm(form) {
+        var parts = [];
+        new FormData(form).forEach(function (value, key) {
+            if (typeof value === 'string') {
+                parts.push(key + '=' + value);
+            } else {
+                parts.push(key + '=' + (value.name || '') + ':' + (value.size || 0));
+            }
+        });
+        return parts.sort().join('\u0001');
+    }
+
+    function initSavebars() {
+        document.querySelectorAll('.nm-savebar').forEach(function (bar) {
+            var form = bar.closest('form');
+            if (!form) return;
+            var baseline = serializeForm(form);
+            var timer = null;
+
+            function sync() {
+                bar.classList.toggle('is-visible', serializeForm(form) !== baseline);
+            }
+
+            function schedule() {
+                clearTimeout(timer);
+                timer = setTimeout(sync, 30);
+            }
+
+            form.addEventListener('input', schedule);
+            form.addEventListener('change', schedule);
+            form.addEventListener('nm:dirty', schedule);
+            form.addEventListener('submit', function () {
+                bar.classList.remove('is-visible');
+            });
+            if (window.MutationObserver) {
+                new MutationObserver(schedule).observe(form, { childList: true, subtree: true });
+            }
+            sync();
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         initAdminSidebar();
+        initSavebars();
         var flash = document.getElementById('nmFlash');
         if (flash) {
             toast(flash.getAttribute('data-message'), flash.getAttribute('data-type'));

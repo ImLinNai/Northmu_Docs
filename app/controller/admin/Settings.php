@@ -29,6 +29,11 @@ class Settings extends Base
             'baidu_quick_push'    => '0',
             'baidu_token'         => '',
             'context_menu_mode'   => 'default',
+            'copy_guard'          => '0',
+            'memorial_enabled'    => '0',
+            'memorial_scope'      => 'all',
+            'memorial_start'      => '',
+            'memorial_end'        => '',
             'captcha_on'          => '1',
             'login_fail_limit'    => '5',
             'login_lock_minutes'  => '10',
@@ -50,6 +55,10 @@ class Settings extends Base
             && $untilTs > 0 && $untilTs <= time();
         $maintenanceUntilInput = $untilTs > 0 && !$maintenanceExpired ? date('Y-m-d\TH:i', $untilTs) : '';
 
+        $memorial = memorial_state();
+        $memorialStartInput = $memorial['start'] > 0 ? date('Y-m-d\TH:i', $memorial['start']) : '';
+        $memorialEndInput = $memorial['end'] > 0 ? date('Y-m-d\TH:i', $memorial['end']) : '';
+
         $view = $this->viewData('系统设置', '站点信息、SEO 优化、上传限制、登录安全与管理员资料', 'settings') + [
             'settings'         => $settings,
             'siteLogo'         => (string) ($settings['site_logo'] ?? ''),
@@ -65,6 +74,9 @@ class Settings extends Base
             'maintenanceTemplates'   => maintenance_templates(),
             'maintenanceUntilInput'  => $maintenanceUntilInput,
             'maintenanceExpired'     => $maintenanceExpired,
+            'memorialState'          => $memorial,
+            'memorialStartInput'     => $memorialStartInput,
+            'memorialEndInput'       => $memorialEndInput,
         ];
         $view['seoPreview'] = [
             'url'         => ($view['siteUrl'] !== '' ? $view['siteUrl'] : site_base_url()) . '/',
@@ -95,6 +107,16 @@ class Settings extends Base
         if (!in_array($contextMenuMode, ['default', 'disabled', 'custom'], true)) {
             $contextMenuMode = 'default';
         }
+        $copyGuard = (int) $this->request->post('copy_guard', 0) === 1 ? '1' : '0';
+        $memorialEnabled = (int) $this->request->post('memorial_enabled', 0) === 1 ? '1' : '0';
+        $memorialScope = (string) $this->request->post('memorial_scope', 'all');
+        if (!in_array($memorialScope, ['all', 'home'], true)) {
+            $memorialScope = 'all';
+        }
+        $memorialStartRaw = trim((string) $this->request->post('memorial_start', ''));
+        $memorialEndRaw = trim((string) $this->request->post('memorial_end', ''));
+        $memorialStart = '';
+        $memorialEnd = '';
         $captchaOn = (int) $this->request->post('captcha_on', 0) === 1 ? '1' : '0';
         $failLimit = (int) $this->request->post('login_fail_limit', 5);
         $lockMinutes = (int) $this->request->post('login_lock_minutes', 10);
@@ -158,6 +180,26 @@ class Settings extends Base
                 return redirect('/admin/settings');
             }
             $maintenanceUntil = date('Y-m-d H:i:s', $untilTs);
+        }
+        if ($memorialStartRaw !== '') {
+            $startTs = strtotime(str_replace('T', ' ', $memorialStartRaw));
+            if ($startTs === false) {
+                admin_flash('纪念日自动开始时间格式不正确，请重新选择', 'danger');
+                return redirect('/admin/settings');
+            }
+            $memorialStart = date('Y-m-d H:i:s', $startTs);
+        }
+        if ($memorialEndRaw !== '') {
+            $endTs = strtotime(str_replace('T', ' ', $memorialEndRaw));
+            if ($endTs === false) {
+                admin_flash('纪念日自动结束时间格式不正确，请重新选择', 'danger');
+                return redirect('/admin/settings');
+            }
+            $memorialEnd = date('Y-m-d H:i:s', $endTs);
+        }
+        if ($memorialStart !== '' && $memorialEnd !== '' && strtotime($memorialStart) >= strtotime($memorialEnd)) {
+            admin_flash('纪念日结束时间需要晚于开始时间', 'danger');
+            return redirect('/admin/settings');
         }
 
         $siteName = mb_substr($siteName, 0, 50);
@@ -238,6 +280,11 @@ class Settings extends Base
             'baidu_quick_push'    => $baiduQuick,
             'baidu_token'         => $baiduToken,
             'context_menu_mode'   => $contextMenuMode,
+            'copy_guard'          => $copyGuard,
+            'memorial_enabled'    => $memorialEnabled,
+            'memorial_scope'      => $memorialScope,
+            'memorial_start'      => $memorialStart,
+            'memorial_end'        => $memorialEnd,
             'captcha_on'          => $captchaOn,
             'login_fail_limit'    => (string) $failLimit,
             'login_lock_minutes'  => (string) $lockMinutes,
@@ -268,7 +315,7 @@ class Settings extends Base
             $this->deleteLogo($oldLogo);
         }
 
-        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/上传设置/登录安全/维护模式）');
+        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/纪念日/上传设置/登录安全/维护模式）');
         admin_flash('系统设置已保存');
         return redirect('/admin/settings');
     }

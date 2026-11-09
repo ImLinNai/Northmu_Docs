@@ -2045,7 +2045,7 @@ body.nm-admin-body > .modal .modal-footer {
     position: sticky;
     bottom: 1rem;
     z-index: 30;
-    display: flex;
+    display: none;
     flex-wrap: wrap;
     align-items: center;
     gap: .6rem;
@@ -2056,6 +2056,28 @@ body.nm-admin-body > .modal .modal-footer {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     box-shadow: var(--nm-shadow-lift);
+}
+
+.nm-savebar.is-visible {
+    display: flex;
+    animation: nm-savebar-in .26s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes nm-savebar-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nm-savebar.is-visible {
+        animation: none;
+    }
 }
 
 .nm-savebar-status {

@@ -26,6 +26,10 @@
     <i class="ti ti-arrow-up"></i>
 </button>
 
+{if !empty($memorialActive)}
+<div class="nm-memorial-overlay" aria-hidden="true"></div>
+{/if}
+
 {if !empty($noticePopups)}
 {include file="common/notices_popup" /}
 {/if}

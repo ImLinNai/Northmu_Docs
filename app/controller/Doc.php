@@ -500,6 +500,8 @@ class Doc extends BaseController
             'siteNavStyle'   => $front['navStyle'],
             'siteNavLogin'   => $front['navLogin'],
             'contextMenuMode'=> site_context_menu_mode(),
+            'siteCopyGuard'  => site_copy_guard(),
+            'memorialActive' => memorial_active_for(false),
             'themeColor'  => site_theme_color(),
             'adminLogged' => admin_logged_in(),
             'adminProfile'=> admin_logged_in() ? admin_profile() : null,

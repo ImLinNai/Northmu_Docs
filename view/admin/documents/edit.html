@@ -38,6 +38,14 @@
                         </button>
                     </div>
                     <div class="ms-auto d-flex align-items-center gap-2">
+                        {if $isNew}
+                        <span class="text-secondary small d-none d-xl-inline">支持导入 .md / .markdown / .txt / .html / .htm</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="docImportBtn" title="导入 Markdown、纯文本或 HTML 文档">
+                            <i class="ti ti-file-import me-1"></i>导入文档
+                        </button>
+                        <input type="file" id="docImportFile" class="d-none" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/plain,text/html">
+                        <input type="file" id="docImportImages" class="d-none" accept="image/*" multiple>
+                        {/if}
                         <span class="text-secondary small" id="saveStatus">内容修改后每 20 秒自动保存草稿</span>
                     </div>
                 </div>

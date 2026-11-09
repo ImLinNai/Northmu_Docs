@@ -10,7 +10,7 @@ use think\facade\View;
  */
 function app_version(): string
 {
-    return '1.6.0';
+    return '1.7.0';
 }
 
 /**
@@ -540,6 +540,74 @@ function site_context_menu_mode(): string
 {
     $mode = (string) sys_setting('context_menu_mode', 'default');
     return in_array($mode, ['default', 'disabled', 'custom'], true) ? $mode : 'default';
+}
+
+/**
+ * 全站禁止复制开关（仅影响访客前台）
+ */
+function site_copy_guard(): bool
+{
+    return (string) sys_setting('copy_guard', '0') === '1';
+}
+
+/**
+ * 纪念日灰度模式：手动开关或按时间段自动启用
+ */
+function memorial_state(): array
+{
+    static $state = null;
+    if ($state !== null) {
+        return $state;
+    }
+
+    $manual = (string) sys_setting('memorial_enabled', '0') === '1';
+    $scope = (string) sys_setting('memorial_scope', 'all');
+    if (!in_array($scope, ['all', 'home'], true)) {
+        $scope = 'all';
+    }
+
+    $startTs = 0;
+    $startRaw = trim((string) sys_setting('memorial_start', ''));
+    if ($startRaw !== '') {
+        $parsed = strtotime($startRaw);
+        if ($parsed !== false && $parsed > 0) {
+            $startTs = $parsed;
+        }
+    }
+    $endTs = 0;
+    $endRaw = trim((string) sys_setting('memorial_end', ''));
+    if ($endRaw !== '') {
+        $parsed = strtotime($endRaw);
+        if ($parsed !== false && $parsed > 0) {
+            $endTs = $parsed;
+        }
+    }
+
+    $now = time();
+    $scheduled = ($startTs > 0 || $endTs > 0)
+        && ($startTs === 0 || $now >= $startTs)
+        && ($endTs === 0 || $now <= $endTs);
+
+    return $state = [
+        'manual'    => $manual,
+        'scope'     => $scope,
+        'start'     => $startTs,
+        'end'       => $endTs,
+        'scheduled' => $scheduled,
+        'active'    => $manual || $scheduled,
+    ];
+}
+
+/**
+ * 当前页是否应显示纪念日灰度效果
+ */
+function memorial_active_for(bool $isHome): bool
+{
+    $state = memorial_state();
+    if (!$state['active']) {
+        return false;
+    }
+    return $state['scope'] === 'all' || $isHome;
 }
 
 /**

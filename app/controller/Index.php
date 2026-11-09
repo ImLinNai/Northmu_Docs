@@ -40,6 +40,8 @@ class Index extends BaseController
             'siteNavStyle'   => $front['navStyle'],
             'siteNavLogin'   => $front['navLogin'],
             'contextMenuMode'=> site_context_menu_mode(),
+            'siteCopyGuard'  => site_copy_guard(),
+            'memorialActive' => memorial_active_for(true),
             'themeColor'  => site_theme_color(),
             'home'        => $home,
             'homeButtons' => $home['buttons'],

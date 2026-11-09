@@ -10,6 +10,7 @@
     {/if}
     <meta name="robots" content="{$seoRobots}">
     <meta name="nm-context-menu" content="{$contextMenuMode|default='default'}">
+    <meta name="nm-copy-guard" content="{if !empty($siteCopyGuard)}1{else}0{/if}">
     <meta name="author" content="{$author.display_name|default='管理员'}">
     {if $seoCanonical}
     <link rel="canonical" href="{$seoCanonical}">
@@ -99,21 +100,36 @@
                     <button class="btn btn-icon btn-ghost-secondary" type="button" data-bs-toggle="dropdown" aria-label="导航菜单">
                         <i class="ti ti-menu-2"></i>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end">
+                    <div class="dropdown-menu dropdown-menu-end nm-mobile-menu">
                         {foreach $navItems as $item}
                         <a class="dropdown-item{if $item.active} active{/if}" href="{$item.url}"{if $item.target == '_blank'} target="_blank" rel="noopener"{/if}>{$item.title}</a>
                         {/foreach}
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" type="button" data-search-open><i class="ti ti-search me-2"></i>搜索文档</button>
+                        <button class="dropdown-item" type="button" data-theme-toggle>
+                            <i class="ti ti-sun theme-icon-sun me-2"></i>
+                            <i class="ti ti-moon theme-icon-moon me-2"></i>切换主题
+                        </button>
+                        {if $adminLogged}
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/admin"><i class="ti ti-dashboard me-2"></i>进入后台</a>
+                        <a class="dropdown-item" href="/admin/settings#adminProfile"><i class="ti ti-user-circle me-2"></i>账号设置</a>
+                        <a class="dropdown-item text-danger" href="/admin/logout"><i class="ti ti-logout me-2"></i>退出登录</a>
+                        {elseif $siteNavLogin}
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/admin/login"><i class="ti ti-login me-2"></i>登录</a>
+                        {/if}
                     </div>
                 </div>
-                <button class="btn btn-icon btn-ghost-secondary{if $siteNavStyle != 'capsule'} d-md-none{/if}" type="button" data-search-open title="搜索" aria-label="搜索">
+                <button class="btn btn-icon btn-ghost-secondary{if $siteNavStyle != 'capsule'} d-md-none{/if} d-none d-sm-inline-flex" type="button" data-search-open title="搜索" aria-label="搜索">
                     <i class="ti ti-search"></i>
                 </button>
-                <button class="btn btn-icon btn-ghost-secondary" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
+                <button class="btn btn-icon btn-ghost-secondary d-none d-sm-inline-flex" type="button" data-theme-toggle title="切换主题" aria-label="切换主题">
                     <i class="ti ti-sun theme-icon-sun"></i>
                     <i class="ti ti-moon theme-icon-moon"></i>
                 </button>
                 {if $adminLogged}
-                <div class="dropdown ms-1 nm-user-menu">
+                <div class="dropdown ms-1 nm-user-menu d-none d-sm-inline-flex">
                     <button class="btn nm-user-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="账号菜单">
                         {if $adminProfile && $adminProfile.avatar}
                         <img src="{$adminProfile.avatar}" alt="{$adminProfile.display_name|default='管理员'}" class="nm-nav-avatar">
@@ -135,7 +151,7 @@
                     </div>
                 </div>
                 {elseif $siteNavLogin}
-                <a href="/admin/login" class="btn btn-primary btn-sm ms-1"><i class="ti ti-login me-1"></i>登录</a>
+                <a href="/admin/login" class="btn btn-primary btn-sm ms-1 d-none d-sm-inline-flex"><i class="ti ti-login me-1"></i>登录</a>
                 {/if}
             </nav>
         </div>

@@ -44,11 +44,21 @@
         applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
     }
 
+    function closeDropdown(trigger) {
+        var menu = trigger.closest('.dropdown-menu');
+        if (!menu || !menu.parentNode) return;
+        var toggle = menu.parentNode.querySelector('[data-bs-toggle="dropdown"]');
+        if (toggle && window.bootstrap && window.bootstrap.Dropdown) {
+            window.bootstrap.Dropdown.getOrCreateInstance(toggle).hide();
+        }
+    }
+
     document.addEventListener('click', function (event) {
         var trigger = event.target.closest('[data-theme-toggle]');
         if (trigger) {
             event.preventDefault();
             toggleTheme();
+            closeDropdown(trigger);
         }
     });
 
@@ -128,6 +138,7 @@
         initUnlockToggle();
         initContextMenu();
         initCopyProtection();
+        initGlobalCopyGuard();
         if (window.hljs) {
             document.querySelectorAll('[data-article-body] pre code').forEach(function (block) {
                 if (!block.classList.contains('hljs')) {
@@ -293,6 +304,7 @@
         triggers.forEach(function (trigger) {
             trigger.addEventListener('click', function (event) {
                 event.preventDefault();
+                closeDropdown(trigger);
                 if (isOpen()) close();
                 else open();
             });
@@ -422,6 +434,50 @@
         }, true);
     }
 
+    function globalCopyGuardOn() {
+        return document.documentElement.classList.contains('nm-copy-guard');
+    }
+
+    function initGlobalCopyGuard() {
+        var meta = document.querySelector('meta[name="nm-copy-guard"]');
+        if (!meta || meta.getAttribute('content') !== '1') return;
+        document.documentElement.classList.add('nm-copy-guard');
+
+        var lastShown = 0;
+        function isEditable(target) {
+            if (!target || target.nodeType !== 1) return false;
+            return !!target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
+        }
+        function notify(event) {
+            event.preventDefault();
+            if (event.stopPropagation) event.stopPropagation();
+            var now = Date.now();
+            if (now - lastShown > 1200) {
+                lastShown = now;
+                showCopyHint('本站内容已禁止复制与选取', 'warning');
+            }
+        }
+        function block(event) {
+            if (isEditable(event.target)) return;
+            notify(event);
+        }
+
+        document.addEventListener('copy', block, true);
+        document.addEventListener('cut', block, true);
+        document.addEventListener('dragstart', block, true);
+        document.addEventListener('selectstart', function (event) {
+            if (isEditable(event.target)) return;
+            event.preventDefault();
+        }, true);
+        document.addEventListener('keydown', function (event) {
+            if (!(event.ctrlKey || event.metaKey)) return;
+            var key = (event.key || '').toLowerCase();
+            if (key !== 'c' && key !== 'x' && key !== 'a') return;
+            if (isEditable(document.activeElement)) return;
+            notify(event);
+        }, true);
+    }
+
     function initContextMenu() {
         var meta = document.querySelector('meta[name="nm-context-menu"]');
         var mode = meta ? meta.getAttribute('content') : 'default';
@@ -508,7 +564,7 @@
                 addSeparator();
             }
 
-            if (selection !== '' && !protectedDoc) {
+            if (selection !== '' && !protectedDoc && !globalCopyGuardOn()) {
                 addItem('ti-copy', '复制选中文字', function () {
                     copyText(selection, function (ok) {
                         showCopyHint(ok ? '已复制选中文字' : '复制失败', ok ? 'success' : 'error');

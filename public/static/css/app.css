@@ -2050,6 +2050,27 @@ body {
     padding: 1rem 1.25rem;
 }
 
+/* WangEditor 深色模式：覆盖 CSS 变量，使下拉面板、表格选择器与弹窗同步适配 */
+html[data-bs-theme="dark"],
+html[data-theme="dark"] {
+    --w-e-textarea-bg-color: var(--tblr-bg-surface);
+    --w-e-textarea-color: var(--tblr-body-color);
+    --w-e-textarea-border-color: var(--tblr-border-color);
+    --w-e-textarea-slight-border-color: var(--tblr-border-color);
+    --w-e-textarea-slight-color: var(--tblr-secondary);
+    --w-e-textarea-slight-bg-color: var(--tblr-bg-surface-secondary);
+    --w-e-textarea-selected-border-color: var(--tblr-primary);
+    --w-e-textarea-handler-bg-color: var(--tblr-primary);
+    --w-e-toolbar-color: var(--tblr-body-color);
+    --w-e-toolbar-bg-color: var(--tblr-bg-surface-secondary);
+    --w-e-toolbar-active-color: var(--tblr-body-color);
+    --w-e-toolbar-active-bg-color: var(--tblr-bg-surface-tertiary);
+    --w-e-toolbar-disabled-color: var(--tblr-secondary);
+    --w-e-toolbar-border-color: var(--tblr-border-color);
+    --w-e-modal-button-bg-color: var(--tblr-bg-surface-tertiary);
+    --w-e-modal-button-border-color: var(--tblr-border-color);
+}
+
 [data-bs-theme="dark"] .w-e-toolbar,
 [data-theme="dark"] .w-e-toolbar {
     background: var(--tblr-bg-surface-secondary);
@@ -2065,15 +2086,55 @@ body {
     background: var(--tblr-bg-surface-tertiary);
 }
 
+[data-bs-theme="dark"] .w-e-drop-panel,
+[data-theme="dark"] .w-e-drop-panel,
 [data-bs-theme="dark"] .w-e-select-list,
-[data-theme="dark"] .w-e-select-list {
+[data-theme="dark"] .w-e-select-list,
+[data-bs-theme="dark"] .w-e-modal,
+[data-theme="dark"] .w-e-modal,
+[data-bs-theme="dark"] .w-e-bar-item-menus-container,
+[data-theme="dark"] .w-e-bar-item-menus-container,
+[data-bs-theme="dark"] .w-e-panel-content-table,
+[data-theme="dark"] .w-e-panel-content-table {
     background: var(--tblr-bg-surface);
     border-color: var(--tblr-border-color);
+    color: var(--tblr-body-color);
 }
 
 [data-bs-theme="dark"] .w-e-select-list ul li:hover,
-[data-theme="dark"] .w-e-select-list ul li:hover {
+[data-theme="dark"] .w-e-select-list ul li:hover,
+[data-bs-theme="dark"] .w-e-select-list ul .selected,
+[data-theme="dark"] .w-e-select-list ul .selected {
     background: var(--tblr-bg-surface-tertiary);
+}
+
+[data-bs-theme="dark"] .w-e-modal button,
+[data-theme="dark"] .w-e-modal button {
+    background: var(--tblr-bg-surface-tertiary);
+    border-color: var(--tblr-border-color);
+    color: var(--tblr-body-color);
+}
+
+[data-bs-theme="dark"] .w-e-modal input[type="text"],
+[data-theme="dark"] .w-e-modal input[type="text"],
+[data-bs-theme="dark"] .w-e-modal input[type="number"],
+[data-theme="dark"] .w-e-modal input[type="number"],
+[data-bs-theme="dark"] .w-e-modal textarea,
+[data-theme="dark"] .w-e-modal textarea {
+    background: var(--tblr-bg-surface);
+    border-color: var(--tblr-border-color);
+    color: var(--tblr-body-color);
+}
+
+[data-bs-theme="dark"] .w-e-panel-content-table td,
+[data-theme="dark"] .w-e-panel-content-table td {
+    border-color: var(--tblr-border-color);
+}
+
+[data-bs-theme="dark"] .w-e-panel-content-table td.active,
+[data-theme="dark"] .w-e-panel-content-table td.active {
+    background: var(--tblr-primary);
+    border-color: var(--tblr-primary);
 }
 
 [data-bs-theme="dark"] #wangeditor-container .w-e-text-container [data-slate-editor] p,
@@ -4073,6 +4134,38 @@ body,
     margin-left: auto;
     font-size: .78rem;
     opacity: .75;
+}
+
+/* 全站禁止复制（仅访客前台） */
+html.nm-copy-guard body.nm-front,
+html.nm-copy-guard body.nm-front * {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+html.nm-copy-guard body.nm-front input,
+html.nm-copy-guard body.nm-front textarea,
+html.nm-copy-guard body.nm-front select,
+html.nm-copy-guard body.nm-front [contenteditable=""],
+html.nm-copy-guard body.nm-front [contenteditable="true"],
+html.nm-copy-guard body.nm-front [contenteditable="true"] * {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+html.nm-copy-guard body.nm-front img {
+    -webkit-user-drag: none;
+}
+
+/* 纪念日灰度：固定遮罩以饱和度混合实现，不影响定位与滚动 */
+.nm-memorial-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    background: #808080;
+    pointer-events: none;
+    mix-blend-mode: saturation;
+    -webkit-mix-blend-mode: saturation;
 }
 
 /* 文档禁止复制 */
