@@ -4655,8 +4655,9 @@ body.nm-link-notice-page {
 }
 
 .nm-link-brand {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+    justify-content: center;
     gap: .65rem;
     max-width: 100%;
 }
@@ -4694,7 +4695,7 @@ body.nm-link-notice-page {
     display: inline-flex;
     align-items: center;
     gap: .3rem;
-    margin-top: 1.6rem;
+    margin-top: 1.1rem;
     padding: .28rem .72rem;
     border-radius: var(--nm-radius-pill);
     background: color-mix(in srgb, var(--tblr-primary) 10%, transparent);
