@@ -114,6 +114,9 @@ Route::group('admin', function () {
     Route::get('backup', 'admin.Backup/index');
     Route::post('backup/create', 'admin.Backup/create');
     Route::get('backup/download', 'admin.Backup/download');
+    Route::post('backup/delete', 'admin.Backup/delete');
+    Route::post('backup/inspect', 'admin.Backup/inspect');
+    Route::post('backup/restore', 'admin.Backup/restore');
 
     // 检测更新
     Route::get('update', 'admin.Update/index');

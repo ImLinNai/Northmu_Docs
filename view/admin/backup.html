@@ -1,6 +1,19 @@
 {include file="common/header" /}
 
-<div class="nm-stat-grid mb-3">
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title">
+        <span class="nm-section-icon"><i class="ti ti-archive"></i></span>数据备份
+        <span class="badge bg-blue-lt">{$backupCount} 个备份</span>
+    </div>
+    <div class="nm-toolbar-meta">打包数据库、文档与附件，支持加密保护、完整性检测与在线恢复</div>
+    <div class="nm-toolbar-actions">
+        <a href="/admin/backup" class="btn btn-outline-secondary" data-nm-tip="重新读取备份列表与目录状态">
+            <i class="ti ti-refresh me-1"></i>刷新
+        </a>
+    </div>
+</div>
+
+<div class="nm-stat-grid">
     <div class="nm-stat nm-stat-sky">
         <div class="nm-stat-top">
             <span class="nm-stat-label">备份数量</span>
@@ -19,39 +32,37 @@
     </div>
     <div class="nm-stat nm-stat-violet">
         <div class="nm-stat-top">
+            <span class="nm-stat-label">最新备份</span>
+            <span class="nm-stat-icon"><i class="ti ti-clock"></i></span>
+        </div>
+        <div class="nm-stat-value" style="font-size:1rem">{$latestBackup}</div>
+        <div class="nm-stat-foot">按创建时间排序</div>
+    </div>
+    <div class="nm-stat nm-stat-amber">
+        <div class="nm-stat-top">
             <span class="nm-stat-label">当前数据库</span>
             <span class="nm-stat-icon"><i class="ti ti-table"></i></span>
         </div>
         <div class="nm-stat-value" style="font-size:1rem">{$dbName}</div>
-        <div class="nm-stat-foot">导出为 MySQL 5.7 兼容 SQL</div>
-    </div>
-    <div class="nm-stat nm-stat-amber">
-        <div class="nm-stat-top">
-            <span class="nm-stat-label">附件目录</span>
-            <span class="nm-stat-icon"><i class="ti ti-folder"></i></span>
-        </div>
-        <div class="nm-stat-value" style="font-size:1rem">uploads/</div>
-        <div class="nm-stat-foot">随数据库一并打包</div>
+        <div class="nm-stat-foot">导出为 MySQL 5.7+ 兼容 SQL</div>
     </div>
 </div>
 
 <div class="row g-3">
-    <div class="col-lg-5">
-        <div class="card">
+    <div class="col-lg-4">
+        <form method="post" action="/admin/backup/create" class="card" id="backupCreateForm" autocomplete="off"
+              data-confirm="将立即导出数据库与 uploads 附件目录并打包。数据量较大时可能需要等待，确定创建备份？"
+              data-confirm-title="创建备份" data-confirm-ok="开始创建">
+            {:csrf_field()}
             <div class="card-header">
                 <h3 class="card-title"><i class="ti ti-database-export me-1"></i>创建备份</h3>
             </div>
             <div class="card-body">
-                <div class="d-flex align-items-start gap-3 mb-3">
-                    <span class="nm-section-icon nm-section-icon-lg"><i class="ti ti-cloud-download"></i></span>
-                    <div class="text-secondary small">
-                        一键导出当前数据库与附件目录，生成一个 ZIP 压缩包。备份包含所有文档、分类、标签、版本、登录日志与附件文件。
-                    </div>
-                </div>
-                <div class="nm-meta-list">
+                <p class="text-secondary small">导出的压缩包包含数据库结构、全部文档与草稿数据、分类、标签、版本记录以及已上传的附件文件。</p>
+                <div class="nm-meta-list mb-3">
                     <div class="nm-meta-item">
                         <div class="nm-meta-label">数据库</div>
-                        <div class="nm-meta-value font-monospace">{$dbName}</div>
+                        <div class="nm-meta-value font-monospace" title="{$dbName}">{$dbName}</div>
                     </div>
                     <div class="nm-meta-item">
                         <div class="nm-meta-label">保存位置</div>
@@ -62,34 +73,42 @@
                         <div class="nm-meta-value">database.sql + uploads/</div>
                     </div>
                     <div class="nm-meta-item">
-                        <div class="nm-meta-label">导入兼容</div>
-                        <div class="nm-meta-value">MySQL 5.7+</div>
+                        <div class="nm-meta-label">命名规则</div>
+                        <div class="nm-meta-value font-monospace" title="站点名_Backup_时间.zip">站点名_Backup_时间.zip</div>
                     </div>
                 </div>
-                <div class="alert alert-info mt-3 mb-0">
-                    <div class="d-flex">
-                        <i class="ti ti-lock me-2"></i>
-                        <div class="small">
-                            备份文件保存在 <code>data/backups</code>，不在公开目录中，仅管理员可下载。
-                        </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="backupPassword">备份密码</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="backupPassword" name="password"
+                               maxlength="128" autocomplete="new-password" placeholder="可选，留空则不加密">
+                        <button class="btn btn-outline-secondary" type="button" data-password-toggle="backupPassword"
+                                aria-label="显示密码" aria-pressed="false">
+                            <i class="ti ti-eye"></i>
+                        </button>
                     </div>
+                    <div class="form-hint" id="backupPasswordHint">设置密码后备份包使用 AES-256 加密，恢复时必须输入同一密码。</div>
+                </div>
+                <div class="mb-0" id="backupPasswordConfirmWrap">
+                    <label class="form-label" for="backupPasswordConfirm">确认密码</label>
+                    <input type="password" class="form-control" id="backupPasswordConfirm"
+                           maxlength="128" autocomplete="new-password" placeholder="再次输入备份密码">
                 </div>
             </div>
             <div class="card-footer">
-                <form method="post" action="/admin/backup/create" data-confirm="将立即导出数据库与附件目录，数据量较大时可能需要等待。确定创建备份？" data-confirm-title="创建备份" data-confirm-ok="开始创建">
-                    {:csrf_field()}
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="ti ti-database-export me-1"></i>立即创建备份
-                    </button>
-                </form>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="ti ti-database-export me-1"></i>立即创建备份
+                </button>
+                <div class="text-secondary small text-center mt-2">备份文件不位于公开目录，仅管理员可下载。</div>
             </div>
-        </div>
+        </form>
     </div>
 
-    <div class="col-lg-7">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title"><i class="ti ti-archive me-1"></i>备份记录</h3>
+                <h3 class="card-title"><i class="ti ti-history me-1"></i>备份记录</h3>
                 <div class="card-actions">
                     <span class="text-secondary small">{$backupCount} 个 / {$totalSize}</span>
                 </div>
@@ -98,7 +117,7 @@
                 <table class="table table-vcenter">
                     <thead>
                     <tr>
-                        <th>文件名</th>
+                        <th>备份包</th>
                         <th class="w-1">大小</th>
                         <th class="w-1">创建时间</th>
                         <th class="w-1 text-end">操作</th>
@@ -108,11 +127,27 @@
                     {volist name="backups" id="backup"}
                     <tr>
                         <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="nm-attachment-file"><i class="ti ti-file-zip"></i></span>
+                            <div class="d-flex align-items-start gap-2">
+                                <span class="nm-attachment-file mt-1"><i class="ti ti-file-zip"></i></span>
                                 <div class="min-width-0">
-                                    <div class="nm-cell-title font-monospace text-truncate" style="max-width:22rem" title="{$backup.name}">{$backup.name}</div>
-                                    <div class="nm-cell-sub">数据库 + 附件压缩包</div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <span class="nm-cell-title font-monospace text-truncate" style="max-width:20rem" title="{$backup.name|htmlspecialchars}">{$backup.name|htmlspecialchars}</span>
+                                        {if $backup.encrypted}
+                                        <span class="badge bg-purple-lt"><i class="ti ti-lock me-1"></i>已加密</span>
+                                        {else /}
+                                        <span class="badge bg-secondary-lt">未加密</span>
+                                        {/if}
+                                        {if !$backup.valid}
+                                        <span class="badge bg-red-lt">清单损坏</span>
+                                        {elseif $backup.format < 2 /}
+                                        <span class="badge bg-yellow-lt">旧版格式</span>
+                                        {/if}
+                                    </div>
+                                    <div class="nm-cell-sub">{$backup.site_name|htmlspecialchars} · v{$backup.app_version} · {$backup.db_name|htmlspecialchars}</div>
+                                    <div class="nm-cell-sub">{$backup.table_count} 张表 · {$backup.row_count} 条记录 · {$backup.upload_count} 个附件</div>
+                                    {if !$backup.valid && $backup.error}
+                                    <div class="small text-danger mt-1">{$backup.error|htmlspecialchars}</div>
+                                    {/if}
                                 </div>
                             </div>
                         </td>
@@ -120,9 +155,28 @@
                         <td class="text-secondary small text-nowrap">{$backup.created_text}</td>
                         <td>
                             <div class="nm-row-actions justify-content-end">
-                                <a href="{$backup.download_url}" class="btn btn-sm btn-outline-primary">
+                                {if $backup.valid && $backup.format >= 2}
+                                <button type="button" class="btn btn-sm btn-primary" data-restore
+                                        data-file="{$backup.name|htmlspecialchars}"
+                                        data-encrypted="{$backup.encrypted ? 1 : 0}"
+                                        data-nm-tip="检测完整性后恢复该备份">
+                                    <i class="ti ti-restore me-1"></i>恢复
+                                </button>
+                                {else /}
+                                <button type="button" class="btn btn-sm btn-secondary" disabled
+                                        data-nm-tip="备份清单缺失或为旧版格式，请下载后手动导入">
+                                    <i class="ti ti-restore me-1"></i>恢复
+                                </button>
+                                {/if}
+                                <a href="{$backup.download_url}" class="btn btn-sm btn-outline-secondary" data-nm-tip="下载备份包">
                                     <i class="ti ti-download me-1"></i>下载
                                 </a>
+                                <button type="button" class="btn btn-sm btn-ghost-danger"
+                                        data-delete-file="{$backup.name|htmlspecialchars}"
+                                        data-delete-name="{$backup.name|htmlspecialchars}"
+                                        aria-label="删除备份" data-nm-tip="删除备份">
+                                    <i class="ti ti-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -133,7 +187,7 @@
                             <div class="nm-empty">
                                 <span class="nm-empty-icon"><i class="ti ti-archive-off"></i></span>
                                 <div class="nm-empty-title">还没有备份</div>
-                                <div class="nm-empty-desc">点击左侧「立即创建备份」生成第一个备份包。</div>
+                                <div class="nm-empty-desc">在左侧设置密码（可选）后创建第一个备份包。</div>
                             </div>
                         </td>
                     </tr>
@@ -145,14 +199,150 @@
 
         <div class="card mt-3">
             <div class="card-header">
-                <h3 class="card-title"><i class="ti ti-restore me-1"></i>恢复备份</h3>
+                <h3 class="card-title"><i class="ti ti-info-circle me-1"></i>恢复说明</h3>
             </div>
             <div class="card-body">
-                <ol class="mb-0 ps-3 text-secondary small">
-                    <li class="mb-1">解压 ZIP，将 <code>uploads</code> 目录覆盖到 <code>public/uploads</code>。</li>
-                    <li class="mb-1">把 <code>database.sql</code> 导入同名数据库。</li>
-                    <li>恢复前请先创建一份新的备份，避免覆盖现有数据。</li>
-                </ol>
+                <ul class="doc-tip-list">
+                    <li><i class="ti ti-check"></i><span>恢复前会自动读取清单并校验文件完整性，加密备份需要输入创建时设置的密码。</span></li>
+                    <li><i class="ti ti-check"></i><span>检测到与现有数据重叠时，可选择「跳过」保留现有内容，或「覆盖」用备份内容替换同名数据表。</span></li>
+                    <li><i class="ti ti-check"></i><span>附件按文件逐一校验 SHA-256 后写入，已存在的文件在跳过模式下不会被改动。</span></li>
+                    <li><i class="ti ti-check"></i><span>恢复完成后自动清理站点缓存；建议恢复前先创建一份当前数据的新备份。</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-blur fade" id="backupRestoreModal" tabindex="-1" aria-labelledby="backupRestoreTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="backupRestoreTitle">
+                    <span class="nm-section-icon"><i class="ti ti-restore"></i></span>
+                    <span>恢复备份</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <span class="nm-attachment-file"><i class="ti ti-file-zip"></i></span>
+                    <div class="min-width-0">
+                        <div class="nm-cell-title font-monospace text-break" id="backupRestoreFile">-</div>
+                        <div class="nm-cell-sub" id="backupRestoreFileMeta"></div>
+                        <div class="mt-1" id="backupRestoreBadges"></div>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger d-none" id="backupRestoreAlert" role="alert"></div>
+
+                <div class="alert alert-info d-flex align-items-center gap-2" id="backupRestoreLoading">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span class="small">正在读取备份清单并校验数据完整性…</span>
+                </div>
+
+                <div class="mb-3 d-none" id="backupRestorePasswordWrap">
+                    <label class="form-label" for="backupRestorePassword">备份密码</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="backupRestorePassword"
+                               maxlength="128" autocomplete="current-password" placeholder="输入创建备份时设置的密码">
+                        <button class="btn btn-outline-secondary" type="button" data-password-toggle="backupRestorePassword"
+                                aria-label="显示密码" aria-pressed="false">
+                            <i class="ti ti-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-hint">该备份已加密，密码错误将无法解压数据包。</div>
+                </div>
+
+                <div class="nm-meta-list d-none mb-3" id="backupRestoreMeta">
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">站点名称</div>
+                        <div class="nm-meta-value" data-meta="site_name">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">程序版本</div>
+                        <div class="nm-meta-value" data-meta="app_version">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">创建时间</div>
+                        <div class="nm-meta-value" data-meta="created_at">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">数据库</div>
+                        <div class="nm-meta-value" data-meta="db_name">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">数据表 / 记录</div>
+                        <div class="nm-meta-value" data-meta="tables">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">附件文件</div>
+                        <div class="nm-meta-value" data-meta="uploads">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">文档 / 草稿</div>
+                        <div class="nm-meta-value" data-meta="documents">-</div>
+                    </div>
+                    <div class="nm-meta-item">
+                        <div class="nm-meta-label">备份包大小</div>
+                        <div class="nm-meta-value" data-meta="size">-</div>
+                    </div>
+                </div>
+
+                <div class="d-none" id="backupRestoreConflict">
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                        <i class="ti ti-alert-triangle mt-1"></i>
+                        <div class="small" id="backupRestoreConflictText"></div>
+                    </div>
+                    <div class="mb-2 fw-semibold">选择恢复方式</div>
+                    <div class="nm-choice-grid">
+                        <div class="nm-choice-card">
+                            <label class="nm-choice">
+                                <input class="form-check-input" type="radio" name="backupRestoreMode" id="backupRestoreModeSkip" value="skip" checked>
+                                <span>
+                                    <span class="nm-choice-title">跳过重复数据</span>
+                                    <span class="nm-choice-desc">保留现有内容，只写入备份中不存在的数据表和记录；同名附件不覆盖。</span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="nm-choice-card is-danger">
+                            <label class="nm-choice">
+                                <input class="form-check-input" type="radio" name="backupRestoreMode" id="backupRestoreModeOverwrite" value="overwrite">
+                                <span>
+                                    <span class="nm-choice-title">覆盖现有数据</span>
+                                    <span class="nm-choice-desc">先删除备份涉及的同名数据表，再用备份内容重建；附件会覆盖同名文件。</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-success d-none" id="backupRestoreDone" role="status">
+                    <div class="fw-semibold mb-1"><i class="ti ti-circle-check me-1"></i>恢复完成</div>
+                    <div class="small" id="backupRestoreDoneText"></div>
+                    <div class="small mt-1">缓存已自动清理，建议刷新页面查看最新数据。</div>
+                </div>
+
+                <div class="d-none" id="backupRestoreErrors">
+                    <div class="fw-semibold small mb-1">以下语句未能执行：</div>
+                    <ul class="small text-danger mb-0" id="backupRestoreErrorList"></ul>
+                </div>
+
+                <div class="d-none mt-3" id="backupRestoreProgress">
+                    <div class="progress progress-sm mb-2">
+                        <div class="progress-bar progress-bar-indeterminate bg-primary" role="progressbar" aria-label="恢复进度"></div>
+                    </div>
+                    <div class="text-secondary small" id="backupRestoreProgressText">正在恢复数据，请勿关闭或刷新页面…</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal" id="backupRestoreCancel">取消</button>
+                <button type="button" class="btn btn-outline-primary d-none" id="backupRestoreInspect">检测数据包</button>
+                <button type="button" class="btn btn-primary d-none" id="backupRestoreStart">
+                    <i class="ti ti-restore me-1"></i>开始恢复
+                </button>
+                <button type="button" class="btn btn-primary d-none" id="backupRestoreReload">
+                    <i class="ti ti-refresh me-1"></i>刷新页面
+                </button>
             </div>
         </div>
     </div>

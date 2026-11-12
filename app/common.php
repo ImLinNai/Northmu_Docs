@@ -11,7 +11,7 @@ use app\support\HomeIcons;
  */
 function app_version(): string
 {
-    return '1.7.3';
+    return '1.7.4';
 }
 
 /**

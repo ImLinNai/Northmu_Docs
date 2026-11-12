@@ -2,7 +2,7 @@
 
 # Northmu Docs
 
-轻量个人文档 / 笔记管理系统 · Apple 风格界面 · 开箱即用
+轻量个人文档 / 笔记管理系统 · 开箱即用
 
 [![Release](https://img.shields.io/github/v/release/ImLinNai/Northmu_Docs?color=blue&label=release)](https://github.com/ImLinNai/Northmu_Docs/releases)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/)
@@ -58,7 +58,7 @@ Northmu Docs 面向个人与小团队，采用「唯一超级管理员 + 访客�
 **安全与运维**
 
 - 通行密钥（Passkey / WebAuthn）免密码登录，验证码、失败锁定、登录态时长
-- 登录 / 操作审计，一键备份（SQL + 附件），在线检测更新
+- 登录 / 操作审计，备份与在线恢复（SQL + 附件，可选密码加密与完整性校验），在线检测更新
 - Redis 内容缓存可选，缓存管理可视化
 - 全站禁止复制开关、外链中转提醒
 
