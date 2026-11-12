@@ -9,7 +9,7 @@ class Seo extends BaseController
 {
     public function sitemap()
     {
-        $xml = cache_remember('site:sitemap', cache_ttl(), function () {
+        $xml = cache_remember('site:sitemap:v2', cache_ttl(), function () {
             return $this->buildSitemap();
         });
         if (!is_string($xml) || $xml === '') {
@@ -68,6 +68,9 @@ class Seo extends BaseController
             ->select()
             ->toArray();
         foreach ($docs as $doc) {
+            if ((int) $doc['category_id'] <= 0) {
+                continue;
+            }
             if (document_access($doc, $categories)['visibility'] !== 'public') {
                 continue;
             }

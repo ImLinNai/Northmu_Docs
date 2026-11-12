@@ -23,9 +23,16 @@ class Category extends Base
             $docCounts[(int) $row['category_id']] = (int) $row['total'];
         }
 
+        $childCounts = [];
+        foreach ($categories as $row) {
+            $pid = (int) $row['parent_id'];
+            $childCounts[$pid] = ($childCounts[$pid] ?? 0) + 1;
+        }
+
         foreach ($flat as &$category) {
             $category['indent'] = $category['depth'] * 22;
             $category['option_label'] = category_option_label((string) $category['name'], (int) $category['depth']);
+            $category['has_children'] = ($childCounts[(int) $category['id']] ?? 0) > 0;
             $category['doc_count'] = $docCounts[(int) $category['id']] ?? 0;
             $category['visibility'] = normalize_visibility($category['visibility'] ?? 'public');
             $category['effective_visibility'] = category_effective_visibility((int) $category['id'], $categories);
@@ -39,7 +46,7 @@ class Category extends Base
             'categories' => $flat,
             'docCounts'  => $docCounts,
         ];
-        $view['extraScripts'] = '<script src="/static/js/admin-pages.js"></script>';
+        $view['extraScripts'] = '<script src="/static/js/admin-pages.js"></script><script src="/static/js/admin-categories.js"></script>';
 
         return View::fetch('/categories', $view);
     }
@@ -123,6 +130,39 @@ class Category extends Base
         }
 
         return redirect('/admin/categories');
+    }
+
+    public function sort()
+    {
+        $parentId = (int) $this->request->post('parent_id', 0);
+        $ids = $this->request->post('ids', '');
+        if (!is_array($ids)) {
+            $ids = explode(',', (string) $ids);
+        }
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), function ($id) {
+            return $id > 0;
+        })));
+
+        $siblings = array_map('intval', Db::name('categories')->where('parent_id', $parentId)->column('id'));
+        $expected = $siblings;
+        $actual = $ids;
+        sort($expected);
+        sort($actual);
+        if (!$ids || $expected !== $actual) {
+            return $this->fail('分类结构已变化，请刷新页面后重新排序');
+        }
+
+        $now = date('Y-m-d H:i:s');
+        foreach ($ids as $index => $id) {
+            Db::name('categories')->where('id', $id)->where('parent_id', $parentId)
+                ->update(['sort' => $index + 1, 'updated_at' => $now]);
+        }
+
+        audit_log('category', 'sort', '调整分类排序（' . ($parentId > 0 ? '父级 ID ' . $parentId : '顶级') . '）', 'category', $parentId);
+        cache_forget('site:categories');
+        cache_forget_content();
+
+        return $this->ok('排序已保存');
     }
 
     public function delete()

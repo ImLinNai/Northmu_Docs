@@ -37,7 +37,12 @@ class Doc extends BaseController
             }
         }
 
-        $docs = cache_remember('docs:list:' . $catId, cache_ttl(), function () use ($publicIds, $catId, $publicCategories, $allCategories) {
+        $catVisibility = $catId > 0 ? category_effective_visibility($catId, $allCategories) : 'public';
+        if ($catVisibility === 'encrypted' && !$this->categoryUnlocked($catId, $allCategories)) {
+            return $this->renderCategoryUnlock($activeCategory, $allCategories);
+        }
+
+        $docs = cache_remember('docs:list:v2:' . $catId, cache_ttl(), function () use ($publicIds, $catId, $publicCategories, $allCategories) {
             $query = Db::name('documents')
                 ->whereNull('deleted_at')
                 ->where('status', 1)
@@ -63,10 +68,15 @@ class Doc extends BaseController
         if (!is_array($docs)) {
             $docs = [];
         }
+        $lockedIds = $this->lockedCategoryMap($publicCategories);
+        if ($lockedIds) {
+            $docs = array_values(array_filter($docs, function ($doc) use ($lockedIds) {
+                return !isset($lockedIds[(int) $doc['category_id']]);
+            }));
+        }
         $this->decorateDocs($docs, $allCategories);
 
         $seoGlobal = seo_global_config();
-        $catVisibility = $catId > 0 ? category_effective_visibility($catId, $allCategories) : 'public';
         $categoryDescription = trim((string) ($activeCategory['description'] ?? ''));
         $description = $categoryDescription !== ''
             ? seo_clean_text($categoryDescription, 300)
@@ -92,7 +102,6 @@ class Doc extends BaseController
             'isSearch'      => false,
             'docs'          => $docs,
             'catTreeHtml'   => render_category_tree($tree, $catId, $docMap, 0),
-            'uncategorizedDocs' => $docMap[0] ?? [],
             'activeDocId'   => 0,
             'activeCat'     => $catId,
             'allActive'     => $catId === 0,
@@ -121,7 +130,7 @@ class Doc extends BaseController
         $publicIds = $this->publicCategoryIds($publicCategories);
 
         $like = '%' . $keyword . '%';
-        $docs = cache_remember('docs:search:' . md5(mb_strtolower($keyword)), min(cache_ttl(), 1800), function () use ($like, $publicIds, $allCategories) {
+        $docs = cache_remember('docs:search:v2:' . md5(mb_strtolower($keyword)), min(cache_ttl(), 1800), function () use ($like, $publicIds, $allCategories) {
             $rows = Db::name('documents')
                 ->whereNull('deleted_at')
                 ->where('status', 1)
@@ -148,8 +157,12 @@ class Doc extends BaseController
         if (!is_array($docs)) {
             $docs = [];
         }
-        $docs = array_values(array_filter($docs, function ($doc) use ($allCategories, $keyword) {
-            $access = document_access($doc, $allCategories);
+        $lockedIds = $this->lockedCategoryMap($publicCategories);
+        $docs = array_values(array_filter($docs, function ($doc) use ($allCategories, $keyword, $lockedIds) {
+            if (isset($lockedIds[(int) $doc['category_id']])) {
+                return false;
+            }
+            $access = $this->accessForDoc($doc, $allCategories);
             if ($access['visibility'] === 'private') {
                 return false;
             }
@@ -167,7 +180,6 @@ class Doc extends BaseController
             'isSearch'      => true,
             'docs'          => $docs,
             'catTreeHtml'   => render_category_tree($tree, 0, $docMap, 0),
-            'uncategorizedDocs' => $docMap[0] ?? [],
             'activeDocId'   => 0,
             'activeCat'     => 0,
             'allActive'     => false,
@@ -207,11 +219,18 @@ class Doc extends BaseController
         if (!is_array($doc) || (int) $doc['status'] !== 1) {
             return $this->denied('文档不存在或已被删除。', 404);
         }
+        if ((int) $doc['category_id'] <= 0) {
+            return $this->denied('文档不存在或已被删除。', 404);
+        }
 
         $allCategories = $this->allCategories();
-        $access = document_access($doc, $allCategories);
+        $access = $this->accessForDoc($doc, $allCategories);
         if ($access['visibility'] === 'private') {
             return $this->denied('文档不存在或已被删除。', 404);
+        }
+
+        if ($access['visibility'] === 'encrypted' && !$this->categoryUnlocked((int) $doc['category_id'], $allCategories)) {
+            return redirect('/docs?cat=' . (int) $doc['category_id']);
         }
 
         if ($access['visibility'] === 'encrypted' && !$this->docUnlocked($id, $access)) {
@@ -247,7 +266,6 @@ class Doc extends BaseController
             'doc'           => $doc,
             'contentHtml'   => $contentHtml,
             'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),
-            'uncategorizedDocs' => $docMap[0] ?? [],
             'activeDocId'   => (int) $doc['id'],
             'catPath'       => $catPath,
             'activeCat'     => (int) $doc['category_id'],
@@ -268,12 +286,15 @@ class Doc extends BaseController
         }
 
         $allCategories = $this->allCategories();
-        $access = document_access($doc, $allCategories);
+        $access = $this->accessForDoc($doc, $allCategories);
         if ($access['visibility'] === 'private') {
             return $this->denied('文档不存在或已被删除。', 404);
         }
         if ($access['visibility'] !== 'encrypted') {
             return redirect('/doc/' . $id . '.html');
+        }
+        if (!$this->categoryUnlocked((int) $doc['category_id'], $allCategories)) {
+            return redirect('/docs?cat=' . (int) $doc['category_id']);
         }
         if ($this->docUnlocked($id, $access)) {
             return redirect('/doc/' . $id . '.html');
@@ -300,6 +321,140 @@ class Doc extends BaseController
         return redirect('/doc/' . $id . '.html');
     }
 
+    public function categoryUnlock()
+    {
+        $catId = (int) $this->request->post('cat', 0);
+        $allCategories = $this->allCategories();
+        $category = null;
+        foreach ($allCategories as $row) {
+            if ((int) $row['id'] === $catId) {
+                $category = $row;
+                break;
+            }
+        }
+        $visibility = $catId > 0 ? category_effective_visibility($catId, $allCategories) : 'private';
+        if (!$category || $visibility === 'private') {
+            return $this->denied('该分类不存在或不可访问。', 404);
+        }
+        if ($visibility !== 'encrypted') {
+            return redirect('/docs?cat=' . $catId);
+        }
+
+        $anchorId = $this->encryptedCategoryId($catId, $allCategories);
+        $hash = category_effective_password($catId, $allCategories);
+        if ($hash === '') {
+            return $this->renderCategoryUnlock($category, $allCategories);
+        }
+
+        $password = (string) $this->request->post('password', '');
+        $ip = (string) $this->request->ip();
+        $failKey = 'cat_unlock_fail_' . md5($ip . '|' . $anchorId);
+        $fails = (int) Cache::get($failKey, 0);
+
+        if ($fails >= 8) {
+            return $this->renderCategoryUnlock($category, $allCategories, '尝试次数过多，请 10 分钟后再试。');
+        }
+        if ($password === '') {
+            return $this->renderCategoryUnlock($category, $allCategories, '请输入访问密码。');
+        }
+        if (!password_verify($password, $hash)) {
+            Cache::set($failKey, $fails + 1, 600);
+            return $this->renderCategoryUnlock($category, $allCategories, '密码不正确，请重试。');
+        }
+
+        Cache::delete($failKey);
+        Session::set($this->categoryUnlockKey($anchorId), $this->unlockFingerprint($hash));
+        return redirect('/docs?cat=' . $catId);
+    }
+
+    protected function renderCategoryUnlock(array $category, array $allCategories, string $error = '')
+    {
+        $catId = (int) $category['id'];
+        $publicCategories = $this->publicCategories($allCategories);
+        $tree = build_tree($publicCategories);
+        $docMap = $this->documentTreeMap($publicCategories, $allCategories);
+
+        $seoGlobal = seo_global_config();
+        $view = $this->baseViewData('输入密码 - ' . (string) $category['name'], 'docs');
+        $view += [
+            'mode'          => 'category-unlock',
+            'isLocked'      => true,
+            'unlockError'   => $error,
+            'unlockCatId'   => $catId,
+            'category'      => $category,
+            'catPath'       => category_breadcrumb($catId, $allCategories),
+            'catTreeHtml'   => render_category_tree($tree, $catId, $docMap, 0),
+            'activeDocId'   => 0,
+            'activeCat'     => $catId,
+            'allActive'     => false,
+            'searchKeyword' => '',
+        ];
+        $view = array_merge($view, seo_meta([
+            'title'       => '输入密码 - ' . (string) $category['name'],
+            'description' => $seoGlobal['description'],
+            'keywords'    => '',
+            'canonical'   => '',
+            'robots'      => 'noindex,nofollow',
+            'type'        => 'website',
+        ]));
+
+        return view('doc/category_unlock', $view);
+    }
+
+    protected function accessForDoc(array $doc, array $allCategories): array
+    {
+        $access = document_access($doc, $allCategories);
+        if ($access['visibility'] !== 'encrypted') {
+            return $access;
+        }
+        if (normalize_visibility($doc['visibility'] ?? 'public') === 'encrypted') {
+            return $access;
+        }
+        if ($this->categoryUnlocked((int) ($doc['category_id'] ?? 0), $allCategories)) {
+            return ['visibility' => 'public', 'password_hash' => ''];
+        }
+        return $access;
+    }
+
+    protected function encryptedCategoryId(int $catId, array $categories): int
+    {
+        if ($catId <= 0) {
+            return 0;
+        }
+        $map = [];
+        foreach ($categories as $category) {
+            $map[(int) $category['id']] = $category;
+        }
+        $current = $catId;
+        $guard = 0;
+        while ($current > 0 && isset($map[$current]) && $guard < 100) {
+            if (normalize_visibility($map[$current]['visibility'] ?? 'public') === 'encrypted') {
+                return $current;
+            }
+            $current = (int) $map[$current]['parent_id'];
+            $guard++;
+        }
+        return 0;
+    }
+
+    protected function categoryUnlocked(int $catId, array $categories): bool
+    {
+        if ($catId <= 0 || category_effective_visibility($catId, $categories) !== 'encrypted') {
+            return true;
+        }
+        $anchorId = $this->encryptedCategoryId($catId, $categories);
+        $hash = category_effective_password($catId, $categories);
+        if ($anchorId <= 0 || $hash === '') {
+            return false;
+        }
+        return (string) Session::get($this->categoryUnlockKey($anchorId)) === $this->unlockFingerprint($hash);
+    }
+
+    protected function categoryUnlockKey(int $anchorId): string
+    {
+        return 'cat_unlock_' . $anchorId;
+    }
+
     protected function renderUnlock(array $doc, array $allCategories, string $error = '')
     {
         $catPath = category_breadcrumb((int) $doc['category_id'], $allCategories);
@@ -321,7 +476,6 @@ class Doc extends BaseController
             'contentHtml'   => '',
             'catPath'       => $catPath,
             'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),
-            'uncategorizedDocs' => $docMap[0] ?? [],
             'activeDocId'   => (int) $doc['id'],
             'activeCat'     => (int) $doc['category_id'],
             'allActive'     => false,
@@ -341,7 +495,7 @@ class Doc extends BaseController
 
     protected function documentTreeMap(array $publicCategories, array $allCategories): array
     {
-        $rows = cache_remember('docs:tree-links', cache_ttl(), function () {
+        $rows = cache_remember('docs:tree-links:v2', cache_ttl(), function () {
             return Db::name('documents')
                 ->whereNull('deleted_at')
                 ->where('status', 1)
@@ -358,13 +512,14 @@ class Doc extends BaseController
         }
 
         $publicIds = array_flip(array_map('intval', array_column($publicCategories, 'id')));
+        $lockedIds = $this->lockedCategoryMap($publicCategories);
         $map = [];
         foreach ($rows as $row) {
             $categoryId = (int) $row['category_id'];
-            if ($categoryId !== 0 && !isset($publicIds[$categoryId])) {
+            if ($categoryId <= 0 || !isset($publicIds[$categoryId]) || isset($lockedIds[$categoryId])) {
                 continue;
             }
-            $access = document_access($row, $allCategories);
+            $access = $this->accessForDoc($row, $allCategories);
             if ($access['visibility'] === 'private') {
                 continue;
             }
@@ -384,8 +539,10 @@ class Doc extends BaseController
     {
         $public = [];
         foreach ($allCategories as $category) {
-            if (category_effective_visibility((int) $category['id'], $allCategories) !== 'private') {
-                $category['effective_visibility'] = category_effective_visibility((int) $category['id'], $allCategories);
+            $visibility = category_effective_visibility((int) $category['id'], $allCategories);
+            if ($visibility !== 'private') {
+                $category['effective_visibility'] = $visibility;
+                $category['is_locked'] = $visibility === 'encrypted' && !$this->categoryUnlocked((int) $category['id'], $allCategories);
                 $public[] = $category;
             }
         }
@@ -394,9 +551,18 @@ class Doc extends BaseController
 
     protected function publicCategoryIds(array $publicCategories): array
     {
-        $ids = array_map('intval', array_column($publicCategories, 'id'));
-        $ids[] = 0;
-        return array_values(array_unique($ids));
+        return array_values(array_unique(array_map('intval', array_column($publicCategories, 'id'))));
+    }
+
+    protected function lockedCategoryMap(array $publicCategories): array
+    {
+        $map = [];
+        foreach ($publicCategories as $category) {
+            if (!empty($category['is_locked'])) {
+                $map[(int) $category['id']] = true;
+            }
+        }
+        return $map;
     }
 
     protected function descendantIds(array $categories, int $rootId): array
@@ -438,7 +604,7 @@ class Doc extends BaseController
         }
 
         foreach ($docs as &$doc) {
-            $access = document_access($doc, $allCategories);
+            $access = $this->accessForDoc($doc, $allCategories);
             $unlocked = $this->docUnlocked((int) $doc['id'], $access);
             $doc['tags'] = $tagMap[(int) $doc['id']] ?? [];
             $doc['category_name'] = $categoryMap[(int) $doc['category_id']] ?? '未分类';

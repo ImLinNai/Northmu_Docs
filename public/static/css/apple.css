@@ -2663,6 +2663,91 @@ body.nm-admin-body .cat-name-cell .nm-cell-sub:last-child {
     opacity: .7;
 }
 
+body.nm-admin-body .cat-admin-drag {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: .08rem;
+    margin-left: -.25rem;
+    border-radius: 5px;
+    color: color-mix(in srgb, var(--nm-muted) 75%, transparent);
+    cursor: grab;
+    touch-action: none;
+    transition: color .15s ease, background-color .15s ease;
+}
+
+body.nm-admin-body .cat-admin-drag:hover,
+body.nm-admin-body .cat-admin-drag:focus-visible {
+    color: var(--nm-text);
+    background: color-mix(in srgb, var(--nm-text) 7%, transparent);
+    outline: none;
+}
+
+body.nm-admin-body .cat-admin-drag:active {
+    cursor: grabbing;
+}
+
+body.nm-admin-body .cat-admin-drag .ti {
+    margin: 0;
+    font-size: .95rem;
+}
+
+body.nm-admin-body .cat-admin-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: .16rem;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: color-mix(in srgb, var(--nm-muted) 85%, transparent);
+    font-size: .78rem;
+    cursor: pointer;
+    transition: color .15s ease, background-color .15s ease;
+}
+
+body.nm-admin-body .cat-admin-toggle:hover {
+    color: var(--nm-text);
+    background: color-mix(in srgb, var(--nm-text) 7%, transparent);
+}
+
+body.nm-admin-body .cat-admin-toggle.is-leaf {
+    opacity: .26;
+    pointer-events: none;
+}
+
+body.nm-admin-body .cat-admin-toggle .ti {
+    margin: 0;
+}
+
+body.nm-admin-body .cat-admin-row {
+    transition: opacity .18s ease;
+}
+
+body.nm-admin-body .cat-admin-row.is-dragging {
+    opacity: .4;
+}
+
+body.nm-admin-body .cat-admin-row.is-drop-before > td {
+    box-shadow: inset 0 2px 0 var(--tblr-primary);
+}
+
+body.nm-admin-body .cat-admin-row.is-drop-after > td {
+    box-shadow: inset 0 -2px 0 var(--tblr-primary);
+}
+
+body.nm-admin-body [data-cat-table].is-saving {
+    opacity: .7;
+    transition: opacity .2s ease;
+}
+
 /* ---------- 抽屉 / 侧滑表单 ---------- */
 body.nm-admin-body .offcanvas.nm-drawer {
     border-left-color: color-mix(in srgb, var(--nm-border) 55%, transparent);

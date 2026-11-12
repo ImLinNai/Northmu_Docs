@@ -11,7 +11,7 @@ use app\support\HomeIcons;
  */
 function app_version(): string
 {
-    return '1.7.2';
+    return '1.7.3';
 }
 
 /**
@@ -2231,7 +2231,8 @@ function render_category_nodes(array $nodes, int $activeId, array $docsByCategor
             $html .= '<span class="cat-toggle cat-toggle-empty"></span>';
         }
         $visibility = (string) ($node['effective_visibility'] ?? $node['visibility'] ?? 'public');
-        $lock = $visibility === 'encrypted' ? '<i class="ti ti-lock cat-lock" title="加密分类"></i>' : '';
+        $isLocked = array_key_exists('is_locked', $node) ? (bool) $node['is_locked'] : $visibility === 'encrypted';
+        $lock = $isLocked ? '<i class="ti ti-lock cat-lock" title="加密分类"></i>' : '';
         $html .= '<a class="cat-link' . ($isActive ? ' active' : '') . '" href="/docs?cat=' . $id . '" title="' . e($node['name']) . '">'
             . '<i class="ti ti-folder"></i><span class="text-truncate">' . e($node['name']) . '</span>' . $lock . '</a>';
         $html .= '</div>';

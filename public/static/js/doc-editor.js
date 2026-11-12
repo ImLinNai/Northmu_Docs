@@ -34,6 +34,7 @@
     var editor = null;
     var dirty = false;
     var edits = 0;
+    var uncategorizedConfirmed = false;
 
     function status(text, cls) {
         saveStatus.textContent = text;
@@ -758,8 +759,44 @@
         });
     }
 
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (event) {
         syncHidden();
+        if (!uncategorizedConfirmed) {
+            var catSelect = document.getElementById('docCategory');
+            var statusSelect = document.getElementById('docStatus');
+            var publishing = statusSelect && String(statusSelect.value) === '1';
+            if (catSelect && publishing && String(catSelect.value) === '0') {
+                event.preventDefault();
+                var submitter = event.submitter || form.querySelector('[type="submit"]');
+                var proceed = function () {
+                    uncategorizedConfirmed = true;
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit(submitter || undefined);
+                    } else {
+                        form.submit();
+                    }
+                };
+                if (window.NorthmuUI && window.NorthmuUI.confirm) {
+                    window.NorthmuUI.confirm({
+                        anchor: submitter || catSelect,
+                        title: '未选择分类',
+                        message: '未分类文档将在前台无法显示，确定继续发布吗？',
+                        tone: 'warning',
+                        confirmText: '继续发布',
+                        cancelText: '选择分类'
+                    }).then(function (ok) {
+                        if (ok) {
+                            proceed();
+                        } else {
+                            catSelect.focus();
+                        }
+                    });
+                } else if (window.confirm('未分类文档将在前台无法显示，确定继续发布吗？')) {
+                    proceed();
+                }
+                return;
+            }
+        }
         dirty = false;
     });
 

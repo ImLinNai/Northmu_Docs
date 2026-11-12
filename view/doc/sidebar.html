@@ -14,18 +14,6 @@
         <a class="cat-all{if $allActive} active{/if}" href="/docs" title="全部文档">
             <i class="ti ti-layout-list"></i><span class="doc-panel-text">全部文档</span>
         </a>
-        {if $uncategorizedDocs}
-        <ul class="cat-doc-list cat-doc-list-root">
-            {foreach $uncategorizedDocs as $item}
-            <li class="cat-doc-item">
-                <a class="cat-doc-link{if $activeDocId == $item.id} active{/if}" href="/doc/{$item.id}.html"{if $activeDocId == $item.id} aria-current="page"{/if} title="{$item.title}">
-                    <i class="ti ti-file-text"></i><span>{$item.title}</span>
-                    {if $item.is_encrypted}<i class="ti ti-lock cat-lock" title="加密文档"></i>{/if}
-                </a>
-            </li>
-            {/foreach}
-        </ul>
-        {/if}
         {if $catTreeHtml}
         <div class="cat-tree-wrap">{$catTreeHtml|raw}</div>
         {else}

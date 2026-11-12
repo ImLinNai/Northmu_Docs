@@ -1,0 +1,86 @@
+{include file="common/public_header" /}
+
+<main class="doc-page" id="main-content" tabindex="-1">
+    <div class="doc-shell no-toc doc-shell-locked">
+        <aside class="doc-sidebar" data-doc-sidebar>
+            {include file="doc/sidebar" /}
+        </aside>
+        <div class="doc-sidebar-backdrop"></div>
+
+        <section class="doc-main">
+            <div class="doc-mobile-bar d-md-none">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-sidebar-toggle>
+                    <i class="ti ti-menu-2 me-1"></i>分类
+                </button>
+                <span class="doc-mobile-title text-truncate">{$category.name}</span>
+            </div>
+
+            <article class="doc-article nm-reveal doc-article-locked">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb doc-breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">首页</a></li>
+                        <li class="breadcrumb-item"><a href="/docs">文档</a></li>
+                        {volist name="catPath" id="cat"}
+                        <li class="breadcrumb-item"><a href="/docs?cat={$cat.id}">{$cat.name}</a></li>
+                        {/volist}
+                    </ol>
+                </nav>
+
+            <div class="doc-unlock-stage">
+                <div class="doc-unlock-sheet">
+                    <div class="doc-unlock-intro">
+                        <span class="doc-unlock-seal" aria-hidden="true"><i class="ti ti-lock"></i></span>
+                        <div class="doc-unlock-eyebrow">受保护的分类</div>
+                        <h1 class="doc-unlock-title">{$category.name}</h1>
+                        <div class="doc-unlock-meta">
+                            <span class="doc-unlock-meta-item"><i class="ti ti-lock me-1"></i>整个分类已加密</span>
+                        </div>
+                        <p class="doc-unlock-hint">该分类已加密，请输入访问密码后查看分类内容。</p>
+                    </div>
+
+                    <div class="doc-unlock-action">
+                        {if $unlockError}
+                        <div class="doc-unlock-alert" role="alert">
+                            <i class="ti ti-alert-circle"></i><span>{$unlockError}</span>
+                        </div>
+                        {/if}
+
+                        <form method="post" action="/docs/unlock" class="doc-unlock-form">
+                            {:csrf_field()}
+                            <input type="hidden" name="cat" value="{$unlockCatId}">
+                            <label class="doc-unlock-label" for="catUnlockPassword">访问密码</label>
+                            <div class="doc-unlock-field">
+                                <i class="ti ti-key doc-unlock-field-icon" aria-hidden="true"></i>
+                                <input type="password" class="doc-unlock-input" id="catUnlockPassword" name="password" placeholder="输入访问密码" aria-label="访问密码" autocomplete="current-password" required autofocus>
+                                <button type="button" class="doc-unlock-peek" data-unlock-toggle aria-pressed="false" aria-label="显示密码" title="显示密码">
+                                    <i class="ti ti-eye"></i>
+                                </button>
+                            </div>
+                            <div class="doc-unlock-actions">
+                                <a class="doc-unlock-back" href="/docs">
+                                    <i class="ti ti-arrow-left"></i>返回文档列表
+                                </a>
+                                <button type="submit" class="doc-unlock-submit">
+                                    解锁分类<i class="ti ti-arrow-right"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="doc-unlock-assure">
+                            <i class="ti ti-shield-lock"></i>
+                            <span>连续 8 次密码错误将锁定 10 分钟</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </article>
+
+            <div class="doc-main-foot">
+                {include file="common/public_footer_inner" /}
+            </div>
+        </section>
+    </div>
+</main>
+
+{assign name="hideFooter" value="1" /}
+{include file="common/public_footer" /}

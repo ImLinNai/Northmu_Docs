@@ -2,7 +2,7 @@
 
 <div class="nm-toolbar">
     <div class="nm-toolbar-title"><span class="nm-section-icon"><i class="ti ti-folders"></i></span>共 {$categories|count} 个分类</div>
-    <div class="nm-toolbar-meta">支持多级分类，子分类自动继承上级的可见性限制</div>
+    <div class="nm-toolbar-meta">支持多级分类，子分类自动继承上级的可见性限制 · 拖拽调整同级顺序</div>
     <div class="nm-toolbar-actions">
         <a href="/admin/documents" class="btn btn-outline-secondary">
             <i class="ti ti-file-text me-1"></i>文档管理
@@ -15,7 +15,7 @@
 
 <div class="card nm-table-wrap">
     <div class="table-responsive">
-        <table class="table table-vcenter">
+        <table class="table table-vcenter" data-cat-table>
             <thead>
             <tr>
                 <th>分类名称</th>
@@ -27,9 +27,19 @@
             </thead>
             <tbody>
             {volist name="categories" id="cat"}
-            <tr>
+            <tr class="cat-admin-row" data-cat-row data-id="{$cat.id}" data-parent="{$cat.parent_id}" data-depth="{$cat.depth}">
                 <td>
                     <div class="cat-name-cell" style="padding-left: {$cat.indent}px">
+                        <span class="cat-admin-drag" draggable="true" data-cat-drag role="button" tabindex="0" aria-label="拖拽排序" data-nm-tip="拖拽调整同级顺序">
+                            <i class="ti ti-dots"></i>
+                        </span>
+                        {if $cat.has_children}
+                        <button type="button" class="cat-admin-toggle" data-cat-toggle aria-expanded="true" aria-label="收起子分类" title="收起子分类">
+                            <i class="ti ti-chevron-down"></i>
+                        </button>
+                        {else}
+                        <span class="cat-admin-toggle is-leaf" aria-hidden="true"><i class="ti ti-point-filled"></i></span>
+                        {/if}
                         {if $cat.depth > 0}<span class="cat-tree-branch"><i class="ti ti-corner-down-right"></i></span>{/if}
                         <i class="ti ti-folder{if $cat.effective_visibility == 'encrypted'} text-warning{elseif $cat.effective_visibility == 'private'} text-danger{else} text-secondary{/if}"></i>
                         <div class="min-width-0">
@@ -54,7 +64,7 @@
                     {/if}
                 </td>
                 <td class="text-secondary">{$cat.doc_count}</td>
-                <td class="text-secondary">{$cat.sort}</td>
+                <td class="text-secondary" data-cat-sort>{$cat.sort}</td>
                 <td>
                     <div class="nm-row-actions">
                         <button type="button" class="btn btn-sm btn-icon btn-ghost-secondary"
