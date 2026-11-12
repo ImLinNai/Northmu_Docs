@@ -37,6 +37,19 @@
         updateCount();
     });
 
+    document.querySelectorAll('[data-export-selected]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var ids = Array.prototype.slice.call(document.querySelectorAll('[data-check-item]:checked')).map(function (item) {
+                return item.value;
+            });
+            if (!ids.length) {
+                toast('请先选择要导出的文档', 'warning');
+                return;
+            }
+            window.location.href = '/admin/documents/export?ids=' + encodeURIComponent(ids.join(','));
+        });
+    });
+
     var categoryPanel = document.getElementById('categoryDrawer') || document.getElementById('categoryModal');
     if (categoryPanel) {
         var catVisibility = document.getElementById('catVisibility');

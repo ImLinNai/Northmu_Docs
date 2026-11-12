@@ -50,6 +50,7 @@ Route::group('admin', function () {
     Route::get('documents', 'admin.Document/index');
     Route::get('documents/create', 'admin.Document/create');
     Route::get('documents/edit/:id', 'admin.Document/edit')->pattern(['id' => '\d+']);
+    Route::get('documents/export', 'admin.Document/export');
     Route::get('documents/trash', 'admin.Document/trash');
     Route::get('documents/versions/:id', 'admin.Document/versions')->pattern(['id' => '\d+']);
     Route::post('documents/save', 'admin.Document/save');

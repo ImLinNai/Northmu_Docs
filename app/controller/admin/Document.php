@@ -74,6 +74,97 @@ class Document extends Base
         return View::fetch('/documents/index', $view);
     }
 
+    public function export()
+    {
+        $raw = trim((string) $this->request->get('ids', ''));
+        if ($raw === '') {
+            $raw = (string) $this->request->get('id', '');
+        }
+        $ids = array_values(array_unique(array_filter(array_map('intval', explode(',', $raw)), function ($id) {
+            return $id > 0;
+        })));
+        $ids = array_slice($ids, 0, 100);
+
+        if (!$ids) {
+            admin_flash('请选择要导出的文档', 'warning');
+            return redirect('/admin/documents');
+        }
+
+        $docs = Db::name('documents')
+            ->whereIn('id', $ids)
+            ->whereNull('deleted_at')
+            ->order('id', 'asc')
+            ->select()
+            ->toArray();
+
+        if (!$docs) {
+            admin_flash('所选文档不存在或已被删除', 'warning');
+            return redirect('/admin/documents');
+        }
+
+        if (count($docs) === 1) {
+            $doc = $docs[0];
+            return download($this->markdownForDocument($doc), $this->markdownFilename($doc) . '.md', true)
+                ->mimeType('text/markdown; charset=utf-8');
+        }
+
+        $zipPath = tempnam(runtime_path(), 'doc-export-');
+        $zip = new \ZipArchive();
+        if ($zipPath === false || $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            admin_flash('导出失败，请稍后重试', 'danger');
+            return redirect('/admin/documents');
+        }
+
+        $used = [];
+        foreach ($docs as $doc) {
+            $name = $this->markdownFilename($doc);
+            if (isset($used[$name])) {
+                $name .= '-' . (int) $doc['id'];
+            }
+            $used[$name] = true;
+            $zip->addFromString($name . '.md', $this->markdownForDocument($doc));
+        }
+        $zip->close();
+
+        $content = (string) file_get_contents($zipPath);
+        @unlink($zipPath);
+
+        return download($content, 'Northmu_Docs_' . date('Ymd_His') . '.zip', true)
+            ->mimeType('application/zip');
+    }
+
+    protected function markdownForDocument(array $doc): string
+    {
+        $body = (string) ($doc['content'] ?? '');
+        if (($doc['content_type'] ?? 'html') !== 'markdown') {
+            $body = html_to_markdown($body);
+        }
+        $body = trim($body);
+        $title = trim((string) ($doc['title'] ?? ''));
+
+        if ($title === '') {
+            return $body . "\n";
+        }
+        if ($body === '') {
+            return '# ' . $title . "\n";
+        }
+        if (!preg_match('/^#\s+/u', $body)) {
+            $body = '# ' . $title . "\n\n" . $body;
+        }
+
+        return $body . "\n";
+    }
+
+    protected function markdownFilename(array $doc): string
+    {
+        $title = preg_replace('/[\\\\\/:*?"<>|\x00-\x1F]+/u', ' ', (string) ($doc['title'] ?? '')) ?? '';
+        $title = trim(preg_replace('/\s+/u', ' ', $title) ?? '');
+        if ($title === '') {
+            $title = 'document-' . (int) ($doc['id'] ?? 0);
+        }
+        return mb_substr($title, 0, 60);
+    }
+
     public function create()
     {
         return $this->renderEditor([

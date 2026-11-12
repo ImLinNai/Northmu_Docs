@@ -95,6 +95,9 @@
                     <option value="delete">移入回收站</option>
                 </select>
                 <button type="submit" class="btn btn-sm btn-outline-secondary">应用到所选</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-export-selected>
+                    <i class="ti ti-download me-1"></i>导出所选
+                </button>
                 <span class="nm-toolbar-meta ms-auto">已选择 <span data-check-count>0</span> 篇</span>
             </div>
         </div>
@@ -173,6 +176,7 @@
                                 {if $doc.status == 1}
                                 <a href="/doc/{$doc.id}.html" target="_blank" rel="noopener" class="dropdown-item"><i class="ti ti-external-link"></i>前台预览</a>
                                 {/if}
+                                <a href="/admin/documents/export?id={$doc.id}" class="dropdown-item"><i class="ti ti-download"></i>导出 Markdown</a>
                                 <div class="dropdown-divider"></div>
                                 <button type="submit" form="delete-form-{$doc.id}" class="dropdown-item text-danger">
                                     <i class="ti ti-trash"></i>移入回收站

@@ -2152,6 +2152,289 @@ function markdown_to_html(string $text): string
 }
 
 /**
+ * 将 HTML 转为 Markdown（用于文档导出）
+ */
+function html_to_markdown(string $html): string
+{
+    $html = trim($html);
+    if ($html === '') {
+        return '';
+    }
+    if (stripos($html, '<') === false) {
+        return $html;
+    }
+
+    $doc = new \DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $doc->loadHTML(
+        '<?xml encoding="utf-8" ?><div id="nmd-export-root">' . $html . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+
+    $wrapper = null;
+    foreach ($doc->getElementsByTagName('div') as $div) {
+        if ($div->getAttribute('id') === 'nmd-export-root') {
+            $wrapper = $div;
+            break;
+        }
+    }
+    if (!$wrapper) {
+        return trim(strip_tags($html));
+    }
+
+    $markdown = nmd_markdown_blocks($wrapper);
+    $markdown = preg_replace('/[ \t]+\n/u', "\n", $markdown) ?? $markdown;
+    $markdown = preg_replace('/\n{3,}/u', "\n\n", $markdown) ?? $markdown;
+    return trim($markdown);
+}
+
+function nmd_markdown_blocks(\DOMNode $node): string
+{
+    $blocks = [];
+    foreach ($node->childNodes as $child) {
+        $block = nmd_markdown_block($child);
+        if ($block !== '') {
+            $blocks[] = $block;
+        }
+    }
+    return implode("\n\n", $blocks);
+}
+
+function nmd_markdown_block(\DOMNode $node): string
+{
+    if ($node->nodeType === XML_TEXT_NODE || $node->nodeType === XML_CDATA_SECTION_NODE) {
+        return trim(preg_replace('/\s+/u', ' ', $node->textContent) ?? '');
+    }
+    if ($node->nodeType !== XML_ELEMENT_NODE) {
+        return '';
+    }
+
+    $tag = strtolower($node->nodeName);
+    if (preg_match('/^h([1-6])$/', $tag, $match)) {
+        return str_repeat('#', (int) $match[1]) . ' ' . trim(nmd_markdown_inline_children($node));
+    }
+
+    switch ($tag) {
+        case 'p':
+        case 'caption':
+        case 'dt':
+        case 'dd':
+            return trim(nmd_markdown_inline_children($node));
+        case 'div':
+        case 'section':
+        case 'article':
+        case 'header':
+        case 'footer':
+        case 'main':
+        case 'aside':
+        case 'figure':
+        case 'figcaption':
+        case 'address':
+        case 'center':
+        case 'dl':
+            return trim(nmd_markdown_blocks($node));
+        case 'br':
+            return '';
+        case 'hr':
+            return '---';
+        case 'pre':
+            return nmd_markdown_pre($node);
+        case 'blockquote':
+            $inner = trim(nmd_markdown_blocks($node));
+            return $inner === '' ? '' : (preg_replace('/^/m', '> ', $inner) ?? $inner);
+        case 'ul':
+        case 'ol':
+            return nmd_markdown_list($node);
+        case 'table':
+            return nmd_markdown_table($node);
+        case 'a':
+        case 'span':
+        case 'strong':
+        case 'b':
+        case 'em':
+        case 'i':
+        case 'code':
+        case 'del':
+        case 's':
+        case 'strike':
+        case 'img':
+        case 'small':
+        case 'sub':
+        case 'sup':
+            return trim(nmd_markdown_inline_node($node));
+        default:
+            return trim(nmd_markdown_blocks($node));
+    }
+}
+
+function nmd_markdown_pre(\DOMNode $node): string
+{
+    $code = $node;
+    foreach ($node->childNodes as $child) {
+        if ($child->nodeType === XML_ELEMENT_NODE && strtolower($child->nodeName) === 'code') {
+            $code = $child;
+            break;
+        }
+    }
+
+    $language = '';
+    if ($code instanceof \DOMElement && preg_match('/(?:language|lang)-([A-Za-z0-9_+-]+)/', $code->getAttribute('class'), $match)) {
+        $language = strtolower($match[1]);
+    }
+
+    $text = rtrim($code->textContent, "\r\n");
+    $fence = str_contains($text, '```') ? '~~~' : '```';
+    return $fence . $language . "\n" . $text . "\n" . $fence;
+}
+
+function nmd_markdown_list(\DOMNode $node): string
+{
+    $ordered = strtolower($node->nodeName) === 'ol';
+    $start = $ordered ? max(1, (int) ($node->getAttribute('start') ?: 1)) : 1;
+    $lines = [];
+    $index = 0;
+
+    foreach ($node->childNodes as $child) {
+        if ($child->nodeType !== XML_ELEMENT_NODE || strtolower($child->nodeName) !== 'li') {
+            continue;
+        }
+        $marker = $ordered ? ($start + $index) . '. ' : '- ';
+        $index++;
+        $content = trim(nmd_markdown_blocks($child));
+        if ($content === '') {
+            $lines[] = trim($marker);
+            continue;
+        }
+        $contentLines = explode("\n", $content);
+        $lines[] = $marker . array_shift($contentLines);
+        $indent = str_repeat(' ', strlen($marker));
+        foreach ($contentLines as $line) {
+            $lines[] = $line === '' ? '' : $indent . $line;
+        }
+    }
+
+    return implode("\n", $lines);
+}
+
+function nmd_markdown_table(\DOMNode $node): string
+{
+    $rows = [];
+    foreach ($node->getElementsByTagName('tr') as $tr) {
+        $cells = [];
+        foreach ($tr->childNodes as $cell) {
+            if ($cell->nodeType !== XML_ELEMENT_NODE) {
+                continue;
+            }
+            $tag = strtolower($cell->nodeName);
+            if ($tag !== 'td' && $tag !== 'th') {
+                continue;
+            }
+            $text = trim(nmd_markdown_inline_children($cell));
+            $text = preg_replace('/\s*\n\s*/u', '<br>', $text) ?? $text;
+            $cells[] = str_replace('|', '\\|', $text);
+        }
+        if ($cells) {
+            $rows[] = $cells;
+        }
+    }
+    if (!$rows) {
+        return '';
+    }
+
+    $width = max(array_map('count', $rows));
+    foreach ($rows as &$row) {
+        $row = array_pad($row, $width, '');
+    }
+    unset($row);
+
+    $header = array_shift($rows);
+    $lines = [
+        '| ' . implode(' | ', $header) . ' |',
+        '| ' . implode(' | ', array_fill(0, $width, '---')) . ' |',
+    ];
+    foreach ($rows as $row) {
+        $lines[] = '| ' . implode(' | ', $row) . ' |';
+    }
+
+    return implode("\n", $lines);
+}
+
+function nmd_markdown_inline_children(\DOMNode $node): string
+{
+    $output = '';
+    foreach ($node->childNodes as $child) {
+        $output .= nmd_markdown_inline_node($child);
+    }
+    return $output;
+}
+
+function nmd_markdown_inline_node(\DOMNode $node): string
+{
+    if ($node->nodeType === XML_TEXT_NODE || $node->nodeType === XML_CDATA_SECTION_NODE) {
+        return preg_replace('/\s+/u', ' ', $node->textContent) ?? '';
+    }
+    if ($node->nodeType !== XML_ELEMENT_NODE) {
+        return '';
+    }
+
+    $tag = strtolower($node->nodeName);
+    switch ($tag) {
+        case 'br':
+            return "\n";
+        case 'img':
+            $src = trim($node->getAttribute('src'));
+            if ($src === '') {
+                return '';
+            }
+            return '![' . trim($node->getAttribute('alt')) . '](' . $src . ')';
+        case 'a':
+            $text = trim(nmd_markdown_inline_children($node));
+            $href = trim($node->getAttribute('href'));
+            if ($href === '') {
+                return $text;
+            }
+            if (str_contains($href, ' ')) {
+                $href = '<' . $href . '>';
+            }
+            return '[' . ($text === '' ? $href : $text) . '](' . $href . ')';
+        case 'strong':
+        case 'b':
+            $text = trim(nmd_markdown_inline_children($node));
+            return $text === '' ? '' : '**' . $text . '**';
+        case 'em':
+        case 'i':
+            $text = trim(nmd_markdown_inline_children($node));
+            return $text === '' ? '' : '*' . $text . '*';
+        case 'del':
+        case 's':
+        case 'strike':
+            $text = trim(nmd_markdown_inline_children($node));
+            return $text === '' ? '' : '~~' . $text . '~~';
+        case 'code':
+            $text = (string) $node->textContent;
+            if ($text === '') {
+                return '';
+            }
+            if (str_contains($text, '`')) {
+                return '`` ' . $text . ' ``';
+            }
+            return '`' . $text . '`';
+        case 'sup':
+            $text = trim(nmd_markdown_inline_children($node));
+            return $text === '' ? '' : '^' . $text . '^';
+        case 'sub':
+            $text = trim(nmd_markdown_inline_children($node));
+            return $text === '' ? '' : '~' . $text . '~';
+        case 'input':
+            return '';
+        default:
+            return nmd_markdown_inline_children($node);
+    }
+}
+
+/**
  * 为正文图片追加原生懒加载属性
  */
 function lazy_load_images(string $html): string
