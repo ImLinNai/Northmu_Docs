@@ -30,6 +30,7 @@ class Settings extends Base
             'baidu_token'         => '',
             'context_menu_mode'   => 'default',
             'copy_guard'          => '0',
+            'external_link_notice'=> '0',
             'memorial_enabled'    => '0',
             'memorial_scope'      => 'all',
             'memorial_start'      => '',
@@ -122,6 +123,7 @@ class Settings extends Base
             $contextMenuMode = 'default';
         }
         $copyGuard = (int) $this->request->post('copy_guard', 0) === 1 ? '1' : '0';
+        $linkNotice = (int) $this->request->post('external_link_notice', 0) === 1 ? '1' : '0';
         $memorialEnabled = (int) $this->request->post('memorial_enabled', 0) === 1 ? '1' : '0';
         $memorialScope = (string) $this->request->post('memorial_scope', 'all');
         if (!in_array($memorialScope, ['all', 'home'], true)) {
@@ -351,6 +353,7 @@ class Settings extends Base
             'baidu_token'         => $baiduToken,
             'context_menu_mode'   => $contextMenuMode,
             'copy_guard'          => $copyGuard,
+            'external_link_notice'=> $linkNotice,
             'memorial_enabled'    => $memorialEnabled,
             'memorial_scope'      => $memorialScope,
             'memorial_start'      => $memorialStart,

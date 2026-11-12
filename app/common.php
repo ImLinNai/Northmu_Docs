@@ -552,6 +552,15 @@ function site_copy_guard(): bool
 }
 
 /**
+ * 外链中转提醒开关（仅影响访客前台）
+ */
+function site_link_notice_enabled(): bool
+{
+    return (string) sys_setting('external_link_notice', '0') === '1';
+}
+
+
+/**
  * 纪念日灰度模式：手动开关或按时间段自动启用
  */
 function memorial_state(): array

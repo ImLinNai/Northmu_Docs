@@ -205,6 +205,13 @@
                                     </label>
                                     <div class="form-hint">开启后访客无法选中或复制前台任何文字与内容（含右键、Ctrl+C、拖拽选取），仅后台管理不受影响；文档编辑页仍可单独开启某篇文档的复制保护。</div>
                                 </div>
+                                <div class="col-md-6">
+                                    <label class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="external_link_notice" value="1" id="externalLinkNotice" {if $settings.external_link_notice == '1'}checked{/if}>
+                                        <span class="form-check-label">外链中转提醒</span>
+                                    </label>
+                                    <div class="form-hint">开启后，访客点击站外链接会先进入中转提醒页，展示网站标识、目标地址与安全提示，确认后再前往；站内链接、邮件与电话链接不受影响。</div>
+                                </div>
                             </div>
                         </div>
                     </div>

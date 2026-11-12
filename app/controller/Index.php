@@ -61,4 +61,49 @@ class Index extends BaseController
             'extraScripts'=> '',
         ] + $seo);
     }
+
+    public function linkNotice()
+    {
+        if (!site_link_notice_enabled()) {
+            return redirect('/');
+        }
+
+        $raw = trim((string) $this->request->get('url', ''));
+        if (strlen($raw) > 2048 || preg_match('/[\x00-\x1F\x7F]/', $raw)) {
+            $raw = '';
+        }
+
+        $target = '';
+        $targetHost = '';
+        if ($raw !== '' && preg_match('#^https?://#i', $raw)) {
+            $parts = parse_url($raw);
+            $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+            $targetHost = strtolower(rtrim((string) ($parts['host'] ?? ''), '.'));
+            if (
+                in_array($scheme, ['http', 'https'], true)
+                && $targetHost !== ''
+                && !isset($parts['user'])
+                && !isset($parts['pass'])
+            ) {
+                $target = $raw;
+            }
+        }
+
+        $siteHost = strtolower((string) parse_url((string) $this->request->domain(), PHP_URL_HOST));
+        if ($target === '' || ($siteHost !== '' && $targetHost === $siteHost)) {
+            return redirect('/');
+        }
+
+        $siteName = (string) sys_setting('site_name', 'Northmu Docs');
+        return View::fetch('index/link_notice', [
+            'pageTitle'   => '即将离开本站 - ' . $siteName,
+            'siteName'    => $siteName,
+            'siteLogo'    => (string) sys_setting('site_logo', ''),
+            'targetUrl'   => $target,
+            'targetHost'  => $targetHost,
+            'openBlank'   => (int) $this->request->get('blank', 0) === 1,
+            'themeColor'  => site_theme_color(),
+            'faviconUrl'  => site_favicon_url(),
+        ]);
+    }
 }

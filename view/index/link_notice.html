@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-bs-theme="light" data-theme-color="{$themeColor}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{$pageTitle}</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#f8fafc">
+    <script>
+        (function () {
+            document.documentElement.classList.add('js');
+            try {
+                var t = localStorage.getItem('northmu-theme');
+                if (!t) {
+                    t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.setAttribute('data-theme', t);
+                document.documentElement.setAttribute('data-bs-theme', t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="icon" href="{$faviconUrl}">
+    <link rel="stylesheet" href="/static/vendor/tabler/css/tabler.min.css">
+    <link rel="stylesheet" href="/static/vendor/tabler-icons/tabler-icons.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/apple.css">
+</head>
+<body class="nm-front nm-link-notice-page">
+<main class="nm-link-notice" id="main-content" tabindex="-1">
+    <section class="nm-link-card" aria-labelledby="linkNoticeTitle">
+        <div class="nm-link-brand">
+            {if $siteLogo}
+            <img src="{$siteLogo}" alt="{$siteName}" class="nm-link-logo">
+            {else}
+            <span class="nm-link-mark"><i class="ti ti-book-2"></i></span>
+            {/if}
+            <span class="nm-link-site">{$siteName}</span>
+        </div>
+
+        <div class="nm-link-badge"><i class="ti ti-shield-check"></i>站外链接提醒</div>
+        <h1 class="nm-link-title" id="linkNoticeTitle">即将离开本站</h1>
+        <p class="nm-link-lead">你点击的链接指向站外网站，我们无法控制该网站的内容与安全性。</p>
+
+        <div class="nm-link-target">
+            <div class="nm-link-target-head">
+                <span class="nm-link-target-label"><i class="ti ti-world"></i>前往地址</span>
+                <span class="nm-link-target-host">{$targetHost}</span>
+            </div>
+            <div class="nm-link-target-url">{$targetUrl}</div>
+        </div>
+
+        <p class="nm-link-hint">请确认上方地址无误后再继续前往。若你不确定该链接是否安全，请关闭此页面或返回站点。</p>
+
+        <div class="nm-link-actions">
+            <a class="btn btn-primary btn-lg nm-link-continue" href="{$targetUrl}"{if $openBlank} target="_blank"{/if} rel="noopener noreferrer">
+                <i class="ti ti-external-link me-1"></i>继续前往
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-lg" data-link-back>
+                <i class="ti ti-arrow-left me-1"></i>返回站点
+            </button>
+        </div>
+
+        <div class="nm-link-foot">{$siteName} · 外链中转提醒</div>
+    </section>
+</main>
+<script>
+    (function () {
+        var back = document.querySelector('[data-link-back]');
+        if (!back) return;
+        back.addEventListener('click', function () {
+            var fromSite = false;
+            try {
+                fromSite = !!document.referrer && new URL(document.referrer).host === window.location.host;
+            } catch (e) { }
+            if (fromSite && window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        });
+    })();
+</script>
+</body>
+</html>

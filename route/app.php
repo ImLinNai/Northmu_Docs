@@ -3,6 +3,7 @@ use think\facade\Route;
 
 // 前台
 Route::get('/', 'Index/index');
+Route::get('link-notice', 'Index/linkNotice');
 Route::get('sitemap.xml', 'Seo/sitemap');
 Route::get('robots.txt', 'Seo/robots');
 

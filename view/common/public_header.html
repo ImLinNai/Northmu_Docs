@@ -11,6 +11,7 @@
     <meta name="robots" content="{$seoRobots}">
     <meta name="nm-context-menu" content="{$contextMenuMode|default='default'}">
     <meta name="nm-copy-guard" content="{if !empty($siteCopyGuard)}1{else}0{/if}">
+    <meta name="nm-link-notice" content="{:site_link_notice_enabled() ? '1' : '0'}">
     <meta name="author" content="{$author.display_name|default='管理员'}">
     {if $seoCanonical}
     <link rel="canonical" href="{$seoCanonical}">

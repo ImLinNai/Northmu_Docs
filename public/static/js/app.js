@@ -134,6 +134,7 @@
         initLightbox();
         initCategoryCollapse();
         initDocView();
+        initExternalLinkNotice();
         initBackTop();
         initSearchModal();
         initUnlockToggle();
@@ -1033,6 +1034,28 @@
             apply(view);
             try { localStorage.setItem(key, view); } catch (e) { }
         });
+    }
+
+    function initExternalLinkNotice() {
+        var meta = document.querySelector('meta[name="nm-link-notice"]');
+        if (!meta || meta.getAttribute('content') !== '1') return;
+
+        document.addEventListener('click', function (event) {
+            if (event.button !== 0) return;
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            var link = event.target.closest('a[href]');
+            if (!link || link.hasAttribute('download') || link.hasAttribute('data-link-notice-skip')) return;
+            var raw = link.getAttribute('href');
+            if (!raw || raw.charAt(0) === '#' || /^(mailto|tel|javascript|data):/i.test(raw)) return;
+            var url;
+            try { url = new URL(link.href, window.location.href); } catch (e) { return; }
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+            if (url.host.toLowerCase() === window.location.host.toLowerCase()) return;
+            event.preventDefault();
+            var query = '?url=' + encodeURIComponent(url.href);
+            if (link.target === '_blank') query += '&blank=1';
+            window.location.href = '/link-notice' + query;
+        }, true);
     }
 
     function initToc() {
