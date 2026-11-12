@@ -1793,6 +1793,17 @@ body {
     box-shadow: 0 2px 12px rgba(15, 23, 42, .08);
 }
 
+.article-body p:has(> img + img) {
+    text-align: center;
+}
+
+body .article-body p:has(> img + img) > img:not(:only-child) {
+    display: inline-block;
+    margin: .2rem .3rem;
+    vertical-align: middle;
+    box-shadow: none;
+}
+
 .article-body pre {
     background: var(--tblr-bg-surface-dark, #0f172a);
     color: #e2e8f0;

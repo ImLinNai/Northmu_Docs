@@ -226,12 +226,30 @@
         if (markdownPane) markdownPane.classList.toggle('d-none', mode !== 'markdown');
     }
 
+    function isCenteredBlock(node) {
+        var align = (node.getAttribute ? node.getAttribute('align') : '') || '';
+        if (align.toLowerCase() === 'center') return true;
+        if (node.style && node.style.textAlign) return node.style.textAlign === 'center';
+        return false;
+    }
+
     function htmlToMarkdown(html) {
         if (!window.TurndownService) return html;
         var service = new TurndownService({
             headingStyle: 'atx',
             codeBlockStyle: 'fenced',
             bulletListMarker: '-'
+        });
+        ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'].forEach(function (tag) {
+            var upper = tag.toUpperCase();
+            service.addRule('centered-' + tag, {
+                filter: function (node) { return node.nodeName === upper && isCenteredBlock(node); },
+                replacement: function (content, node) {
+                    var inner = (node.innerHTML || '').trim();
+                    if (inner === '') return '\n\n';
+                    return '<' + tag + ' style="text-align: center;">' + inner + '</' + tag + '>\n\n';
+                }
+            });
         });
         try { return service.turndown(html || ''); } catch (e) { return ''; }
     }

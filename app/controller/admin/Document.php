@@ -367,7 +367,6 @@ class Document extends Base
         $copyProtected = (int) $this->request->post('copy_protected', 0) === 1 ? 1 : 0;
         $isTop = (int) $this->request->post('is_top', 0) === 1 ? 1 : 0;
         $tagIds = (array) $this->request->post('tag_ids/a', []);
-        $after = (string) $this->request->post('after', 'edit');
 
         $back = $id > 0 ? '/admin/documents/edit/' . $id : '/admin/documents/create';
 
@@ -493,10 +492,7 @@ class Document extends Base
             admin_flash($pushMessage !== '' ? '文档已创建；' . $pushMessage : '文档已创建', $pushType);
         }
 
-        if ($after === 'list') {
-            return redirect('/admin/documents');
-        }
-        return redirect('/admin/documents/edit/' . $id);
+        return redirect('/admin/documents');
     }
 
     public function push(int $id)
