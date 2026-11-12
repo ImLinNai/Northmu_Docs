@@ -6,25 +6,13 @@
             {:csrf_field()}
             <div class="nav nm-settings-tabs" role="tablist" aria-label="设置分类">
                 <button class="nav-link active" type="button" data-bs-toggle="tab" data-bs-target="#settingsSiteTab" role="tab" aria-controls="settingsSiteTab" aria-selected="true">
-                    <i class="ti ti-world"></i>站点信息
-                </button>
-                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsSeoTab" role="tab" aria-controls="settingsSeoTab" aria-selected="false">
-                    <i class="ti ti-search"></i>SEO 与收录
+                    <i class="ti ti-world"></i>站点与 SEO
                 </button>
                 <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsFrontTab" role="tab" aria-controls="settingsFrontTab" aria-selected="false">
-                    <i class="ti ti-layout-navbar"></i>前台交互
-                </button>
-                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsMemorialTab" role="tab" aria-controls="settingsMemorialTab" aria-selected="false">
-                    <i class="ti ti-calendar-event"></i>纪念日
-                </button>
-                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsUploadTab" role="tab" aria-controls="settingsUploadTab" aria-selected="false">
-                    <i class="ti ti-upload"></i>上传设置
+                    <i class="ti ti-layout-navbar"></i>前台体验
                 </button>
                 <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsSecurityTab" role="tab" aria-controls="settingsSecurityTab" aria-selected="false">
-                    <i class="ti ti-shield-lock"></i>登录安全
-                </button>
-                <button class="nav-link" type="button" data-bs-toggle="tab" data-bs-target="#settingsMaintenanceTab" role="tab" aria-controls="settingsMaintenanceTab" aria-selected="false">
-                    <i class="ti ti-tool"></i>维护模式
+                    <i class="ti ti-shield-lock"></i>安全与运维
                 </button>
             </div>
 
@@ -86,10 +74,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="tab-pane fade" id="settingsSeoTab" role="tabpanel">
-                    <div class="card nm-settings-section" id="siteSeo">
+                <div class="card nm-settings-section mt-3" id="siteSeo">
                         <div class="card-header">
                             <h3 class="card-title"><i class="ti ti-search me-1"></i>SEO 优化</h3>
                             <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全站生效</span></div>
@@ -216,6 +202,58 @@
                         </div>
                     </div>
 
+                    <div class="card mt-3" id="memorial">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-calendar-event me-1"></i>纪念日灰度</h3>
+                            <div class="card-actions">
+                                {if $memorialState.active}
+                                <span class="badge bg-warning-lt text-warning">当前生效</span>
+                                {else}
+                                <span class="badge bg-secondary-lt text-secondary">未生效</span>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="memorial_enabled" value="1" id="memorialEnabled" {if $settings.memorial_enabled == '1'}checked{/if}>
+                                <span class="form-check-label">手动开启灰度</span>
+                            </label>
+                            <div class="form-hint">用于纪念日、公祭日等场景：开启后前台页面将以黑白灰度显示，仅影响访客前台，后台与管理操作不受影响。</div>
+
+                            <div class="mt-4">
+                                <label class="form-label">生效范围</label>
+                                <div class="nm-choice-grid">
+                                    <label class="nm-choice-card nm-choice-card-select">
+                                        <input class="form-check-input" type="radio" name="memorial_scope" value="all" {if $settings.memorial_scope != 'home'}checked{/if}>
+                                        <span>
+                                            <span class="nm-choice-title">所有前台页面</span>
+                                            <span class="nm-choice-desc">首页、文档列表、文档详情与错误页均变为灰度。</span>
+                                        </span>
+                                    </label>
+                                    <label class="nm-choice-card nm-choice-card-select">
+                                        <input class="form-check-input" type="radio" name="memorial_scope" value="home" {if $settings.memorial_scope == 'home'}checked{/if}>
+                                        <span>
+                                            <span class="nm-choice-title">仅首页</span>
+                                            <span class="nm-choice-desc">只让首页变为灰度，其他页面保持原样。</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="memorialStart">自动开始时间</label>
+                                    <input type="datetime-local" class="form-control" id="memorialStart" name="memorial_start" value="{$memorialStartInput}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="memorialEnd">自动结束时间</label>
+                                    <input type="datetime-local" class="form-control" id="memorialEnd" name="memorial_end" value="{$memorialEndInput}">
+                                </div>
+                            </div>
+                            <div class="form-hint mt-2">手动开关与时间段满足任一条件即生效；到达结束时间后自动恢复彩色。只填开始或结束时间时按单边时间生效。</div>
+                        </div>
+                    </div>
+
                     <div class="card nm-settings-section mt-3" id="musicPlaylist">
                         <div class="card-header">
                             <h3 class="card-title"><i class="ti ti-music me-1"></i>音乐歌单</h3>
@@ -273,91 +311,6 @@
                             <button type="button" class="btn btn-outline-primary mt-3" id="musicAddSong">
                                 <i class="ti ti-plus me-1"></i>添加歌曲
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="settingsMemorialTab" role="tabpanel">
-                    <div class="card" id="memorial">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ti ti-calendar-event me-1"></i>纪念日灰度</h3>
-                            <div class="card-actions">
-                                {if $memorialState.active}
-                                <span class="badge bg-warning-lt text-warning">当前生效</span>
-                                {else}
-                                <span class="badge bg-secondary-lt text-secondary">未生效</span>
-                                {/if}
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <label class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="memorial_enabled" value="1" id="memorialEnabled" {if $settings.memorial_enabled == '1'}checked{/if}>
-                                <span class="form-check-label">手动开启灰度</span>
-                            </label>
-                            <div class="form-hint">用于纪念日、公祭日等场景：开启后前台页面将以黑白灰度显示，仅影响访客前台，后台与管理操作不受影响。</div>
-
-                            <div class="mt-4">
-                                <label class="form-label">生效范围</label>
-                                <div class="nm-choice-grid">
-                                    <label class="nm-choice-card nm-choice-card-select">
-                                        <input class="form-check-input" type="radio" name="memorial_scope" value="all" {if $settings.memorial_scope != 'home'}checked{/if}>
-                                        <span>
-                                            <span class="nm-choice-title">所有前台页面</span>
-                                            <span class="nm-choice-desc">首页、文档列表、文档详情与错误页均变为灰度。</span>
-                                        </span>
-                                    </label>
-                                    <label class="nm-choice-card nm-choice-card-select">
-                                        <input class="form-check-input" type="radio" name="memorial_scope" value="home" {if $settings.memorial_scope == 'home'}checked{/if}>
-                                        <span>
-                                            <span class="nm-choice-title">仅首页</span>
-                                            <span class="nm-choice-desc">只让首页变为灰度，其他页面保持原样。</span>
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="row g-3 mt-1">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="memorialStart">自动开始时间</label>
-                                    <input type="datetime-local" class="form-control" id="memorialStart" name="memorial_start" value="{$memorialStartInput}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="memorialEnd">自动结束时间</label>
-                                    <input type="datetime-local" class="form-control" id="memorialEnd" name="memorial_end" value="{$memorialEndInput}">
-                                </div>
-                            </div>
-                            <div class="form-hint mt-2">手动开关与时间段满足任一条件即生效；到达结束时间后自动恢复彩色。只填开始或结束时间时按单边时间生效。</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="settingsUploadTab" role="tabpanel">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ti ti-upload me-1"></i>上传设置</h3>
-                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全局生效</span></div>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-info py-2 px-3 small mb-3">
-                                <i class="ti ti-info-circle me-1"></i>统一管理附件库、编辑器、站点素材与头像等所有上传限制；单文件大小同时受服务器 PHP 上传上限（{$phpUploadMax}）约束。
-                            </div>
-                            <div class="row g-3">
-                                {foreach $uploadCategories as $cat}
-                                <div class="col-md-4">
-                                    <div class="upload-limit-card">
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <span class="upload-limit-icon"><i class="ti ti-{$cat.icon}"></i></span>
-                                            <div class="fw-semibold">{$cat.label}</div>
-                                        </div>
-                                        <label class="form-label small" for="uploadExt{$cat.key}">允许的扩展名</label>
-                                        <input type="text" class="form-control form-control-sm font-monospace" id="uploadExt{$cat.key}" name="upload_{$cat.key}_ext" value="{$cat.ext}" maxlength="500" required>
-                                        <label class="form-label small mt-2" for="uploadMax{$cat.key}">单文件上限（MB）</label>
-                                        <input type="number" class="form-control form-control-sm" id="uploadMax{$cat.key}" name="upload_{$cat.key}_max_mb" value="{$cat.max_mb}" min="1" max="500" step="1" required>
-                                    </div>
-                                </div>
-                                {/foreach}
-                            </div>
-                            <div class="form-hint mt-2">用英文逗号分隔扩展名；php、phtml、phar、html、js、svg 等可执行或脚本类型会被自动忽略。</div>
                         </div>
                     </div>
                 </div>
@@ -464,10 +417,37 @@
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <div class="tab-pane fade" id="settingsMaintenanceTab" role="tabpanel">
-                    <div class="card nm-settings-section" id="maintenance">
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-upload me-1"></i>上传设置</h3>
+                            <div class="card-actions"><span class="badge bg-secondary-lt text-secondary">全局生效</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info py-2 px-3 small mb-3">
+                                <i class="ti ti-info-circle me-1"></i>统一管理附件库、编辑器、站点素材与头像等所有上传限制；单文件大小同时受服务器 PHP 上传上限（{$phpUploadMax}）约束。
+                            </div>
+                            <div class="row g-3">
+                                {foreach $uploadCategories as $cat}
+                                <div class="col-md-4">
+                                    <div class="upload-limit-card">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="upload-limit-icon"><i class="ti ti-{$cat.icon}"></i></span>
+                                            <div class="fw-semibold">{$cat.label}</div>
+                                        </div>
+                                        <label class="form-label small" for="uploadExt{$cat.key}">允许的扩展名</label>
+                                        <input type="text" class="form-control form-control-sm font-monospace" id="uploadExt{$cat.key}" name="upload_{$cat.key}_ext" value="{$cat.ext}" maxlength="500" required>
+                                        <label class="form-label small mt-2" for="uploadMax{$cat.key}">单文件上限（MB）</label>
+                                        <input type="number" class="form-control form-control-sm" id="uploadMax{$cat.key}" name="upload_{$cat.key}_max_mb" value="{$cat.max_mb}" min="1" max="500" step="1" required>
+                                    </div>
+                                </div>
+                                {/foreach}
+                            </div>
+                            <div class="form-hint mt-2">用英文逗号分隔扩展名；php、phtml、phar、html、js、svg 等可执行或脚本类型会被自动忽略。</div>
+                        </div>
+                    </div>
+
+                    <div class="card nm-settings-section mt-3" id="maintenance">
                         <div class="card-header">
                             <h3 class="card-title"><i class="ti ti-tool me-1"></i>维护模式</h3>
                             <div class="card-actions">
@@ -557,7 +537,7 @@
             </div>
 
             <div class="nm-savebar mt-3">
-                <div class="nm-savebar-status"><i class="ti ti-info-circle me-1"></i>修改任意分页内容后，点击右侧保存即可统一提交。</div>
+                <div class="nm-savebar-status"><i class="ti ti-info-circle me-1"></i>修改任意分类内容后，点击右侧保存即可统一提交。</div>
                 <div class="ms-auto d-flex gap-2">
                     <a href="/admin/settings" class="btn btn-link link-secondary">还原</a>
                     <button type="submit" class="btn btn-primary">
@@ -673,14 +653,15 @@
         function activateTabFromHash() {
             var hash = (window.location.hash || '').replace('#', '');
             var tabMap = {
-                siteSeo: '#settingsSeoTab',
-                baiduSeo: '#settingsSeoTab',
+                siteSeo: '#settingsSiteTab',
+                baiduSeo: '#settingsSiteTab',
                 frontInteraction: '#settingsFrontTab',
+                memorial: '#settingsFrontTab',
                 music: '#settingsFrontTab',
                 musicPlaylist: '#settingsFrontTab',
-                memorial: '#settingsMemorialTab',
                 passkey: '#settingsSecurityTab',
-                passkeys: '#settingsSecurityTab'
+                passkeys: '#settingsSecurityTab',
+                maintenance: '#settingsSecurityTab'
             };
             var target = tabMap[hash];
             if (target && window.bootstrap && window.bootstrap.Tab) {
