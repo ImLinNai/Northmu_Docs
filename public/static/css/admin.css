@@ -3058,3 +3058,120 @@ body.nm-auth-body {
 .is-muted .form-hint {
     opacity: .6;
 }
+
+/* ---------- 音乐歌单配置 ---------- */
+.nm-music-songs {
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+}
+
+.nm-music-song {
+    padding: .95rem 1rem 1rem;
+    border: 1px solid var(--nm-border);
+    border-radius: .9rem;
+    background: var(--nm-surface-2);
+}
+
+.nm-music-song-head {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin-bottom: .75rem;
+}
+
+.nm-music-song-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: .55rem;
+    background: color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+    color: var(--tblr-primary);
+    font-size: .72rem;
+    font-weight: 650;
+}
+
+.nm-music-song-caption {
+    font-size: .8rem;
+    font-weight: 620;
+    color: var(--nm-text);
+}
+
+.nm-music-empty {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: 1rem;
+    padding: .85rem 1rem;
+    border: 1px dashed var(--nm-border);
+    border-radius: .9rem;
+    color: var(--nm-muted);
+    font-size: .8rem;
+}
+
+.nm-music-empty[hidden] {
+    display: none;
+}
+
+.nm-music-empty i {
+    font-size: 1.1rem;
+}
+
+/* ---------- 通行密钥列表 ---------- */
+.nm-passkey-list {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+.nm-passkey-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem .9rem;
+    border: 1px solid var(--nm-border);
+    border-radius: .85rem;
+    background: var(--nm-surface-2);
+}
+
+.nm-passkey-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: .65rem;
+    background: color-mix(in srgb, var(--tblr-primary) 12%, transparent);
+    color: var(--tblr-primary);
+    flex: none;
+}
+
+.nm-passkey-meta {
+    min-width: 0;
+}
+
+.nm-passkey-label {
+    font-size: .84rem;
+    font-weight: 620;
+    color: var(--nm-text);
+}
+
+.nm-passkey-sub {
+    font-size: .7rem;
+    color: var(--nm-muted);
+}
+
+.nm-passkey-empty {
+    margin-top: 1rem;
+    padding: .85rem 1rem;
+    border: 1px dashed var(--nm-border);
+    border-radius: .9rem;
+    color: var(--nm-muted);
+    font-size: .8rem;
+}
+
+.nm-passkey-empty[hidden] {
+    display: none;
+}

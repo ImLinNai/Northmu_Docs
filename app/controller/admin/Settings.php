@@ -38,6 +38,9 @@ class Settings extends Base
             'login_fail_limit'    => '5',
             'login_lock_minutes'  => '10',
             'admin_session_hours' => '24',
+            'passkey_login'       => '0',
+            'music_enabled'       => '0',
+            'music_playlist'      => '',
             'maintenance_enabled' => '0',
             'maintenance_template'=> 'macos',
             'maintenance_reason'  => '',
@@ -59,6 +62,15 @@ class Settings extends Base
         $memorialStartInput = $memorial['start'] > 0 ? date('Y-m-d\TH:i', $memorial['start']) : '';
         $memorialEndInput = $memorial['end'] > 0 ? date('Y-m-d\TH:i', $memorial['end']) : '';
 
+        $adminId = (int) current_admin()['id'];
+        $passkeys = [];
+        try {
+            $passkeys = Db::name('admin_passkeys')->where('admin_id', $adminId)->order('id', 'asc')->select()->toArray();
+        } catch (\Throwable $e) {
+            $passkeys = [];
+        }
+        $musicSongs = site_music_playlist();
+
         $view = $this->viewData('系统设置', '站点信息、SEO 优化、上传限制、登录安全与管理员资料', 'settings') + [
             'settings'         => $settings,
             'siteLogo'         => (string) ($settings['site_logo'] ?? ''),
@@ -77,6 +89,8 @@ class Settings extends Base
             'memorialState'          => $memorial,
             'memorialStartInput'     => $memorialStartInput,
             'memorialEndInput'       => $memorialEndInput,
+            'passkeys'               => $passkeys,
+            'musicSongs'             => $musicSongs,
         ];
         $view['seoPreview'] = [
             'url'         => ($view['siteUrl'] !== '' ? $view['siteUrl'] : site_base_url()) . '/',
@@ -124,6 +138,62 @@ class Settings extends Base
         if (!in_array($sessionHours, [12, 24, 168], true)) {
             $sessionHours = 24;
         }
+        $passkeyLogin = (int) $this->request->post('passkey_login', 0) === 1 ? '1' : '0';
+        $musicEnabled = (int) $this->request->post('music_enabled', 0) === 1 ? '1' : '0';
+        $musicRows = $this->request->post('music_songs', []);
+        $musicSongs = [];
+        if (is_array($musicRows)) {
+            if (count($musicRows) > 30) {
+                admin_flash('音乐歌单最多支持 30 首歌曲', 'danger');
+                return redirect('/admin/settings');
+            }
+            foreach ($musicRows as $index => $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $title = trim(strip_tags((string) ($row['title'] ?? '')));
+                $artist = trim(strip_tags((string) ($row['artist'] ?? '')));
+                $audio = trim((string) ($row['audio'] ?? ''));
+                $cover = trim((string) ($row['cover'] ?? ''));
+                $lyrics = trim(str_replace("\r\n", "\n", strip_tags((string) ($row['lyrics'] ?? ''))));
+                if ($title === '' && $artist === '' && $audio === '' && $cover === '' && $lyrics === '') {
+                    continue;
+                }
+                $nth = count($musicSongs) + 1;
+                if ($title === '') {
+                    admin_flash('第 ' . $nth . ' 首歌曲需要填写歌名', 'danger');
+                    return redirect('/admin/settings');
+                }
+                $audioUrl = normalize_media_url($audio);
+                if ($audioUrl === null || $audioUrl === '') {
+                    admin_flash('第 ' . $nth . ' 首歌曲的音频链接格式不正确，请填写 http(s) 链接或以 /uploads/ 开头的路径', 'danger');
+                    return redirect('/admin/settings');
+                }
+                $coverUrl = normalize_media_url($cover);
+                if ($coverUrl === null) {
+                    admin_flash('第 ' . $nth . ' 首歌曲的封面链接格式不正确', 'danger');
+                    return redirect('/admin/settings');
+                }
+                if (mb_strlen($lyrics) > 5000) {
+                    admin_flash('第 ' . $nth . ' 首歌曲的歌词不能超过 5000 个字符', 'danger');
+                    return redirect('/admin/settings');
+                }
+                $musicSongs[] = [
+                    'title'  => mb_substr($title, 0, 80),
+                    'artist' => mb_substr($artist, 0, 80),
+                    'audio'  => $audioUrl,
+                    'cover'  => $coverUrl,
+                    'lyrics' => $lyrics,
+                ];
+            }
+        }
+        if ($musicEnabled === '1' && !$musicSongs) {
+            admin_flash('启用前台音乐歌单前请至少添加一首歌曲', 'danger');
+            return redirect('/admin/settings');
+        }
+        $musicPlaylistJson = $musicSongs
+            ? (string) json_encode($musicSongs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)
+            : '';
         $maintenanceEnabled = (int) $this->request->post('maintenance_enabled', 0) === 1 ? '1' : '0';
         $maintenanceTemplate = (string) $this->request->post('maintenance_template', 'macos');
         if (!array_key_exists($maintenanceTemplate, maintenance_templates())) {
@@ -289,6 +359,9 @@ class Settings extends Base
             'login_fail_limit'    => (string) $failLimit,
             'login_lock_minutes'  => (string) $lockMinutes,
             'admin_session_hours' => (string) $sessionHours,
+            'passkey_login'       => $passkeyLogin,
+            'music_enabled'       => $musicEnabled,
+            'music_playlist'      => $musicPlaylistJson,
             'maintenance_enabled' => $maintenanceEnabled,
             'maintenance_template'=> $maintenanceTemplate,
             'maintenance_reason'  => mb_substr($maintenanceReason, 0, 500),
@@ -315,7 +388,7 @@ class Settings extends Base
             $this->deleteLogo($oldLogo);
         }
 
-        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/纪念日/上传设置/登录安全/维护模式）');
+        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/音乐歌单/纪念日/上传设置/登录安全/维护模式）');
         admin_flash('系统设置已保存');
         return redirect('/admin/settings');
     }

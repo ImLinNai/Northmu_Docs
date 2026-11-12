@@ -66,17 +66,10 @@ class Login extends BaseController
         }
 
         Cache::delete($failKey);
-        Session::regenerate();
-        Session::set('admin_id', (int) $admin->id);
-        Session::set('admin_username', (string) $admin->username);
-        Session::set('admin_login_at', time());
-        Session::set('admin_lifetime', admin_session_lifetime());
-
-        $admin->save([
-            'last_login_at' => date('Y-m-d H:i:s'),
-            'last_login_ip' => $ip,
+        admin_complete_login([
+            'id'       => (int) $admin->id,
+            'username' => (string) $admin->username,
         ]);
-        $this->writeLog($username, true, '登录成功', (int) $admin->id);
 
         return redirect('/admin');
     }
@@ -112,6 +105,8 @@ class Login extends BaseController
             'error'     => $error,
             'username'  => $username,
             'captchaOn' => sys_setting('captcha_on', '1') === '1',
+            'passkeyEnabled' => passkey_login_enabled() && passkey_count() > 0,
+            'passkeyCount'   => passkey_count(),
         ]);
     }
 

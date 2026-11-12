@@ -22,6 +22,10 @@
     </div>
 </div>
 
+{if !empty($musicEnabled)}
+{include file="common/music_modal" /}
+{/if}
+
 <button type="button" class="nm-back-top" data-back-top aria-label="回到顶部" title="回到顶部">
     <i class="ti ti-arrow-up"></i>
 </button>
@@ -37,6 +41,9 @@
 <script src="/static/vendor/tabler/js/tabler.min.js"></script>
 <script src="/static/js/app.js"></script>
 <script src="/static/js/apple-ui.js"></script>
+{if !empty($musicEnabled)}
+<script src="/static/js/music.js"></script>
+{/if}
 {if !empty($noticePopups) || !empty($noticeBanner)}
 <script src="/static/js/notices.js"></script>
 {/if}

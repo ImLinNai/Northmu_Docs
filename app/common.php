@@ -10,7 +10,7 @@ use think\facade\View;
  */
 function app_version(): string
 {
-    return '1.7.0';
+    return '1.7.1';
 }
 
 /**
@@ -1737,6 +1737,155 @@ function audit_log(
     } catch (\Throwable $e) {
         // 日志失败不应阻断业务
     }
+}
+
+/**
+ * 登录成功后建立管理会话，密码与通行密钥共用
+ */
+function admin_complete_login(array $admin, string $message = '登录成功'): void
+{
+    $adminId = (int) ($admin['id'] ?? 0);
+    $username = (string) ($admin['username'] ?? '');
+    $ip = '';
+    $userAgent = '';
+    try {
+        $ip = (string) request()->ip();
+        $userAgent = (string) request()->header('user-agent', '');
+    } catch (\Throwable $e) {
+        // 无请求上下文时留空
+    }
+
+    Session::regenerate();
+    Session::set('admin_id', $adminId);
+    Session::set('admin_username', $username);
+    Session::set('admin_login_at', time());
+    Session::set('admin_lifetime', admin_session_lifetime());
+    Session::set('admin_welcome', $username);
+
+    Db::name('admins')->where('id', $adminId)->update([
+        'last_login_at' => date('Y-m-d H:i:s'),
+        'last_login_ip' => $ip,
+    ]);
+
+    try {
+        Db::name('login_logs')->insert([
+            'username'   => mb_substr($username, 0, 50),
+            'ip'         => mb_substr($ip, 0, 45),
+            'user_agent' => mb_substr($userAgent, 0, 255),
+            'success'    => 1,
+            'message'    => mb_substr($message, 0, 100),
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+    } catch (\Throwable $e) {
+        // 登录日志失败不影响主流程
+    }
+
+    audit_log('auth', 'login', $message . '（账号：' . ($username !== '' ? $username : '空') . '）', 'admin', $adminId, $username, $adminId);
+}
+
+/**
+ * 读取并清除「登录后欢迎提示」，仅在刚登录进入后台时出现一次
+ */
+function admin_welcome_pull(): string
+{
+    $username = trim((string) Session::get('admin_welcome', ''));
+    Session::delete('admin_welcome');
+    if ($username === '') {
+        return '';
+    }
+    $profile = admin_profile();
+    $name = (string) ($profile['display_name'] ?? '');
+    if ($name === '') {
+        $name = $username;
+    }
+    return '欢迎回来，' . $name;
+}
+
+/**
+ * 是否已启用通行密钥登录
+ */
+function passkey_login_enabled(): bool
+{
+    return (string) sys_setting('passkey_login', '0') === '1';
+}
+
+/**
+ * 已注册的通行密钥数量
+ */
+function passkey_count(int $adminId = 0): int
+{
+    try {
+        $query = Db::name('admin_passkeys');
+        if ($adminId > 0) {
+            $query->where('admin_id', $adminId);
+        }
+        return (int) $query->count();
+    } catch (\Throwable $e) {
+        return 0;
+    }
+}
+
+/**
+ * 前台音乐歌单（来自后台 JSON 配置）
+ */
+function site_music_playlist(): array
+{
+    static $playlist = null;
+    if ($playlist !== null) {
+        return $playlist;
+    }
+
+    $playlist = [];
+    $raw = (string) sys_setting('music_playlist', '');
+    if ($raw === '') {
+        return $playlist;
+    }
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        return $playlist;
+    }
+    foreach ($decoded as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $title = trim((string) ($row['title'] ?? ''));
+        $audio = trim((string) ($row['audio'] ?? ''));
+        if ($title === '' || $audio === '') {
+            continue;
+        }
+        if (normalize_media_url($audio) === null) {
+            continue;
+        }
+        $cover = trim((string) ($row['cover'] ?? ''));
+        if ($cover !== '' && normalize_media_url($cover) === null) {
+            $cover = '';
+        }
+        $playlist[] = [
+            'title'  => mb_substr($title, 0, 80),
+            'artist' => mb_substr(trim((string) ($row['artist'] ?? '')), 0, 80),
+            'audio'  => $audio,
+            'cover'  => $cover,
+            'lyrics' => trim((string) ($row['lyrics'] ?? '')),
+        ];
+        if (count($playlist) >= 30) {
+            break;
+        }
+    }
+    return $playlist;
+}
+
+function site_music_enabled(): bool
+{
+    return (string) sys_setting('music_enabled', '0') === '1' && count(site_music_playlist()) > 0;
+}
+
+function site_music_json(): string
+{
+    $json = json_encode(
+        site_music_playlist(),
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    );
+    return is_string($json) ? $json : '[]';
 }
 
 function admin_flash(string $message, string $type = 'success'): void

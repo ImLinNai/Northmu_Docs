@@ -42,6 +42,8 @@ class Index extends BaseController
             'contextMenuMode'=> site_context_menu_mode(),
             'siteCopyGuard'  => site_copy_guard(),
             'memorialActive' => memorial_active_for(true),
+            'musicEnabled' => site_music_enabled(),
+            'musicJson'   => site_music_json(),
             'themeColor'  => site_theme_color(),
             'home'        => $home,
             'homeButtons' => $home['buttons'],

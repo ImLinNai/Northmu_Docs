@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{$loginTitle} - {$siteName}</title>
     <meta name="robots" content="noindex,nofollow">
+    <meta name="csrf-token" content="{:csrf_token()}">
     <script>
         (function () {
             document.documentElement.classList.add('js');
@@ -113,6 +114,26 @@
                 </button>
             </form>
 
+            {if $passkeyEnabled}
+            <div class="nm-auth-divider" aria-hidden="true"><span>或</span></div>
+            <button type="button" class="nm-auth-passkey" id="passkeyLoginBtn"
+                data-options-url="/admin/passkey/options" data-login-url="/admin/passkey/login">
+                <span class="nm-auth-passkey-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 10v4a2 2 0 0 0 2 2h1"/>
+                        <path d="M9 10a3 3 0 0 1 6 0v5"/>
+                        <path d="M6.5 10a5.5 5.5 0 0 1 11 0v4"/>
+                        <path d="M4 10a8 8 0 0 1 16 0v2"/>
+                    </svg>
+                </span>
+                <span class="nm-auth-passkey-text">
+                    <span class="nm-auth-passkey-title">使用通行密钥登录</span>
+                    <span class="nm-auth-passkey-hint">设备指纹、面容或安全密钥，无需输入密码</span>
+                </span>
+                <i class="ti ti-chevron-right nm-auth-passkey-arrow"></i>
+            </button>
+            {/if}
+
             <div class="nm-auth-chips">
                 <span class="nm-auth-chip"><i class="ti ti-shield-lock"></i>登录态校验</span>
                 <span class="nm-auth-chip"><i class="ti ti-files"></i>文档与分类管理</span>
@@ -131,5 +152,6 @@
 <script src="/static/vendor/tabler/js/tabler.min.js"></script>
 <script src="/static/js/app.js"></script>
 <script src="/static/js/apple-ui.js"></script>
+<script src="/static/js/passkey.js"></script>
 </body>
 </html>

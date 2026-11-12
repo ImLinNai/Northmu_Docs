@@ -110,6 +110,11 @@
                             <i class="ti ti-sun theme-icon-sun me-2"></i>
                             <i class="ti ti-moon theme-icon-moon me-2"></i>切换主题
                         </button>
+                        {if !empty($musicEnabled)}
+                        <button class="dropdown-item" type="button" data-music-open>
+                            <svg class="nm-nav-music-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>音乐歌单
+                        </button>
+                        {/if}
                         {if $adminLogged}
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="/admin"><i class="ti ti-dashboard me-2"></i>进入后台</a>
@@ -128,6 +133,11 @@
                     <i class="ti ti-sun theme-icon-sun"></i>
                     <i class="ti ti-moon theme-icon-moon"></i>
                 </button>
+                {if !empty($musicEnabled)}
+                <button class="btn btn-icon btn-ghost-secondary d-none d-sm-inline-flex nm-nav-music" type="button" data-music-open title="音乐歌单" aria-label="打开音乐歌单">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+                </button>
+                {/if}
                 {if $adminLogged}
                 <div class="dropdown ms-1 nm-user-menu d-none d-sm-inline-flex">
                     <button class="btn nm-user-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="账号菜单">

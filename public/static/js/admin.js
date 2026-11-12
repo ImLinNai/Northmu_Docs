@@ -152,6 +152,10 @@
         if (flash) {
             toast(flash.getAttribute('data-message'), flash.getAttribute('data-type'));
         }
+        var welcome = document.getElementById('nmWelcome');
+        if (welcome) {
+            toast(welcome.getAttribute('data-message'), 'success');
+        }
     });
 
     document.addEventListener('click', function (event) {

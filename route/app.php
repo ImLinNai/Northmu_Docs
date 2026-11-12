@@ -29,6 +29,10 @@ Route::get('admin/login', 'admin.Login/index');
 Route::post('admin/login', 'admin.Login/doLogin');
 Route::get('admin/logout', 'admin.Login/logout');
 
+// 通行密钥登录（公开）
+Route::get('admin/passkey/options', 'admin.Passkey/options');
+Route::post('admin/passkey/login', 'admin.Passkey/login');
+
 // 后台（需登录）
 Route::group('admin', function () {
     Route::get('/', 'admin.Index/index');
@@ -85,6 +89,11 @@ Route::group('admin', function () {
     Route::post('settings/save', 'admin.Settings/save');
     Route::post('settings/password', 'admin.Settings/password');
     Route::post('settings/profile', 'admin.Settings/profile');
+
+    // 通行密钥管理
+    Route::post('passkey/register/options', 'admin.Passkey/registerOptions');
+    Route::post('passkey/register', 'admin.Passkey/register');
+    Route::post('passkey/delete', 'admin.Passkey/delete');
 
     // 操作日志
     Route::get('logs', 'admin.AuditLog/index');

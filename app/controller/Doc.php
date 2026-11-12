@@ -502,6 +502,8 @@ class Doc extends BaseController
             'contextMenuMode'=> site_context_menu_mode(),
             'siteCopyGuard'  => site_copy_guard(),
             'memorialActive' => memorial_active_for(false),
+            'musicEnabled' => site_music_enabled(),
+            'musicJson'   => site_music_json(),
             'themeColor'  => site_theme_color(),
             'adminLogged' => admin_logged_in(),
             'adminProfile'=> admin_logged_in() ? admin_profile() : null,

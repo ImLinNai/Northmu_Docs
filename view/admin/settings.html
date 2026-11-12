@@ -208,6 +208,66 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="card nm-settings-section mt-3" id="musicPlaylist">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-music me-1"></i>音乐歌单</h3>
+                            <div class="card-actions">
+                                <span class="badge bg-secondary-lt text-secondary">前台导航</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="music_enabled" value="1" id="musicEnabled" {if $settings.music_enabled == '1'}checked{/if}>
+                                <span class="form-check-label">在顶部导航显示音乐歌单按钮</span>
+                            </label>
+                            <div class="form-hint">开启后，前台导航的主题切换按钮旁会出现音乐按钮，访客可打开歌单弹窗播放。需至少配置一首歌曲。</div>
+
+                            <div class="nm-music-songs mt-4" id="musicSongs">
+                                {foreach $musicSongs as $i => $song}
+                                <div class="nm-music-song" data-music-song>
+                                    <div class="nm-music-song-head">
+                                        <span class="nm-music-song-index">{$i + 1}</span>
+                                        <span class="nm-music-song-caption">歌曲 {$i + 1}</span>
+                                        <button type="button" class="btn btn-sm btn-ghost-danger ms-auto" data-music-remove aria-label="删除这首歌">
+                                            <i class="ti ti-trash"></i>移除
+                                        </button>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">歌名</label>
+                                            <input type="text" class="form-control" name="music_songs[{$i}][title]" value="{$song.title|htmlspecialchars}" maxlength="80" placeholder="例如：暮色回响">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">作者 / 歌手</label>
+                                            <input type="text" class="form-control" name="music_songs[{$i}][artist]" value="{$song.artist|htmlspecialchars}" maxlength="80" placeholder="例如：张韶涵">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">封面链接</label>
+                                            <input type="text" class="form-control" name="music_songs[{$i}][cover]" value="{$song.cover|htmlspecialchars}" maxlength="500" placeholder="https://... 或 /uploads/...">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label required">音频链接</label>
+                                            <input type="text" class="form-control font-monospace" name="music_songs[{$i}][audio]" value="{$song.audio|htmlspecialchars}" maxlength="500" placeholder="https://example.com/song.mp3 或 /uploads/music/song.mp3">
+                                            <div class="form-hint">支持常见浏览器可播放的音频格式（mp3 / m4a / ogg / wav 等），建议使用 HTTPS 在线链接。</div>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">歌词</label>
+                                            <textarea class="form-control" name="music_songs[{$i}][lyrics]" rows="3" maxlength="5000" placeholder="可选，按行输入歌词；留空时前台显示提示语。">{$song.lyrics|htmlspecialchars}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/foreach}
+                            </div>
+                            <div class="nm-music-empty" id="musicEmptyHint"{if $musicSongs} hidden{/if}>
+                                <i class="ti ti-playlist"></i>
+                                <span>尚未添加歌曲，点击下方按钮添加第一首。</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary mt-3" id="musicAddSong">
+                                <i class="ti ti-plus me-1"></i>添加歌曲
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="tab-pane fade" id="settingsMemorialTab" role="tabpanel">
@@ -353,6 +413,48 @@
                                 </label>
                             </div>
                             <div class="form-hint mt-2">从登录成功时开始计时，到期后需要重新登录。修改后对下一次登录生效，当前登录态不受影响；手动退出后重新登录会重新计算。</div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3" id="passkeyPanel">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-key me-1"></i>通行密钥 Passkey</h3>
+                            <div class="card-actions">
+                                {if $passkeys}
+                                <span class="badge bg-green-lt text-green">已注册 {:count($passkeys)} 个</span>
+                                {else}
+                                <span class="badge bg-secondary-lt text-secondary">未注册</span>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <label class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="passkey_login" value="1" id="passkeyLogin" {if $settings.passkey_login == '1'}checked{/if}>
+                                <span class="form-check-label">允许使用通行密钥登录后台</span>
+                            </label>
+                            <div class="form-hint">开启并注册通行密钥后，登录页会出现"使用通行密钥登录"入口，可通过设备指纹、面容或安全密钥快速验证。通行密钥绑定当前访问域名，需在 HTTPS 或 localhost 环境下使用。</div>
+
+                            <div class="nm-passkey-list mt-4" id="passkeyList">
+                                {foreach $passkeys as $pk}
+                                <div class="nm-passkey-item" data-passkey-item>
+                                    <span class="nm-passkey-icon"><i class="ti ti-key"></i></span>
+                                    <div class="nm-passkey-meta">
+                                        <div class="nm-passkey-label">{$pk.label|htmlspecialchars}</div>
+                                        <div class="nm-passkey-sub">
+                                            注册于 {:date('Y-m-d', (int) strtotime($pk.created_at))}
+                                            {if $pk.last_used_at} · 最近使用 {:date('Y-m-d H:i', (int) strtotime($pk.last_used_at))}{else} · 尚未使用{/if}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-ghost-danger" data-passkey-delete data-passkey-id="{$pk.id}" data-passkey-label="{$pk.label|htmlspecialchars}" aria-label="删除此通行密钥">
+                                        <i class="ti ti-trash"></i>删除
+                                    </button>
+                                </div>
+                                {/foreach}
+                            </div>
+                            <div class="nm-passkey-empty" id="passkeyEmptyHint"{if $passkeys} hidden{/if}>尚未注册通行密钥。注册后即可免密码登录后台。</div>
+                            <button type="button" class="btn btn-outline-primary mt-3" id="passkeyRegisterBtn" data-options-url="/admin/passkey/register/options" data-register-url="/admin/passkey/register">
+                                <i class="ti ti-plus me-1"></i>注册通行密钥
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -567,7 +669,11 @@
                 siteSeo: '#settingsSeoTab',
                 baiduSeo: '#settingsSeoTab',
                 frontInteraction: '#settingsFrontTab',
-                memorial: '#settingsMemorialTab'
+                music: '#settingsFrontTab',
+                musicPlaylist: '#settingsFrontTab',
+                memorial: '#settingsMemorialTab',
+                passkey: '#settingsSecurityTab',
+                passkeys: '#settingsSecurityTab'
             };
             var target = tabMap[hash];
             if (target && window.bootstrap && window.bootstrap.Tab) {
@@ -643,7 +749,77 @@
                 }
             });
         }
+
+        var musicSongs = document.getElementById('musicSongs');
+        var musicAdd = document.getElementById('musicAddSong');
+        var musicEmpty = document.getElementById('musicEmptyHint');
+
+        function musicRows() {
+            if (!musicSongs) return [];
+            return Array.prototype.slice.call(musicSongs.querySelectorAll('[data-music-song]'));
+        }
+
+        function refreshMusicRows() {
+            var rows = musicRows();
+            rows.forEach(function (row, i) {
+                var index = row.querySelector('.nm-music-song-index');
+                var caption = row.querySelector('.nm-music-song-caption');
+                if (index) index.textContent = i + 1;
+                if (caption) caption.textContent = '歌曲 ' + (i + 1);
+                row.querySelectorAll('[name^="music_songs["]').forEach(function (input) {
+                    input.name = input.name.replace(/^music_songs\[\d+\]/, 'music_songs[' + i + ']');
+                });
+            });
+            if (musicEmpty) musicEmpty.hidden = rows.length > 0;
+            if (musicAdd) musicAdd.disabled = rows.length >= 30;
+        }
+
+        function createMusicRow() {
+            var row = document.createElement('div');
+            row.className = 'nm-music-song';
+            row.setAttribute('data-music-song', '');
+            row.innerHTML = [
+                '<div class="nm-music-song-head">',
+                '<span class="nm-music-song-index"></span>',
+                '<span class="nm-music-song-caption"></span>',
+                '<button type="button" class="btn btn-sm btn-ghost-danger ms-auto" data-music-remove aria-label="删除这首歌"><i class="ti ti-trash"></i>移除</button>',
+                '</div>',
+                '<div class="row g-3">',
+                '<div class="col-md-4"><label class="form-label">歌名</label><input type="text" class="form-control" name="music_songs[0][title]" maxlength="80" placeholder="例如：暮色回响"></div>',
+                '<div class="col-md-4"><label class="form-label">作者 / 歌手</label><input type="text" class="form-control" name="music_songs[0][artist]" maxlength="80" placeholder="例如：张韶涵"></div>',
+                '<div class="col-md-4"><label class="form-label">封面链接</label><input type="text" class="form-control" name="music_songs[0][cover]" maxlength="500" placeholder="https://... 或 /uploads/..."></div>',
+                '<div class="col-12"><label class="form-label required">音频链接</label><input type="text" class="form-control font-monospace" name="music_songs[0][audio]" maxlength="500" placeholder="https://example.com/song.mp3 或 /uploads/music/song.mp3"><div class="form-hint">支持常见浏览器可播放的音频格式（mp3 / m4a / ogg / wav 等），建议使用 HTTPS 在线链接。</div></div>',
+                '<div class="col-12"><label class="form-label">歌词</label><textarea class="form-control" name="music_songs[0][lyrics]" rows="3" maxlength="5000" placeholder="可选，按行输入歌词；留空时前台显示提示语。"></textarea></div>',
+                '</div>'
+            ].join('');
+            return row;
+        }
+
+        if (musicSongs) {
+            musicSongs.addEventListener('click', function (event) {
+                var remove = event.target.closest('[data-music-remove]');
+                if (!remove) return;
+                var row = remove.closest('[data-music-song]');
+                if (row) {
+                    row.remove();
+                    refreshMusicRows();
+                }
+            });
+        }
+        if (musicAdd) {
+            musicAdd.addEventListener('click', function () {
+                if (!musicSongs) return;
+                var row = createMusicRow();
+                musicSongs.appendChild(row);
+                refreshMusicRows();
+                var first = row.querySelector('input');
+                if (first) first.focus();
+            });
+        }
+        refreshMusicRows();
     })();
 </script>
+
+<script src="/static/js/passkey.js"></script>
 
 {include file="common/footer" /}
