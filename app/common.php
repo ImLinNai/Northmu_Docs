@@ -4,13 +4,14 @@ use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Session;
 use think\facade\View;
+use app\support\HomeIcons;
 
 /**
  * 当前程序版本
  */
 function app_version(): string
 {
-    return '1.7.1';
+    return '1.7.2';
 }
 
 /**
@@ -658,11 +659,23 @@ function site_home_config(): array
                 if ($label === '' || $url === '') {
                     continue;
                 }
+                $icon = (string) ($row['icon'] ?? '');
+                if (!HomeIcons::exists($icon)) {
+                    $icon = '';
+                }
+                $color = (string) ($row['color'] ?? '');
+                if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+                    $color = '';
+                }
                 $buttons[] = [
-                    'label'    => $label,
-                    'url'      => $url,
-                    'style'    => (($row['style'] ?? 'primary') === 'outline') ? 'outline' : 'primary',
-                    'external' => (bool) preg_match('#^https?://#i', $url),
+                    'label'     => $label,
+                    'url'       => $url,
+                    'style'     => (($row['style'] ?? 'primary') === 'outline') ? 'outline' : 'primary',
+                    'external'  => (bool) preg_match('#^https?://#i', $url),
+                    'icon'      => $icon,
+                    'color'     => $color,
+                    'iconOnly'  => !empty($row['icon_only']) && $icon !== '',
+                    'styleAttr' => home_button_style_attr($color),
                 ];
                 if (count($buttons) >= 4) {
                     break;
@@ -670,7 +683,7 @@ function site_home_config(): array
             }
         }
     } else {
-        $buttons[] = ['label' => '浏览文档', 'url' => '/docs', 'style' => 'primary', 'external' => false];
+        $buttons[] = ['label' => '浏览文档', 'url' => '/docs', 'style' => 'primary', 'external' => false, 'icon' => '', 'color' => '', 'iconOnly' => false, 'styleAttr' => ''];
     }
 
     $bgType = (string) sys_setting('site_home_bg_type', 'none');
@@ -708,6 +721,41 @@ function site_home_config(): array
             'note'  => '公开 · 加密 · 私有，三种可见性按需设置',
         ],
     ];
+}
+
+
+/**
+ * 首页按钮图标选项
+ */
+function home_button_icon_options(): array
+{
+    return HomeIcons::options();
+}
+
+
+/**
+ * 首页按钮图标 SVG
+ */
+function home_button_icon_svg(string $key, int $size = 18): string
+{
+    return HomeIcons::svg($key, $size);
+}
+
+
+/**
+ * 首页按钮自定义颜色内联变量
+ */
+function home_button_style_attr(string $color): string
+{
+    if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+        return '';
+    }
+    $r = hexdec(substr($color, 1, 2));
+    $g = hexdec(substr($color, 3, 2));
+    $b = hexdec(substr($color, 5, 2));
+    $luminance = (0.299 * $r + 0.587 * $g + 0.114 * $b) / 255;
+    $text = $luminance > 0.62 ? '#111827' : '#ffffff';
+    return '--home-btn-color:' . $color . ';--home-btn-text:' . $text . ';';
 }
 
 

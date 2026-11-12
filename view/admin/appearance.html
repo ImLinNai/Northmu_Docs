@@ -265,42 +265,71 @@
                         <div class="nm-section-head mt-4">
                             <div>
                                 <div class="nm-section-head-title">首页按钮</div>
-                                <div class="nm-section-head-desc">最多 4 个按钮，全部删除后首页不显示按钮。</div>
+                                <div class="nm-section-head-desc">最多 4 个按钮；支持预设或自定义颜色、品牌图标，开启「仅显示图标」后只展示图标（适合 GitHub、Gitee 等入口）。</div>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="homeButtonAdd">
                                 <i class="ti ti-plus me-1"></i>添加按钮
                             </button>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-vcenter mb-0">
-                                <thead>
-                                    <tr>
-                                        <th style="width:30%">按钮文字</th>
-                                        <th>链接地址</th>
-                                        <th style="width:22%">样式</th>
-                                        <th style="width:60px"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="homeButtonsBody">
-                                    {foreach $homeButtons as $button}
-                                    <tr class="home-button-row">
-                                        <td><input type="text" class="form-control" name="home_buttons[label][]" value="{$button.label}" maxlength="20" placeholder="浏览文档"></td>
-                                        <td><input type="text" class="form-control font-monospace" name="home_buttons[url][]" value="{$button.url}" maxlength="300" placeholder="/docs"></td>
-                                        <td>
-                                            <select class="form-select" name="home_buttons[style][]">
-                                                <option value="primary" {if $button.style == 'primary'}selected{/if}>主要按钮</option>
-                                                <option value="outline" {if $button.style == 'outline'}selected{/if}>描边按钮</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-icon btn-ghost-danger home-button-remove" title="删除" aria-label="删除">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {/foreach}
-                                </tbody>
-                            </table>
+                        <div class="nm-home-buttons" id="homeButtonsBody">
+                            {foreach $homeButtons as $index => $button}
+                            <div class="nm-home-btn-row home-button-row">
+                                <div class="nm-home-btn-row-head">
+                                    <span class="nm-home-btn-index">按钮 {:$index + 1}</span>
+                                    <span class="nm-home-btn-preview" data-home-btn-preview aria-hidden="true"></span>
+                                    <button type="button" class="btn btn-icon btn-ghost-danger home-button-remove" title="删除" aria-label="删除">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-sm-6">
+                                        <label class="form-label">按钮文字</label>
+                                        <input type="text" class="form-control" name="home_buttons[label][]" value="{$button.label}" maxlength="20" placeholder="浏览文档" data-home-btn-label>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label">链接地址</label>
+                                        <input type="text" class="form-control font-monospace" name="home_buttons[url][]" value="{$button.url}" maxlength="300" placeholder="/docs" data-home-btn-url>
+                                    </div>
+                                    <div class="col-6 col-lg-4">
+                                        <label class="form-label">样式</label>
+                                        <select class="form-select" name="home_buttons[style][]" data-home-btn-style>
+                                            <option value="primary" {if $button.style == 'primary'}selected{/if}>主要按钮</option>
+                                            <option value="outline" {if $button.style == 'outline'}selected{/if}>描边按钮</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6 col-lg-8">
+                                        <label class="form-label">图标</label>
+                                        <select class="form-select" name="home_buttons[icon][]" data-home-btn-icon>
+                                            {foreach $homeButtonIcons as $iconKey => $iconName}
+                                            <option value="{$iconKey}" data-icon-svg="{:htmlspecialchars(home_button_icon_svg($iconKey, 16), ENT_QUOTES)}" {if $button.icon == $iconKey}selected{/if}>{$iconName}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="nm-home-btn-row-foot">
+                                    <div class="nm-home-btn-colors" data-home-btn-colors>
+                                        <span class="nm-home-btn-colors-label">颜色</span>
+                                        {foreach $homeButtonColors as $hex => $colorName}
+                                        <button type="button" class="nm-color-dot{if $hex == ''} is-auto{/if}{if $button.color == $hex} is-active{/if}" data-home-color="{$hex}" title="{$colorName}" aria-label="{$colorName}"{if $hex} style="--dot-color:{$hex}"{/if}>{if $hex == ''}<i class="ti ti-contrast"></i>{/if}</button>
+                                        {/foreach}
+                                        <label class="nm-color-custom" title="自定义颜色">
+                                            <input type="color" value="{$button.color ? $button.color : '#0a7aff'}" data-home-color-input aria-label="自定义按钮颜色">
+                                            <span>自定义</span>
+                                        </label>
+                                        <input type="hidden" name="home_buttons[color][]" value="{$button.color}" data-home-btn-color-value>
+                                    </div>
+                                    <label class="form-check form-switch nm-home-btn-icononly">
+                                        <input type="hidden" name="home_buttons[icon_only][{$index}]" value="0" data-home-btn-icononly>
+                                        <input class="form-check-input" type="checkbox" name="home_buttons[icon_only][{$index}]" value="1" data-home-btn-icononly {if $button.iconOnly}checked{/if}>
+                                        <span class="form-check-label">仅显示图标</span>
+                                    </label>
+                                </div>
+                            </div>
+                            {/foreach}
+                        </div>
+                        <div class="nm-home-buttons-empty" id="homeButtonsEmpty"{if $homeButtons} hidden{/if}>
+                            <i class="ti ti-pointer mb-1"></i>
+                            <span>还没有首页按钮，点击「添加按钮」创建。</span>
                         </div>
                     </div>
                 </div>
@@ -565,7 +594,10 @@
                         <div class="home-preview-text">{$home.intro}</div>
                         <div class="home-preview-actions">
                             {foreach $homeButtons as $button}
-                            <span class="btn btn-sm {if $button.style == 'outline'}btn-outline-primary{else}btn-primary{/if}">{$button.label}</span>
+                            <span class="btn btn-sm {if $button.style == 'outline'}btn-outline-primary{else}btn-primary{/if} hero-btn{if $button.iconOnly} hero-btn-icon-only{/if}{if $button.color} hero-btn-custom{/if}"{if $button.styleAttr} style="{$button.styleAttr}"{/if}>
+                                {if $button.icon}<span class="hero-btn-icon">{:home_button_icon_svg($button['icon'], $button['iconOnly'] ? 18 : 15)}</span>{/if}
+                                {if !$button.iconOnly}{$button.label}{/if}
+                            </span>
                             {/foreach}
                         </div>
                         <div class="home-preview-note">{$home.note}</div>
@@ -623,21 +655,58 @@
 </form>
 
 <template id="homeButtonTemplate">
-    <tr class="home-button-row">
-        <td><input type="text" class="form-control" name="home_buttons[label][]" maxlength="20" placeholder="按钮文字"></td>
-        <td><input type="text" class="form-control font-monospace" name="home_buttons[url][]" maxlength="300" placeholder="/docs"></td>
-        <td>
-            <select class="form-select" name="home_buttons[style][]">
-                <option value="primary">主要按钮</option>
-                <option value="outline">描边按钮</option>
-            </select>
-        </td>
-        <td>
+    <div class="nm-home-btn-row home-button-row">
+        <div class="nm-home-btn-row-head">
+            <span class="nm-home-btn-index">按钮 1</span>
+            <span class="nm-home-btn-preview" data-home-btn-preview aria-hidden="true"></span>
             <button type="button" class="btn btn-icon btn-ghost-danger home-button-remove" title="删除" aria-label="删除">
                 <i class="ti ti-trash"></i>
             </button>
-        </td>
-    </tr>
+        </div>
+        <div class="row g-2">
+            <div class="col-sm-6">
+                <label class="form-label">按钮文字</label>
+                <input type="text" class="form-control" name="home_buttons[label][]" maxlength="20" placeholder="浏览文档" data-home-btn-label>
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label">链接地址</label>
+                <input type="text" class="form-control font-monospace" name="home_buttons[url][]" maxlength="300" placeholder="/docs" data-home-btn-url>
+            </div>
+            <div class="col-6 col-lg-4">
+                <label class="form-label">样式</label>
+                <select class="form-select" name="home_buttons[style][]" data-home-btn-style>
+                    <option value="primary">主要按钮</option>
+                    <option value="outline">描边按钮</option>
+                </select>
+            </div>
+            <div class="col-6 col-lg-8">
+                <label class="form-label">图标</label>
+                <select class="form-select" name="home_buttons[icon][]" data-home-btn-icon>
+                    {foreach $homeButtonIcons as $iconKey => $iconName}
+                    <option value="{$iconKey}" data-icon-svg="{:htmlspecialchars(home_button_icon_svg($iconKey, 16), ENT_QUOTES)}">{$iconName}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+        <div class="nm-home-btn-row-foot">
+            <div class="nm-home-btn-colors" data-home-btn-colors>
+                <span class="nm-home-btn-colors-label">颜色</span>
+                {foreach $homeButtonColors as $hex => $colorName}
+                <button type="button" class="nm-color-dot{if $hex == ''} is-auto{/if}{if $hex == ''} is-active{/if}" data-home-color="{$hex}" title="{$colorName}" aria-label="{$colorName}"{if $hex} style="--dot-color:{$hex}"{/if}>{if $hex == ''}<i class="ti ti-contrast"></i>{/if}</button>
+                {/foreach}
+                <label class="nm-color-custom" title="自定义颜色">
+                    <input type="color" value="#0a7aff" data-home-color-input aria-label="自定义按钮颜色">
+                    <span>自定义</span>
+                </label>
+                <input type="hidden" name="home_buttons[color][]" value="" data-home-btn-color-value>
+            </div>
+            <label class="form-check form-switch nm-home-btn-icononly">
+                <input type="hidden" name="home_buttons[icon_only][0]" value="0" data-home-btn-icononly>
+                <input class="form-check-input" type="checkbox" name="home_buttons[icon_only][0]" value="1" data-home-btn-icononly>
+                <span class="form-check-label">仅显示图标</span>
+            </label>
+        </div>
+    </div>
 </template>
 
 <template id="navItemTemplate">

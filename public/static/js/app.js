@@ -133,6 +133,7 @@
         initReadingProgress();
         initLightbox();
         initCategoryCollapse();
+        initDocView();
         initBackTop();
         initSearchModal();
         initUnlockToggle();
@@ -1006,6 +1007,31 @@
                 btn.classList.toggle('collapsed', hidden);
                 try { localStorage.setItem('northmu-cat-' + id, hidden ? '0' : '1'); } catch (err) { }
             });
+        });
+    }
+
+    function initDocView() {
+        var group = document.querySelector('[data-doc-view-switch]');
+        if (!group) return;
+        var root = document.documentElement;
+        var buttons = group.querySelectorAll('[data-doc-view-btn]');
+        var key = 'northmu-doc-view';
+
+        function apply(view) {
+            root.setAttribute('data-doc-view', view);
+            buttons.forEach(function (btn) {
+                btn.setAttribute('aria-pressed', btn.getAttribute('data-doc-view-btn') === view ? 'true' : 'false');
+            });
+        }
+
+        apply(root.getAttribute('data-doc-view') === 'grid' ? 'grid' : 'list');
+
+        group.addEventListener('click', function (event) {
+            var btn = event.target.closest('[data-doc-view-btn]');
+            if (!btn) return;
+            var view = btn.getAttribute('data-doc-view-btn') === 'grid' ? 'grid' : 'list';
+            apply(view);
+            try { localStorage.setItem(key, view); } catch (e) { }
         });
     }
 

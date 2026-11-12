@@ -116,6 +116,29 @@
         return parts.sort().join('\u0001');
     }
 
+    function initTabPersistence() {
+        var groups = document.querySelectorAll('.nm-settings-tabs');
+        if (!groups.length) return;
+        var key = 'northmu-admin-tab:' + window.location.pathname;
+
+        groups.forEach(function (nav) {
+            nav.addEventListener('shown.bs.tab', function (event) {
+                var target = event.target.getAttribute('data-bs-target');
+                if (!target) return;
+                try { sessionStorage.setItem(key, target); } catch (e) { }
+            });
+        });
+
+        if (window.location.hash) return;
+        var stored = '';
+        try { stored = sessionStorage.getItem(key) || ''; } catch (e) { }
+        if (!stored) return;
+        var button = document.querySelector('.nm-settings-tabs [data-bs-target="' + stored + '"]');
+        if (button && !button.classList.contains('active')) {
+            button.click();
+        }
+    }
+
     function initSavebars() {
         document.querySelectorAll('.nm-savebar').forEach(function (bar) {
             var form = bar.closest('form');
@@ -147,6 +170,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         initAdminSidebar();
+        initTabPersistence();
         initSavebars();
         var flash = document.getElementById('nmFlash');
         if (flash) {

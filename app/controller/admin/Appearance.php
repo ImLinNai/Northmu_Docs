@@ -4,6 +4,7 @@ namespace app\controller\admin;
 
 use think\facade\Db;
 use think\facade\View;
+use app\support\HomeIcons;
 
 class Appearance extends Base
 {
@@ -57,6 +58,17 @@ class Appearance extends Base
             'bgVideoUrl'   => preg_match('#^https?://#i', (string) $settings['site_home_bg_video']) ? (string) $settings['site_home_bg_video'] : '',
             'themeColor'   => site_theme_color(),
             'themePresets' => site_theme_presets(),
+            'homeButtonIcons' => home_button_icon_options(),
+            'homeButtonColors' => [
+                ''        => '跟随主题',
+                '#0a7aff' => '星蓝',
+                '#10b981' => '松绿',
+                '#f59e0b' => '琥珀',
+                '#ef4444' => '朱红',
+                '#8b5cf6' => '鸢尾',
+                '#ec4899' => '玫瑰',
+                '#111827' => '墨黑',
+            ],
             'uploadCategories' => upload_categories(),
         ];
         $view['extraScripts'] = '<script src="/static/js/admin-pages.js"></script>';
@@ -394,6 +406,9 @@ class Appearance extends Base
         $labels = $raw['label'] ?? [];
         $urls = $raw['url'] ?? [];
         $styles = $raw['style'] ?? [];
+        $icons = $raw['icon'] ?? [];
+        $colors = $raw['color'] ?? [];
+        $iconOnly = $raw['icon_only'] ?? [];
         if (!is_array($labels) || !is_array($urls)) {
             return null;
         }
@@ -412,10 +427,22 @@ class Appearance extends Base
                 return null;
             }
             $style = (string) ($styles[$index] ?? 'primary');
+            $icon = (string) ($icons[$index] ?? '');
+            if (!HomeIcons::exists($icon)) {
+                $icon = '';
+            }
+            $color = trim((string) ($colors[$index] ?? ''));
+            if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+                $color = '';
+            }
+            $only = !empty($iconOnly[$index]) && $icon !== '';
             $buttons[] = [
-                'label' => $label,
-                'url'   => $url,
-                'style' => $style === 'outline' ? 'outline' : 'primary',
+                'label'     => $label,
+                'url'       => $url,
+                'style'     => $style === 'outline' ? 'outline' : 'primary',
+                'icon'      => $icon,
+                'color'     => $color,
+                'icon_only' => $only ? 1 : 0,
             ];
             if (count($buttons) >= 4) {
                 break;

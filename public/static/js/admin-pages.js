@@ -390,23 +390,136 @@
     var homeButtonsBody = document.getElementById('homeButtonsBody');
     var homeButtonAdd = document.getElementById('homeButtonAdd');
     var homeButtonTemplate = document.getElementById('homeButtonTemplate');
+    var homeButtonsEmpty = document.getElementById('homeButtonsEmpty');
     if (homeButtonsBody && homeButtonAdd && homeButtonTemplate) {
         var maxHomeButtons = 4;
-        var updateHomeButtonLimit = function () {
-            homeButtonAdd.disabled = homeButtonsBody.querySelectorAll('.home-button-row').length >= maxHomeButtons;
+
+        var homeRows = function () {
+            return Array.prototype.slice.call(homeButtonsBody.querySelectorAll('.home-button-row'));
         };
+
+        var escapeHomeText = function (text) {
+            var span = document.createElement('span');
+            span.textContent = text;
+            return span.innerHTML;
+        };
+
+        var syncHomeButtonRow = function (row) {
+            var rows = homeRows();
+            var index = rows.indexOf(row);
+            if (index < 0) {
+                return;
+            }
+            row.querySelectorAll('[data-home-btn-icononly]').forEach(function (input) {
+                input.name = 'home_buttons[icon_only][' + index + ']';
+            });
+            var indexLabel = row.querySelector('.nm-home-btn-index');
+            if (indexLabel) {
+                indexLabel.textContent = '按钮 ' + (index + 1);
+            }
+
+            var labelInput = row.querySelector('[data-home-btn-label]');
+            var urlInput = row.querySelector('[data-home-btn-url]');
+            var styleSelect = row.querySelector('[data-home-btn-style]');
+            var iconSelect = row.querySelector('[data-home-btn-icon]');
+            var colorValue = row.querySelector('[data-home-btn-color-value]');
+            var colorInput = row.querySelector('[data-home-color-input]');
+            var onlyCheckbox = row.querySelector('input[type="checkbox"][data-home-btn-icononly]');
+
+            var icon = iconSelect ? iconSelect.value : '';
+            var label = labelInput ? labelInput.value.trim() : '';
+            var url = urlInput ? urlInput.value.trim() : '';
+            var style = styleSelect ? styleSelect.value : 'primary';
+            var color = colorValue ? colorValue.value : '';
+            var only = !!(onlyCheckbox && onlyCheckbox.checked && icon);
+
+            if (onlyCheckbox) {
+                onlyCheckbox.disabled = icon === '';
+                if (icon === '' && onlyCheckbox.checked) {
+                    onlyCheckbox.checked = false;
+                    onlyCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            var presetActive = false;
+            row.querySelectorAll('[data-home-color]').forEach(function (dot) {
+                var match = dot.getAttribute('data-home-color') === color;
+                dot.classList.toggle('is-active', match);
+                if (match && color !== '') {
+                    presetActive = true;
+                }
+            });
+            var customLabel = row.querySelector('.nm-color-custom');
+            if (customLabel) {
+                customLabel.classList.toggle('is-active', color !== '' && !presetActive);
+            }
+            if (colorInput && color) {
+                colorInput.value = color;
+            }
+
+            var preview = row.querySelector('[data-home-btn-preview]');
+            if (preview) {
+                preview.classList.toggle('is-outline', style === 'outline');
+                preview.classList.toggle('is-custom', color !== '');
+                preview.classList.toggle('is-icon-only', !!only);
+                preview.style.removeProperty('--home-btn-color');
+                if (color) {
+                    preview.style.setProperty('--home-btn-color', color);
+                }
+                var option = iconSelect && iconSelect.selectedOptions ? iconSelect.selectedOptions[0] : null;
+                var svg = option ? option.getAttribute('data-icon-svg') || '' : '';
+                var fallbackLabel = label || url || '按钮';
+                if (icon && svg) {
+                    if (!only) {
+                        preview.innerHTML = '<span class="nm-home-btn-preview-icon">' + svg + '</span><span>' + escapeHomeText(fallbackLabel) + '</span>';
+                        preview.removeAttribute('title');
+                    } else {
+                        preview.innerHTML = '<span class="nm-home-btn-preview-icon">' + svg + '</span>';
+                        preview.setAttribute('title', fallbackLabel);
+                    }
+                } else {
+                    preview.innerHTML = '<span>' + escapeHomeText(fallbackLabel) + '</span>';
+                    preview.removeAttribute('title');
+                }
+            }
+
+            homeButtonAdd.disabled = rows.length >= maxHomeButtons;
+            if (homeButtonsEmpty) {
+                homeButtonsEmpty.hidden = rows.length > 0;
+            }
+        };
+
+        var refreshHomeButtons = function () {
+            homeRows().forEach(syncHomeButtonRow);
+        };
+
         homeButtonAdd.addEventListener('click', function () {
-            if (homeButtonsBody.querySelectorAll('.home-button-row').length >= maxHomeButtons) {
+            if (homeRows().length >= maxHomeButtons) {
                 return;
             }
             homeButtonsBody.appendChild(homeButtonTemplate.content.firstElementChild.cloneNode(true));
-            updateHomeButtonLimit();
-            var firstInput = homeButtonsBody.querySelector('.home-button-row:last-child input');
+            refreshHomeButtons();
+            var lastRow = homeRows()[homeRows().length - 1];
+            var firstInput = lastRow ? lastRow.querySelector('[data-home-btn-label]') : null;
             if (firstInput) {
                 firstInput.focus();
             }
         });
+
         homeButtonsBody.addEventListener('click', function (event) {
+            var colorDot = event.target.closest('[data-home-color]');
+            if (colorDot) {
+                var dotRow = colorDot.closest('.home-button-row');
+                var colorValue = dotRow ? dotRow.querySelector('[data-home-btn-color-value]') : null;
+                if (colorValue) {
+                    colorValue.value = colorDot.getAttribute('data-home-color') || '';
+                    colorValue.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (dotRow) {
+                    syncHomeButtonRow(dotRow);
+                }
+                return;
+            }
             var removeBtn = event.target.closest('.home-button-remove');
             if (!removeBtn) {
                 return;
@@ -415,9 +528,32 @@
             if (row) {
                 row.remove();
             }
-            updateHomeButtonLimit();
+            refreshHomeButtons();
         });
-        updateHomeButtonLimit();
+
+        homeButtonsBody.addEventListener('input', function (event) {
+            var row = event.target.closest('.home-button-row');
+            if (!row) {
+                return;
+            }
+            if (event.target.matches('[data-home-color-input]')) {
+                var colorValue = row.querySelector('[data-home-btn-color-value]');
+                if (colorValue) {
+                    colorValue.value = event.target.value;
+                    colorValue.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+            syncHomeButtonRow(row);
+        });
+
+        homeButtonsBody.addEventListener('change', function (event) {
+            var row = event.target.closest('.home-button-row');
+            if (row) {
+                syncHomeButtonRow(row);
+            }
+        });
+
+        refreshHomeButtons();
     }
 
     [['homeOverlay', 'homeOverlayValue'], ['loginOverlay', 'loginOverlayValue']].forEach(function (pair) {

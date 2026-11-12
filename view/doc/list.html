@@ -1,5 +1,13 @@
 {include file="common/public_header" /}
 
+<script>
+    try {
+        document.documentElement.setAttribute('data-doc-view', localStorage.getItem('northmu-doc-view') === 'grid' ? 'grid' : 'list');
+    } catch (e) {
+        document.documentElement.setAttribute('data-doc-view', 'list');
+    }
+</script>
+
 <main class="doc-page" id="main-content" tabindex="-1">
     <div class="doc-shell doc-shell-list">
         <aside class="doc-sidebar" data-doc-sidebar>
@@ -41,11 +49,21 @@
                         {/if}
                     </div>
                 </div>
-                {if $isSearch}
-                <a href="/docs" class="btn btn-sm btn-outline-secondary flex-shrink-0">
-                    <i class="ti ti-arrow-back-up me-1"></i>返回全部
-                </a>
-                {/if}
+                <div class="doc-list-head-actions">
+                    {if $isSearch}
+                    <a href="/docs" class="btn btn-sm btn-outline-secondary flex-shrink-0">
+                        <i class="ti ti-arrow-back-up me-1"></i>返回全部
+                    </a>
+                    {/if}
+                    <div class="doc-view-switch" role="group" aria-label="视图切换" data-doc-view-switch>
+                        <button type="button" class="doc-view-btn" data-doc-view-btn="list" aria-pressed="false" aria-label="列表视图" title="列表视图">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+                        </button>
+                        <button type="button" class="doc-view-btn" data-doc-view-btn="grid" aria-pressed="false" aria-label="卡片视图" title="卡片视图">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {if $docs}
@@ -69,11 +87,11 @@
                             {else}
                             <span class="doc-author-avatar doc-author-avatar-sm doc-author-avatar-fallback">{$author.initial}</span>
                             {/if}
-                            <span>{$author.display_name}</span>
+                            <span class="doc-author-name">{$author.display_name}</span>
                         </span>
-                        <span class="doc-meta-item"><i class="ti ti-folder"></i>{$doc.category_name}</span>
-                        <span class="doc-meta-item"><i class="ti ti-calendar-event"></i>发布于 {$doc.published_date}</span>
-                        <span class="doc-meta-item"><i class="ti ti-eye"></i>{$doc.views}</span>
+                        <span class="doc-meta-item doc-category"><i class="ti ti-folder"></i>{$doc.category_name}</span>
+                        <span class="doc-meta-item doc-date"><i class="ti ti-calendar-event"></i>发布于 {$doc.published_date}</span>
+                        <span class="doc-meta-item doc-views"><i class="ti ti-eye"></i>{$doc.views}</span>
                         {if $doc.tags}
                         <span class="doc-tags">
                             {volist name="doc.tags" id="tag"}

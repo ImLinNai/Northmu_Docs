@@ -32,7 +32,10 @@
             {if $homeButtons}
             <div class="hero-actions">
                 {foreach $homeButtons as $button}
-                <a href="{$button.url}" class="btn {if $button.style == 'outline'}btn-outline-primary hero-btn-outline{else}btn-primary{/if}"{if $button.external} target="_blank" rel="noopener"{/if}>{$button.label}</a>
+                <a href="{$button.url}" class="btn {if $button.style == 'outline'}btn-outline-primary hero-btn-outline{else}btn-primary{/if} hero-btn{if $button.iconOnly} hero-btn-icon-only{/if}{if $button.color} hero-btn-custom{/if}"{if $button.external} target="_blank" rel="noopener"{/if}{if $button.styleAttr} style="{$button.styleAttr}"{/if}{if $button.iconOnly} title="{$button.label}" aria-label="{$button.label}"{/if}>
+                    {if $button.icon}<span class="hero-btn-icon">{:home_button_icon_svg($button['icon'], $button['iconOnly'] ? 20 : 17)}</span>{/if}
+                    {if $button.iconOnly}<span class="visually-hidden">{$button.label}</span>{else}<span>{$button.label}</span>{/if}
+                </a>
                 {/foreach}
             </div>
             {/if}
