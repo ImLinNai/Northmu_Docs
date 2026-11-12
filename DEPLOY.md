@@ -270,7 +270,7 @@ location ~* ^/uploads/.*\.(php|php[0-9]?|phtml|phar)$ {
     mysql -u数据库用户 -p 数据库名 < database/upgrade_v1.7.1.sql
     ```
 
-    随后覆盖程序文件，保留 `data/` 与 `public/uploads/`，清理 `runtime/cache/*` 并强制刷新浏览器缓存（Ctrl+F5）。升级后可在「系统设置 → 安全」开启通行密钥并注册（需 HTTPS 或 `localhost`），登录页即可选择免密码登录；成功登录进入后台会显示一次欢迎提示。前台新增音乐歌单入口，可在「系统设置 → 前台」配置歌名、作者、歌词、封面与音频链接。
+    随后覆盖程序文件，保留 `data/` 与 `public/uploads/`，清理 `runtime/cache/*` 并强制刷新浏览器缓存（Ctrl+F5）。升级后可在「系统设置 → 登录安全」开启通行密钥并注册（需 HTTPS 或 `localhost`），登录页即可选择免密码登录；成功登录进入后台会显示一次欢迎提示。前台新增音乐歌单入口，可在「系统设置 → 前台交互」配置歌名、作者、歌词、封面与音频链接。
 
 ## 11. Apache 部署（可选）
 
