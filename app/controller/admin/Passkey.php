@@ -3,7 +3,7 @@
 namespace app\controller\admin;
 
 use app\model\Admin;
-use app\Support\WebAuthn;
+use app\support\WebAuthn;
 use think\facade\Cache;
 use think\facade\Db;
 use think\facade\Session;

@@ -35,6 +35,16 @@ Route::get('admin/logout', 'admin.Login/logout');
 Route::get('admin/passkey/options', 'admin.Passkey/options');
 Route::post('admin/passkey/login', 'admin.Passkey/login');
 
+// QQ 登录（公开）
+Route::get('admin/qq/login', 'admin.QqLogin/startLogin');
+Route::get('admin/qq/callback', 'admin.QqLogin/callback');
+
+// AI 聊天（公开，受素颜API 服务开关控制）
+Route::post('ai/chat', 'AiChat/chat');
+
+// 极验行为验证（登录页公开调用；发布、删除场景需登录）
+Route::post('security/geetest/verify', 'admin.Geetest/verify');
+
 // 后台（需登录）
 Route::group('admin', function () {
     Route::get('/', 'admin.Index/index');
@@ -88,6 +98,10 @@ Route::group('admin', function () {
     Route::get('appearance', 'admin.Appearance/index');
     Route::post('appearance/save', 'admin.Appearance/save');
 
+    // 三方服务
+    Route::get('services', 'admin.Service/index');
+    Route::post('services/save', 'admin.Service/save');
+
     // 系统设置
     Route::get('settings', 'admin.Settings/index');
     Route::post('settings/save', 'admin.Settings/save');
@@ -98,6 +112,10 @@ Route::group('admin', function () {
     Route::post('passkey/register/options', 'admin.Passkey/registerOptions');
     Route::post('passkey/register', 'admin.Passkey/register');
     Route::post('passkey/delete', 'admin.Passkey/delete');
+
+    // QQ 登录绑定管理
+    Route::get('qq/bind', 'admin.QqLogin/startBind');
+    Route::post('qq/unbind', 'admin.QqLogin/unbind');
 
     // 操作日志
     Route::get('logs', 'admin.AuditLog/index');

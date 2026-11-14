@@ -1749,6 +1749,23 @@ body {
     margin-bottom: 1.75rem;
 }
 
+.doc-ai-summary {
+    margin: 1.25rem 0 .25rem;
+}
+
+.doc-ai-summary:empty {
+    display: none;
+}
+
+.doc-ai-summary .post-TianliGPT {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.doc-article > .doc-ai-summary + .doc-divider {
+    margin-top: 1.1rem;
+}
+
 .article-body {
     font-size: 1rem;
     line-height: 1.85;

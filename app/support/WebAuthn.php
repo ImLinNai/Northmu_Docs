@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Support;
+namespace app\support;
 
 /**
  * 最小可用的 WebAuthn（Passkey）验证实现：

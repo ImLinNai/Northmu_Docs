@@ -29,6 +29,7 @@ class Login extends BaseController
         $password = (string) $this->request->post('password', '');
         $captcha = trim((string) $this->request->post('captcha', ''));
         $captchaOn = sys_setting('captcha_on', '1') === '1';
+        $geetest = geetest_config();
         $ip = (string) $this->request->ip();
 
         $limit = max(1, (int) sys_setting('login_fail_limit', 5));
@@ -51,7 +52,11 @@ class Login extends BaseController
             return $fail('请输入账号和密码');
         }
 
-        if ($captchaOn) {
+        if ($geetest['ready']) {
+            if (!geetest_consume_grant('login', (string) $this->request->post('geetest_grant', ''))) {
+                return $fail('请完成行为验证');
+            }
+        } elseif ($captchaOn) {
             if ($captcha === '') {
                 return $fail('请输入验证码');
             }
@@ -90,6 +95,12 @@ class Login extends BaseController
         $siteName = sys_setting('site_name', 'Northmu Docs');
         $login = site_login_config();
         $loginIcon = $login['icon'] !== '' ? $login['icon'] : (string) sys_setting('site_logo', '');
+        $geetest = geetest_config();
+        $qqError = trim((string) $this->request->get('qq_error', ''));
+        if ($error === '' && $qqError !== '') {
+            $error = $qqError;
+        }
+        $qqLogin = qq_login_config();
 
         return View::fetch('/login', [
             'siteName'  => $siteName,
@@ -104,9 +115,15 @@ class Login extends BaseController
             'copyright' => sys_setting('site_copyright', '© ' . date('Y') . ' ' . $siteName),
             'error'     => $error,
             'username'  => $username,
-            'captchaOn' => sys_setting('captcha_on', '1') === '1',
+            'captchaOn' => sys_setting('captcha_on', '1') === '1' && !$geetest['ready'],
+            'geetestReady' => $geetest['ready'],
+            'geetestJson' => json_encode(
+                geetest_client_config(),
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            ),
             'passkeyEnabled' => passkey_login_enabled() && passkey_count() > 0,
             'passkeyCount'   => passkey_count(),
+            'qqLoginReady'   => $qqLogin['ready'],
         ]);
     }
 

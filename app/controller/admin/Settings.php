@@ -24,10 +24,6 @@ class Settings extends Base
             'site_seo_title'      => '',
             'site_seo_keywords'   => '',
             'site_seo_description'=> '',
-            'baidu_auto_push'     => '0',
-            'baidu_common_push'   => '1',
-            'baidu_quick_push'    => '0',
-            'baidu_token'         => '',
             'context_menu_mode'   => 'default',
             'copy_guard'          => '0',
             'external_link_notice'=> '0',
@@ -79,8 +75,6 @@ class Settings extends Base
             'siteSeoTitle'     => (string) ($settings['site_seo_title'] ?? ''),
             'siteSeoKeywords'  => (string) ($settings['site_seo_keywords'] ?? ''),
             'siteSeoDescription' => (string) ($settings['site_seo_description'] ?? ''),
-            'baiduToken'       => (string) ($settings['baidu_token'] ?? ''),
-            'baiduConfigured'  => baidu_seo_config()['configured'],
             'auditCount'       => Db::name('audit_logs')->count(),
             'uploadCategories' => $uploadCategories,
             'phpUploadMax'     => (string) ini_get('upload_max_filesize'),
@@ -92,6 +86,8 @@ class Settings extends Base
             'memorialEndInput'       => $memorialEndInput,
             'passkeys'               => $passkeys,
             'musicSongs'             => $musicSongs,
+            'qqLogin'                => qq_login_config(),
+            'qqLoginRedirectUri'     => qq_login_redirect_uri(),
         ];
         $view['seoPreview'] = [
             'url'         => ($view['siteUrl'] !== '' ? $view['siteUrl'] : site_base_url()) . '/',
@@ -114,10 +110,6 @@ class Settings extends Base
         $seoTitle = seo_clean_text((string) $this->request->post('site_seo_title', ''), 120);
         $seoKeywords = seo_clean_keywords((string) $this->request->post('site_seo_keywords', ''));
         $seoDescription = seo_clean_text((string) $this->request->post('site_seo_description', ''), 300);
-        $baiduAuto = (int) $this->request->post('baidu_auto_push', 0) === 1 ? '1' : '0';
-        $baiduCommon = (int) $this->request->post('baidu_common_push', 0) === 1 ? '1' : '0';
-        $baiduQuick = (int) $this->request->post('baidu_quick_push', 0) === 1 ? '1' : '0';
-        $baiduToken = trim((string) $this->request->post('baidu_token', ''));
         $contextMenuMode = (string) $this->request->post('context_menu_mode', 'default');
         if (!in_array($contextMenuMode, ['default', 'disabled', 'custom'], true)) {
             $contextMenuMode = 'default';
@@ -214,24 +206,6 @@ class Settings extends Base
         if ($siteUrl === null) {
             admin_flash('站点地址格式不正确，请填写 https://docs.example.com 形式的站点根地址', 'danger');
             return redirect('/admin/settings');
-        }
-        if ($baiduToken !== '' && !preg_match('/^[A-Za-z0-9_-]{6,100}$/', $baiduToken)) {
-            admin_flash('百度准入密钥 Token 格式不正确，请从百度搜索资源平台复制', 'danger');
-            return redirect('/admin/settings');
-        }
-        if ($baiduAuto === '1') {
-            if ($baiduToken === '') {
-                admin_flash('启用全站自动提交前请先填写百度准入密钥 Token', 'danger');
-                return redirect('/admin/settings');
-            }
-            if ($baiduCommon !== '1' && $baiduQuick !== '1') {
-                admin_flash('启用全站自动提交时，请至少开启普通收录或快速收录其中一项', 'danger');
-                return redirect('/admin/settings');
-            }
-            if ($siteUrl === '') {
-                admin_flash('启用百度自动收录前请先填写站点地址，用于生成提交链接', 'danger');
-                return redirect('/admin/settings');
-            }
         }
         if ($logoUrl === null) {
             admin_flash('Logo 在线链接格式不正确，请填写 http(s) 链接或以 /uploads/ 开头的站内路径', 'danger');
@@ -347,10 +321,6 @@ class Settings extends Base
             'site_seo_title'      => $seoTitle,
             'site_seo_keywords'   => mb_substr($seoKeywords, 0, 255),
             'site_seo_description'=> mb_substr($seoDescription, 0, 300),
-            'baidu_auto_push'     => $baiduAuto,
-            'baidu_common_push'   => $baiduCommon,
-            'baidu_quick_push'    => $baiduQuick,
-            'baidu_token'         => $baiduToken,
             'context_menu_mode'   => $contextMenuMode,
             'copy_guard'          => $copyGuard,
             'external_link_notice'=> $linkNotice,
@@ -391,7 +361,7 @@ class Settings extends Base
             $this->deleteLogo($oldLogo);
         }
 
-        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/百度收录/前台交互/音乐歌单/纪念日/上传设置/登录安全/维护模式）');
+        audit_log('setting', 'update', '更新系统设置（站点信息/SEO/前台交互/音乐歌单/纪念日/上传设置/登录安全/维护模式）');
         admin_flash('系统设置已保存');
         return redirect('/admin/settings');
     }

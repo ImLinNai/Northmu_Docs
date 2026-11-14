@@ -1,0 +1,83 @@
+{include file="common/header" /}
+
+<div class="nm-toolbar">
+    <div class="nm-toolbar-title"><i class="ti ti-plug"></i>三方服务</div>
+    <div class="nm-toolbar-meta">已接入 {$serviceCount} 项 · 启用并完成配置后生效</div>
+    <div class="nm-toolbar-actions">
+        <div class="nm-view-switch" role="group" aria-label="视图切换" data-service-view-switch>
+            <button type="button" data-service-view-btn="grid" aria-pressed="true" aria-label="卡片视图" title="卡片视图">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>
+            </button>
+            <button type="button" data-service-view-btn="list" aria-pressed="false" aria-label="列表视图" title="列表视图">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+{if $serviceCount}
+<div class="nm-service-grid" data-service-view="grid" data-service-grid>
+    {volist name="services" id="service"}
+    <article class="nm-service-card{if $service.status == 'running'} is-enabled{elseif $service.status == 'pending'} is-pending{/if}" data-service-card data-service-id="{$service.id}" role="button" tabindex="0" aria-label="配置 {$service.name}" title="点击配置 {$service.name}">
+        <div class="nm-service-card-main">
+            <span class="nm-service-logo">
+                {if $service.icon}<img src="{$service.icon}" alt="{$service.name}" loading="lazy" referrerpolicy="no-referrer" data-service-icon>{/if}
+                <i class="ti ti-plug" aria-hidden="true"></i>
+            </span>
+            <div class="nm-service-text">
+                <div class="nm-service-name">{$service.name}</div>
+                <div class="nm-service-desc">{$service.desc}</div>
+            </div>
+        </div>
+        <div class="nm-service-card-foot">
+            <span class="badge bg-secondary-lt text-secondary">{$service.tag}</span>
+            <span class="nm-service-state" data-service-state>{$service.statusLabel}</span>
+            <label class="form-check form-switch nm-service-switch" data-service-switch>
+                <input class="form-check-input" type="checkbox" role="switch" aria-label="启用 {$service.name}"{if $service.enabled} checked{/if}>
+            </label>
+        </div>
+    </article>
+    {/volist}
+</div>
+{else}
+<div class="card">
+    <div class="nm-empty">
+        <span class="nm-empty-icon"><i class="ti ti-plug"></i></span>
+        <div class="nm-empty-title">暂未接入三方服务</div>
+        <div class="nm-empty-desc">在服务注册表中登记后，服务会以卡片形式展示在这里。</div>
+    </div>
+</div>
+{/if}
+
+<script type="application/json" id="nmServiceData">{$servicesJson|raw}</script>
+
+<div class="modal modal-blur fade" id="serviceConfigModal" tabindex="-1" aria-labelledby="serviceConfigTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="nm-service-modal-head">
+                    <span class="nm-service-logo">
+                        <img alt="" data-service-modal-icon hidden>
+                        <i class="ti ti-plug" aria-hidden="true"></i>
+                    </span>
+                    <div>
+                        <h5 class="modal-title" id="serviceConfigTitle" data-service-modal-title>服务配置</h5>
+                        <div class="nm-service-modal-meta" data-service-modal-meta></div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <p class="nm-service-modal-desc" data-service-modal-desc></p>
+                <div class="nm-service-modal-links" data-service-modal-links hidden></div>
+                <form class="row g-3" id="serviceConfigForm" data-service-modal-form></form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="serviceConfigSave"><i class="ti ti-device-floppy me-1"></i>保存配置</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{include file="common/footer" /}

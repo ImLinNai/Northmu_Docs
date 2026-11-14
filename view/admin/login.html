@@ -70,7 +70,7 @@
                 </div>
             </div>
 
-            <form class="nm-auth-form" method="post" action="/admin/login" autocomplete="off">
+            <form class="nm-auth-form" method="post" action="/admin/login" id="loginForm" data-gt-scene="login" autocomplete="off">
                 {:csrf_field()}
 
                 {if $error}
@@ -96,7 +96,12 @@
                     </div>
                 </div>
 
-                {if $captchaOn}
+                {if $geetestReady}
+                <div class="nm-auth-gt-notice">
+                    <i class="ti ti-shield-check"></i>
+                    <span>登录时将进行极验行为验证</span>
+                </div>
+                {elseif $captchaOn}
                 <div class="mb-3">
                     <label class="form-label" for="loginCaptcha">验证码</label>
                     <div class="nm-auth-captcha">
@@ -114,8 +119,10 @@
                 </button>
             </form>
 
-            {if $passkeyEnabled}
+            {if $passkeyEnabled || $qqLoginReady}
             <div class="nm-auth-divider" aria-hidden="true"><span>或</span></div>
+            {/if}
+            {if $passkeyEnabled}
             <button type="button" class="nm-auth-passkey" id="passkeyLoginBtn"
                 data-options-url="/admin/passkey/options" data-login-url="/admin/passkey/login">
                 <span class="nm-auth-passkey-icon">
@@ -132,6 +139,16 @@
                 </span>
                 <i class="ti ti-chevron-right nm-auth-passkey-arrow"></i>
             </button>
+            {/if}
+            {if $qqLoginReady}
+            <a href="/admin/qq/login" class="nm-auth-passkey is-qq">
+                <span class="nm-auth-passkey-icon"><span class="nm-qq-mark">QQ</span></span>
+                <span class="nm-auth-passkey-text">
+                    <span class="nm-auth-passkey-title">使用 QQ 登录</span>
+                    <span class="nm-auth-passkey-hint">已绑定管理员 QQ，一键验证进入后台</span>
+                </span>
+                <i class="ti ti-chevron-right nm-auth-passkey-arrow"></i>
+            </a>
             {/if}
 
             <div class="nm-auth-chips">
@@ -153,5 +170,9 @@
 <script src="/static/js/app.js"></script>
 <script src="/static/js/apple-ui.js"></script>
 <script src="/static/js/passkey.js"></script>
+{if $geetestReady}
+<script type="application/json" id="nmGeetestConfig">{$geetestJson|raw}</script>
+<script src="/static/js/geetest-guard.js"></script>
+{/if}
 </body>
 </html>

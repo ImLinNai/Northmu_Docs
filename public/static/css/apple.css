@@ -2480,6 +2480,26 @@ body.nm-auth-body .nm-auth-passkey.is-busy {
     opacity: .7;
 }
 
+body.nm-auth-body a.nm-auth-passkey {
+    text-decoration: none;
+}
+
+body.nm-auth-body .nm-auth-passkey + .nm-auth-passkey {
+    margin-top: .6rem;
+}
+
+body.nm-auth-body .nm-auth-passkey.is-qq .nm-auth-passkey-icon {
+    background: color-mix(in srgb, #12b7f5 14%, transparent);
+    color: #12b7f5;
+}
+
+body.nm-auth-body .nm-qq-mark {
+    font-size: .66rem;
+    font-weight: 720;
+    letter-spacing: .01em;
+    line-height: 1;
+}
+
 body.nm-auth-body .nm-auth-brandline-name {
     font-weight: 650;
     letter-spacing: -.016em;

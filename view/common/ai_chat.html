@@ -1,0 +1,43 @@
+{if suyan_chat_ready()}
+<div class="nm-ai-chat" id="nmAiChat"
+     data-endpoint="/ai/chat"
+     data-token="{:csrf_token()}"
+     data-greeting="你好，我是 AI 助手，有什么可以帮你？">
+    <div class="nm-ai-chat-backdrop" data-ai-chat-close aria-hidden="true"></div>
+
+    <button type="button" class="nm-ai-chat-fab" data-ai-chat-open aria-controls="nmAiChatPanel" aria-expanded="false" title="AI 聊天">
+        <span class="nm-ai-chat-fab-icon">
+            <i class="ti ti-message-chatbot" aria-hidden="true"></i>
+            <span class="nm-ai-chat-fab-dot" aria-hidden="true"></span>
+        </span>
+        <span class="nm-ai-chat-fab-label">AI 助手</span>
+    </button>
+
+    <section class="nm-ai-chat-panel" id="nmAiChatPanel" role="dialog" aria-labelledby="nmAiChatTitle" aria-hidden="true">
+        <header class="nm-ai-chat-head">
+            <span class="nm-ai-chat-mark" aria-hidden="true"><i class="ti ti-sparkles"></i></span>
+            <div class="nm-ai-chat-head-text">
+                <h2 class="nm-ai-chat-title" id="nmAiChatTitle">AI 助手</h2>
+                <p class="nm-ai-chat-subtitle"><span class="nm-ai-chat-status" aria-hidden="true"></span>素颜API · 通义3.0Ai</p>
+            </div>
+            <button type="button" class="nm-ai-chat-close" data-ai-chat-close aria-label="关闭聊天">
+                <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+        </header>
+
+        <div class="nm-ai-chat-messages" data-ai-chat-messages role="log" aria-live="polite" aria-relevant="additions"></div>
+
+        <form class="nm-ai-chat-form" data-ai-chat-form autocomplete="off">
+            <div class="nm-ai-chat-input-wrap">
+                <textarea class="nm-ai-chat-input" data-ai-chat-input rows="1" maxlength="1000" placeholder="输入你的问题…" aria-label="聊天内容"></textarea>
+                <button type="submit" class="nm-ai-chat-send" data-ai-chat-send aria-label="发送" title="发送" disabled>
+                    <i class="ti ti-arrow-up" aria-hidden="true"></i>
+                </button>
+            </div>
+            <p class="nm-ai-chat-hint">Enter 发送 · Shift + Enter 换行 · 内容由 AI 生成</p>
+        </form>
+    </section>
+
+    <script src="/static/js/ai-chat.js"></script>
+</div>
+{/if}

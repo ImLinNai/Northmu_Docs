@@ -3176,6 +3176,17 @@ body.nm-auth-body {
     display: none;
 }
 
+.nm-qq-redirect-value {
+    padding: .42rem .7rem;
+    border: 1px solid var(--nm-border);
+    border-radius: .6rem;
+    background: var(--nm-surface-2);
+    color: var(--nm-text);
+    font-size: .78rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
 /* ---------- 首页按钮编辑器 ---------- */
 .nm-home-buttons {
     display: grid;
@@ -3383,4 +3394,373 @@ body.nm-auth-body {
 
 .nm-home-buttons-empty[hidden] {
     display: none;
+}
+
+/* ---------- 三方服务 ---------- */
+.nm-view-switch {
+    display: inline-flex;
+    gap: .15rem;
+    padding: .22rem;
+    border: 1px solid var(--nm-border);
+    border-radius: .78rem;
+    background: var(--nm-surface-2);
+}
+
+.nm-view-switch button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.05rem;
+    height: 2.05rem;
+    padding: 0;
+    border: 0;
+    border-radius: .58rem;
+    background: transparent;
+    color: var(--nm-muted);
+    transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.nm-view-switch button:hover {
+    color: var(--nm-text);
+}
+
+.nm-view-switch button[aria-pressed="true"] {
+    background: var(--nm-surface);
+    color: var(--tblr-primary);
+    box-shadow: var(--nm-shadow-sm);
+}
+
+.nm-service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem;
+}
+
+.nm-service-card {
+    display: flex;
+    flex-direction: column;
+    gap: .95rem;
+    min-width: 0;
+    padding: 1.2rem 1.25rem;
+    border: 1px solid var(--nm-border);
+    border-radius: var(--nm-radius-lg);
+    background: var(--nm-surface);
+    box-shadow: var(--nm-shadow-sm);
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.nm-service-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(var(--tblr-primary-rgb), .35);
+    box-shadow: var(--nm-shadow-lift);
+}
+
+.nm-service-card:focus-visible {
+    outline: 2px solid rgba(var(--tblr-primary-rgb), .5);
+    outline-offset: 2px;
+}
+
+.nm-service-card-main {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    min-width: 0;
+}
+
+.nm-service-logo {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border: 1px solid var(--nm-border);
+    border-radius: .9rem;
+    background: var(--nm-surface-2);
+    color: var(--nm-muted);
+    font-size: 1.3rem;
+}
+
+.nm-service-logo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: .55rem;
+    object-fit: contain;
+    background: var(--nm-surface);
+}
+
+.nm-service-card:not(.is-enabled) .nm-service-logo img {
+    filter: grayscale(1);
+    opacity: .6;
+}
+
+.nm-service-text {
+    min-width: 0;
+}
+
+.nm-service-name {
+    color: var(--nm-text);
+    font-size: .95rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.nm-service-desc {
+    margin-top: .25rem;
+    color: var(--nm-muted);
+    font-size: .8rem;
+    line-height: 1.6;
+}
+
+.nm-service-card-foot {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin-top: auto;
+}
+
+.nm-service-state {
+    color: var(--nm-muted);
+    font-size: .75rem;
+}
+
+.nm-service-card.is-enabled .nm-service-state {
+    color: var(--tblr-primary);
+}
+
+.nm-service-card.is-pending .nm-service-state {
+    color: var(--tblr-orange);
+}
+
+.nm-service-card.is-busy {
+    opacity: .72;
+    cursor: progress;
+}
+
+.nm-service-switch {
+    margin: 0 0 0 auto;
+}
+
+.nm-service-switch .form-check-input {
+    cursor: pointer;
+}
+
+.nm-service-grid[data-service-view="list"] {
+    grid-template-columns: 1fr;
+}
+
+.nm-service-grid[data-service-view="list"] .nm-service-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    padding: .9rem 1.1rem;
+}
+
+.nm-service-grid[data-service-view="list"] .nm-service-card-main {
+    align-items: center;
+    flex: 1;
+}
+
+.nm-service-grid[data-service-view="list"] .nm-service-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: .78rem;
+}
+
+.nm-service-grid[data-service-view="list"] .nm-service-desc {
+    overflow: hidden;
+    margin-top: .1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nm-service-grid[data-service-view="list"] .nm-service-card-foot {
+    flex: 0 0 auto;
+    margin-top: 0;
+}
+
+@media (max-width: 767.98px) {
+    .nm-service-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nm-service-grid[data-service-view="list"] .nm-service-card {
+        flex-wrap: wrap;
+    }
+
+    .nm-service-grid[data-service-view="list"] .nm-service-card-foot {
+        width: 100%;
+        padding-left: 3.35rem;
+    }
+}
+
+.nm-service-modal-head {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    min-width: 0;
+}
+
+.nm-service-modal-head .nm-service-logo {
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: .82rem;
+}
+
+.nm-service-modal-meta {
+    margin-top: .1rem;
+    color: var(--nm-muted);
+    font-size: .75rem;
+}
+
+.nm-service-modal-desc {
+    color: var(--nm-muted);
+    font-size: .84rem;
+    line-height: 1.65;
+}
+
+.nm-service-modal-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem .85rem;
+    margin-bottom: .25rem;
+    font-size: .78rem;
+}
+
+.nm-service-modal-links[hidden] {
+    display: none;
+}
+
+.nm-service-modal-links-label {
+    color: var(--nm-muted);
+}
+
+.nm-service-modal-links a {
+    color: var(--tblr-primary);
+    text-decoration: none;
+}
+
+.nm-service-modal-links a:hover {
+    text-decoration: underline;
+}
+
+.nm-service-field-switch {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding-left: 0;
+    margin-bottom: 0;
+    min-height: 1.5rem;
+}
+
+.nm-service-field-switch .form-check-input {
+    float: none;
+    margin-left: 0;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.nm-service-field-switch .form-check-label {
+    cursor: pointer;
+}
+
+/* 服务配置弹窗中的子服务设置区 */
+.nm-service-section {
+    padding: 1rem 1.1rem .55rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--tblr-bg-surface-secondary, #f6f7f9) 72%, transparent);
+}
+
+.nm-service-section-head {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.nm-service-section-title {
+    margin: 0;
+    font-size: .9375rem;
+    font-weight: 650;
+    letter-spacing: -.01em;
+}
+
+.nm-service-section-tag {
+    padding: .1rem .5rem;
+    border-radius: 999px;
+    background: var(--tblr-primary-lt);
+    color: var(--tblr-primary);
+    font-size: .6875rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.nm-service-section-desc {
+    margin: .3rem 0 .55rem;
+    color: var(--tblr-secondary);
+    font-size: .8125rem;
+    line-height: 1.5;
+}
+
+.nm-service-section .form-check {
+    margin-bottom: .35rem;
+}
+
+/* ---------- 极验行为验证 ---------- */
+.nm-auth-gt-notice {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .625rem .875rem;
+    margin-bottom: 1rem;
+    border-radius: .75rem;
+    background: rgba(var(--tblr-primary-rgb), .08);
+    color: var(--tblr-primary);
+    font-size: .8125rem;
+    line-height: 1.4;
+}
+
+.nm-gt-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 2.5rem;
+    transform: translate(-50%, 1rem);
+    max-width: min(28rem, calc(100vw - 2rem));
+    padding: .625rem 1rem;
+    border-radius: .75rem;
+    background: rgba(29, 39, 52, .94);
+    color: #fff;
+    font-size: .8125rem;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .24);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    z-index: 2050;
+}
+
+.nm-gt-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.nm-gt-toast.is-error {
+    background: rgba(214, 57, 57, .95);
+}
+
+form.is-gt-busy {
+    cursor: progress;
+}
+
+form.is-gt-busy .btn-primary,
+form.is-gt-busy .nm-auth-submit {
+    opacity: .72;
+    pointer-events: none;
 }

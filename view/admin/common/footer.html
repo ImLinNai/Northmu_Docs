@@ -18,6 +18,11 @@
 <script src="/static/js/apple-ui.js"></script>
 <script src="/static/js/admin.js"></script>
 <script src="/static/js/attachment-picker.js"></script>
+{if !empty($geetest.enabled)}
+<script type="application/json" id="nmGeetestConfig">{$geetestJson|raw}</script>
+<script src="/static/js/geetest-guard.js"></script>
+{/if}
+{include file="../common/ai_chat" /}
 {$extraScripts|default=''|raw}
 </body>
 </html>

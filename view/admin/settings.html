@@ -110,61 +110,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="card nm-settings-section" id="baiduSeo">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ti ti-cloud-upload me-1"></i>百度收录</h3>
-                            <div class="card-actions">
-                                {if $baiduConfigured}
-                                <span class="badge bg-green-lt text-green"><i class="ti ti-check me-1"></i>已配置</span>
-                                {else}
-                                <span class="badge bg-yellow-lt text-yellow">待配置</span>
-                                {/if}
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="alert alert-info py-2 px-3 small mb-3">
-                                <i class="ti ti-info-circle me-1"></i>通过百度搜索资源平台主动推送链接，加快新文档收录。请先在
-                                <a href="https://ziyuan.baidu.com/college/courseinfo?id=267&amp;page=2#h2_article_title12" target="_blank" rel="noopener">官方文档</a>
-                                了解规则，并在
-                                <a href="https://zn.baidu.com/linksubmit" target="_blank" rel="noopener">百度准入密钥页面</a>
-                                获取 Token（需先验证站点归属）。
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" name="baidu_auto_push" value="1" id="baiduAutoPush" {if $settings.baidu_auto_push == '1'}checked{/if}>
-                                        <span class="form-check-label">全站链接自动提交</span>
-                                    </label>
-                                    <div class="form-hint">新建并发布公开文档时自动提交一次。</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" name="baidu_common_push" value="1" id="baiduCommonPush" {if $settings.baidu_common_push == '1'}checked{/if}>
-                                        <span class="form-check-label">百度普通收录</span>
-                                    </label>
-                                    <div class="form-hint">常规推送通道，配额较高。</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" name="baidu_quick_push" value="1" id="baiduQuickPush" {if $settings.baidu_quick_push == '1'}checked{/if}>
-                                        <span class="form-check-label">百度快速收录</span>
-                                    </label>
-                                    <div class="form-hint">配额较少，账号未开通时会返回错误，不影响普通收录。</div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label" for="baiduToken">百度准入密钥 Token</label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control font-monospace" id="baiduToken" name="baidu_token" value="{$baiduToken}" maxlength="100" autocomplete="off" placeholder="粘贴百度搜索资源平台提供的 Token">
-                                        <button type="button" class="btn btn-outline-secondary" id="baiduTokenToggle" aria-label="显示或隐藏 Token">
-                                            <i class="ti ti-eye"></i>
-                                        </button>
-                                    </div>
-                                    <div class="form-hint">Token 仅保存在站点数据库中，用于调用百度主动推送接口，不会出现在前台页面。</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="tab-pane fade" id="settingsFrontTab" role="tabpanel">
@@ -328,7 +273,7 @@
                                         <input class="form-check-input" type="checkbox" name="captcha_on" value="1" id="captchaOn" {if $settings.captcha_on == '1'}checked{/if}>
                                         <span class="form-check-label">启用登录验证码</span>
                                     </label>
-                                    <div class="form-hint">开启后登录页需要输入图形验证码。</div>
+                                    <div class="form-hint">开启后登录页需要输入图形验证码；若已在「三方服务」启用极验行为验证，将优先使用行为验证并隐藏图形验证码。</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="failLimit">失败次数上限</label>
@@ -415,6 +360,78 @@
                             <button type="button" class="btn btn-outline-primary mt-3" id="passkeyRegisterBtn" data-options-url="/admin/passkey/register/options" data-register-url="/admin/passkey/register">
                                 <i class="ti ti-plus me-1"></i>注册通行密钥
                             </button>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3" id="qqPanel">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="ti ti-message-circle me-1"></i>QQ 登录</h3>
+                            <div class="card-actions">
+                                {if $qqLogin.enabled && $qqLogin.configured && $qqLogin.bound}
+                                <span class="badge bg-green-lt text-green">已启用</span>
+                                {elseif $qqLogin.enabled && $qqLogin.configured}
+                                <span class="badge bg-warning-lt text-warning">待绑定</span>
+                                {elseif $qqLogin.enabled}
+                                <span class="badge bg-warning-lt text-warning">待配置</span>
+                                {elseif $qqLogin.bound}
+                                <span class="badge bg-secondary-lt text-secondary">已绑定 · 未启用</span>
+                                {else}
+                                <span class="badge bg-secondary-lt text-secondary">未启用</span>
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {if !$qqLogin.configured}
+                            <div class="alert alert-info py-2 px-3 small mb-3">
+                                <i class="ti ti-info-circle me-1"></i>请先在「三方服务 → QQ 登录」中填写 QQ互联 应用的 AppID 与 AppKey 并启用服务。
+                            </div>
+                            {/if}
+
+                            <div class="nm-passkey-item" data-qq-binding>
+                                <span class="nm-passkey-icon"><i class="ti ti-message-circle"></i></span>
+                                <div class="nm-passkey-meta">
+                                    {if $qqLogin.binding}
+                                    <div class="nm-passkey-label">{if $qqLogin.binding.nickname}{$qqLogin.binding.nickname|htmlspecialchars}{else}QQ 账号{/if}</div>
+                                    <div class="nm-passkey-sub">
+                                        绑定于 {$qqLogin.binding.bound_at} · 管理员 ID {$qqLogin.binding.admin_id}
+                                    </div>
+                                    {else}
+                                    <div class="nm-passkey-label">尚未绑定 QQ 账号</div>
+                                    <div class="nm-passkey-sub">绑定后登录页会显示「使用 QQ 登录」入口。</div>
+                                    {/if}
+                                </div>
+                                {if $qqLogin.binding}
+                                <button type="button" class="btn btn-sm btn-ghost-danger ms-auto flex-shrink-0" data-qq-unbind>
+                                    <i class="ti ti-unlink"></i>解除绑定
+                                </button>
+                                {/if}
+                            </div>
+
+                            <div class="mt-3">
+                                <div class="form-label">授权回调地址</div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <code class="nm-qq-redirect-value" id="qqRedirectUri">{if $qqLoginRedirectUri}{$qqLoginRedirectUri}{else}请先在「系统设置 → 站点与 SEO」中填写站点地址{/if}</code>
+                                    {if $qqLoginRedirectUri}
+                                    <button type="button" class="btn btn-sm btn-ghost-secondary" id="qqRedirectCopy"><i class="ti ti-copy"></i>复制</button>
+                                    {/if}
+                                </div>
+                                <div class="form-hint">在 QQ互联 应用管理中把「网站回调域」设置为站点域名，并确保与上方地址完全一致，否则授权会被拒绝。</div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2 flex-wrap mt-3">
+                                {if $qqLogin.enabled && $qqLogin.configured}
+                                <a href="/admin/qq/bind" class="btn btn-outline-primary">
+                                    <i class="ti ti-link me-1"></i>{if $qqLogin.binding}重新绑定 QQ 账号{else}绑定 QQ 账号{/if}
+                                </a>
+                                {else}
+                                <a href="/admin/services" class="btn btn-outline-secondary">
+                                    <i class="ti ti-plug me-1"></i>前往三方服务配置
+                                </a>
+                                {/if}
+                                {if $qqLogin.configured && !$qqLogin.enabled}
+                                <span class="text-secondary small">启用服务后才能进行账号绑定。</span>
+                                {/if}
+                            </div>
                         </div>
                     </div>
 
@@ -654,13 +671,15 @@
             var hash = (window.location.hash || '').replace('#', '');
             var tabMap = {
                 siteSeo: '#settingsSiteTab',
-                baiduSeo: '#settingsSiteTab',
                 frontInteraction: '#settingsFrontTab',
                 memorial: '#settingsFrontTab',
                 music: '#settingsFrontTab',
                 musicPlaylist: '#settingsFrontTab',
                 passkey: '#settingsSecurityTab',
                 passkeys: '#settingsSecurityTab',
+                qq: '#settingsSecurityTab',
+                qqLogin: '#settingsSecurityTab',
+                qqPanel: '#settingsSecurityTab',
                 maintenance: '#settingsSecurityTab'
             };
             var target = tabMap[hash];
@@ -674,26 +693,6 @@
 
         document.addEventListener('DOMContentLoaded', activateTabFromHash);
         window.addEventListener('hashchange', activateTabFromHash);
-
-        var tokenInput = document.getElementById('baiduToken');
-        var toggle = document.getElementById('baiduTokenToggle');
-        if (tokenInput && toggle) {
-            toggle.addEventListener('click', function () {
-                var show = tokenInput.type === 'password';
-                tokenInput.type = show ? 'text' : 'password';
-                toggle.innerHTML = '<i class="ti ' + (show ? 'ti-eye-off' : 'ti-eye') + '"></i>';
-            });
-        }
-
-        var autoCheck = document.getElementById('baiduAutoPush');
-        var commonCheck = document.getElementById('baiduCommonPush');
-        if (autoCheck && commonCheck) {
-            autoCheck.addEventListener('change', function () {
-                if (autoCheck.checked && !commonCheck.checked && !(document.getElementById('baiduQuickPush') || {}).checked) {
-                    commonCheck.checked = true;
-                }
-            });
-        }
 
         var nameInput = document.getElementById('siteName');
         var descInput = document.getElementById('siteDesc');
@@ -805,6 +804,34 @@
             });
         }
         refreshMusicRows();
+
+        var qqUnbindBtn = document.querySelector('[data-qq-unbind]');
+        if (qqUnbindBtn) {
+            qqUnbindBtn.addEventListener('click', function () {
+                if (!confirm('确定解除 QQ 绑定吗？解除后 QQ 登录入口将立即隐藏。')) return;
+                if (!window.NorthmuUI || !window.NorthmuUI.post) return;
+                window.NorthmuUI.post('/admin/qq/unbind', {}).then(function (res) {
+                    if (!res || res.code !== 0) throw new Error((res && res.msg) || '操作失败');
+                    window.location.reload();
+                }).catch(function (err) {
+                    window.alert(err.message || '操作失败，请稍后重试');
+                });
+            });
+        }
+
+        var qqCopyBtn = document.getElementById('qqRedirectCopy');
+        if (qqCopyBtn) {
+            qqCopyBtn.addEventListener('click', function () {
+                var target = document.getElementById('qqRedirectUri');
+                var text = target ? target.textContent.trim() : '';
+                if (!text) return;
+                if (window.NorthmuUI && window.NorthmuUI.copy) {
+                    window.NorthmuUI.copy(text, '回调地址已复制');
+                } else if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text);
+                }
+            });
+        }
     })();
 </script>
 

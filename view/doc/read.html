@@ -112,6 +112,10 @@
                     {/if}
                 </div>
 
+                {if !empty($aiSummary.enabled)}
+                <div class="doc-ai-summary" id="docAiSummary"></div>
+                {/if}
+
                 <hr class="doc-divider">
 
                 <div class="article-body{if !empty($doc.copy_protected)} is-copy-protected{/if}" data-article-body data-copy-protected="{$doc.copy_protected|default='0'}">{$contentHtml|raw}</div>
@@ -148,6 +152,11 @@
         {/if}
     </div>
 </main>
+
+{if !empty($aiSummary.enabled)}
+<script type="application/json" id="nmAiSummaryConfig">{$aiSummaryJson|raw}</script>
+<script src="/static/js/ai-summary.js"></script>
+{/if}
 
 {assign name="hideFooter" value="1" /}
 {include file="common/public_footer" /}

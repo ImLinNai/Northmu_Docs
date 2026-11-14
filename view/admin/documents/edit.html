@@ -1,6 +1,7 @@
 {include file="common/header" /}
 
-<form method="post" action="/admin/documents/save" id="docForm" data-document-id="{$doc.id}">
+<form method="post" action="/admin/documents/save" id="docForm" data-document-id="{$doc.id}"
+      data-gt-scene="publish" data-doc-status="{$doc.status}" data-doc-new="{if $isNew}1{else}0{/if}">
     {:csrf_field()}
     <input type="hidden" name="id" value="{$doc.id}">
     <input type="hidden" name="content_type" id="contentTypeField" value="{$doc.content_type}">
@@ -196,33 +197,23 @@
                     </div>
                 </div>
 
+                {if $baiduReady}
                 <div class="card mt-3" id="baiduPushCard">
                     <div class="card-header">
                         <h3 class="card-title"><i class="ti ti-cloud-upload"></i>百度收录</h3>
                         <div class="card-actions">
-                            {if $baiduConfigured}
-                            <span class="badge bg-green-lt text-green">已配置</span>
-                            {else}
-                            <span class="badge bg-yellow-lt text-yellow">待配置</span>
-                            {/if}
+                            <span class="badge bg-green-lt text-green">运行中</span>
                         </div>
                     </div>
                     <div class="card-body">
                         {if $isNew}
                         <div class="text-secondary small">
-                            {if $baiduConfigured && $baiduAuto}
+                            {if $baiduAuto}
                             <i class="ti ti-info-circle me-1"></i>已开启全站自动提交，保存并发布这篇公开文档后会立即推送百度收录。
                             {else}
-                            <i class="ti ti-info-circle me-1"></i>保存文档后，可在编辑页手动提交百度收录；如需新建自动推送，请先在系统设置中开启。
+                            <i class="ti ti-info-circle me-1"></i>保存并发布后，可在编辑页手动提交百度收录。
                             {/if}
                         </div>
-                        {elseif !$baiduConfigured}
-                        <div class="alert alert-warning py-2 px-3 small mb-2">
-                            <i class="ti ti-info-circle me-1"></i>尚未配置百度准入密钥或收录通道，暂时无法提交。
-                        </div>
-                        <a href="/admin/settings#baiduSeo" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="ti ti-settings me-1"></i>前往百度收录设置
-                        </a>
                         {elseif !$canPush}
                         <div class="alert alert-secondary py-2 px-3 small mb-0">
                             <i class="ti ti-lock me-1"></i>{if !$docPublished}文档尚未发布，发布后才能提交百度收录。{else}仅公开文档可以提交百度收录，当前文档受可见性设置保护。{/if}
@@ -255,6 +246,7 @@
                         {/if}
                     </div>
                 </div>
+                {/if}
 
                 <div class="card mt-3">
                     <div class="card-header">

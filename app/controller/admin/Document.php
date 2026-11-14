@@ -251,8 +251,8 @@ class Document extends Base
         $docAccess = document_access($doc, $categories);
         $docPublic = $docAccess['visibility'] === 'public';
         $docPublished = (int) $doc['status'] === 1;
-        $canPush = !$isNew && $docPublic && $docPublished;
         $baiduConfig = baidu_seo_config();
+        $canPush = $baiduConfig['ready'] && !$isNew && $docPublic && $docPublished;
         $pushStatus = baidu_push_status($doc['baidu_push'] ?? null);
         $pushRows = [];
         foreach (['common' => '普通收录', 'quick' => '快速收录'] as $channelKey => $channelLabel) {
@@ -325,7 +325,7 @@ class Document extends Base
             'editorData'      => $editorData,
             'seoDefaults'     => $seoDefaults,
             'seoPreview'      => $seoPreview,
-            'baiduConfigured' => $baiduConfig['configured'],
+            'baiduReady'      => $baiduConfig['ready'],
             'baiduAuto'       => $baiduConfig['auto'],
             'baiduStatus'     => $pushStatus,
             'pushRows'        => $pushRows,
@@ -392,6 +392,12 @@ class Document extends Base
                 admin_flash('文档不存在或已在回收站中', 'danger');
                 return redirect('/admin/documents');
             }
+        }
+
+        $publishing = $status === 1 && ($existing === null || (int) $existing['status'] !== 1);
+        if ($publishing && !geetest_consume_grant('publish', (string) $this->request->post('geetest_grant', ''))) {
+            admin_flash('请先完成极验行为验证后再发布文档', 'danger');
+            return redirect($back);
         }
 
         $now = date('Y-m-d H:i:s');
@@ -470,9 +476,9 @@ class Document extends Base
             $pushMessage = '';
             $pushType = 'success';
             $pushConfig = baidu_seo_config();
-            if ($pushConfig['auto']) {
-                if (!$pushConfig['configured']) {
-                    $pushMessage = '百度收录未推送：请先在系统设置中配置 Token 与收录通道';
+            if ($pushConfig['enabled'] && $pushConfig['auto']) {
+                if (!$pushConfig['ready']) {
+                    $pushMessage = '百度收录未推送：请先在「三方服务」中完成百度收录配置';
                     $pushType = 'warning';
                 } elseif ($status === 1) {
                     $savedDoc = Db::name('documents')->where('id', $id)->find();
@@ -502,8 +508,11 @@ class Document extends Base
             return $this->fail('文档不存在或已在回收站中');
         }
         $config = baidu_seo_config();
+        if (!$config['enabled']) {
+            return $this->fail('百度收录服务未启用，请先在「三方服务」中开启并完成配置');
+        }
         if (!$config['configured']) {
-            return $this->fail('百度收录尚未配置，请先在系统设置中填写 Token 并启用收录通道');
+            return $this->fail('百度收录尚未配置，请先在「三方服务」中填写 Token 并选择收录通道');
         }
         if ((int) $doc['status'] !== 1) {
             return $this->fail('文档尚未发布，无法提交百度收录');
@@ -532,6 +541,10 @@ class Document extends Base
             admin_flash('文档不存在或已删除', 'danger');
             return redirect('/admin/documents');
         }
+        if (!geetest_consume_grant('delete', (string) $this->request->post('geetest_grant', ''))) {
+            admin_flash('请先完成极验行为验证后再删除文档', 'danger');
+            return redirect('/admin/documents');
+        }
         Db::name('documents')->where('id', $id)->update(['deleted_at' => date('Y-m-d H:i:s')]);
         Db::name('document_drafts')->where('document_id', $id)->delete();
         cache_forget_content();
@@ -550,6 +563,12 @@ class Document extends Base
         if (!$ids) {
             admin_flash('请先选择文档', 'warning');
             return redirect('/admin/documents');
+        }
+
+        $grantScene = $action === 'publish' ? 'publish' : (in_array($action, ['delete', 'purge'], true) ? 'delete' : '');
+        if ($grantScene !== '' && !geetest_consume_grant($grantScene, (string) $this->request->post('geetest_grant', ''))) {
+            admin_flash('请先完成极验行为验证后再执行该操作', 'danger');
+            return redirect(in_array($action, ['purge'], true) ? '/admin/documents/trash' : '/admin/documents');
         }
 
         $now = date('Y-m-d H:i:s');
@@ -650,6 +669,10 @@ class Document extends Base
     {
         $id = (int) $this->request->post('id', 0);
         $doc = Db::name('documents')->where('id', $id)->whereNotNull('deleted_at')->find();
+        if (!geetest_consume_grant('delete', (string) $this->request->post('geetest_grant', ''))) {
+            admin_flash('请先完成极验行为验证后再彻底删除文档', 'danger');
+            return redirect('/admin/documents/trash');
+        }
         $this->purgeDocument($id);
         cache_forget_content();
         if ($doc) {

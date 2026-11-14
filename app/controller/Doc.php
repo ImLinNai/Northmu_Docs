@@ -259,10 +259,29 @@ class Doc extends BaseController
         $view['extraHead'] = '<link id="hljs-light" rel="stylesheet" href="/static/vendor/highlight/styles/github.min.css">'
             . '<link id="hljs-dark" rel="stylesheet" href="/static/vendor/highlight/styles/github-dark.min.css" disabled>';
         $view['extraScripts'] = '<script src="/static/vendor/highlight/highlight.min.js"></script>';
+        $aiSummary = ai_summary_config();
+        if ($access['visibility'] !== 'public') {
+            $aiSummary['enabled'] = false;
+        }
         $docMap = $this->documentTreeMap($publicCategories, $allCategories);
         $view += [
             'mode'          => 'read',
             'isLocked'      => false,
+            'aiSummary'     => $aiSummary,
+            'aiSummaryJson' => json_encode([
+                'key'           => $aiSummary['key'],
+                'postSelector'  => $aiSummary['post_selector'],
+                'postURL'       => $aiSummary['post_url'],
+                'blacklist'     => $aiSummary['blacklist'],
+                'wordLimit'     => $aiSummary['word_limit'],
+                'typingAnimate' => $aiSummary['typing_animate'],
+                'title'         => $aiSummary['title'],
+                'name'          => $aiSummary['name'],
+                'injectDom'     => $aiSummary['inject_dom'],
+                'beginningText' => $aiSummary['beginning_text'],
+                'loadingText'   => $aiSummary['loading_text'],
+                'theme'         => $aiSummary['theme'],
+            ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'doc'           => $doc,
             'contentHtml'   => $contentHtml,
             'catTreeHtml'   => render_category_tree($tree, (int) $doc['category_id'], $docMap, (int) $doc['id']),

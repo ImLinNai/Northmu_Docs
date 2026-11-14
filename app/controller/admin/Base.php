@@ -10,6 +10,7 @@ abstract class Base extends BaseController
     protected function viewData(string $title, string $desc, string $active): array
     {
         $siteName = sys_setting('site_name', 'Northmu Docs');
+        $geetest = geetest_client_config();
         return [
             'pageTitle'    => $title,
             'pageDesc'     => $desc,
@@ -24,6 +25,8 @@ abstract class Base extends BaseController
             'maintenance'  => maintenance_state(),
             'flash'        => admin_flash_pull(),
             'welcomeMessage' => admin_welcome_pull(),
+            'geetest'      => $geetest,
+            'geetestJson'  => json_encode($geetest, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'uploadLimitsJson' => json_encode(upload_limits_payload(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'extraHead'    => '',
             'extraScripts' => '',

@@ -11,6 +11,7 @@
 </div>
 
 <form method="post" action="/admin/documents/batch" id="batchForm"
+      data-gt-scene="batch"
       data-confirm-batch="确定对所选文档执行该操作？彻底删除无法恢复。"
       data-confirm-title="批量操作" data-confirm-ok="执行操作">
     {:csrf_field()}
@@ -96,6 +97,7 @@
     <input type="hidden" name="id" value="{$doc.id}">
 </form>
 <form id="purge-form-{$doc.id}" action="/admin/documents/purge" method="post" class="d-none"
+      data-gt-scene="delete"
       data-confirm="彻底删除「{$doc.title}」后无法恢复，确定继续？" data-confirm-tone="danger" data-confirm-title="彻底删除">
     {:csrf_field()}
     <input type="hidden" name="id" value="{$doc.id}">

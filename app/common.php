@@ -11,7 +11,7 @@ use app\support\HomeIcons;
  */
 function app_version(): string
 {
-    return '1.7.4';
+    return '1.8.0';
 }
 
 /**
@@ -1199,16 +1199,20 @@ function document_seo_meta(
  */
 function baidu_seo_config(): array
 {
+    $enabled = (string) sys_setting('service_enabled_baidu_seo', '0') === '1';
     $token = trim((string) sys_setting('baidu_token', ''));
     $common = (string) sys_setting('baidu_common_push', '1') === '1';
     $quick = (string) sys_setting('baidu_quick_push', '0') === '1';
+    $configured = $token !== '' && ($common || $quick) && site_base_url() !== '';
     return [
+        'enabled'    => $enabled,
         'auto'       => (string) sys_setting('baidu_auto_push', '0') === '1',
         'common'     => $common,
         'quick'      => $quick,
         'token'      => $token,
         'site'       => site_base_url(),
-        'configured' => $token !== '' && ($common || $quick) && site_base_url() !== '',
+        'configured' => $configured,
+        'ready'      => $enabled && $configured,
     ];
 }
 
@@ -1226,6 +1230,10 @@ function baidu_submit_urls(array $urls, string $type = 'common'): array
         'http'    => 0,
         'at'      => date('Y-m-d H:i:s'),
     ];
+    if (!$config['enabled']) {
+        $result['message'] = '百度收录服务未启用';
+        return $result;
+    }
     if ($config['token'] === '') {
         $result['message'] = '未配置百度准入密钥 Token';
         return $result;
@@ -1347,6 +1355,9 @@ function baidu_submit_urls(array $urls, string $type = 'common'): array
 function baidu_push_document(array $doc, string $trigger = 'manual'): array
 {
     $config = baidu_seo_config();
+    if (!$config['enabled']) {
+        return ['ok' => false, 'message' => '百度收录服务未启用', 'payload' => null];
+    }
     $url = document_url((int) ($doc['id'] ?? 0), true);
     $channels = [];
     if ($config['common']) {
@@ -1416,6 +1427,274 @@ function baidu_push_status(?string $raw): array
         }
     }
     return $status;
+}
+
+/**
+ * 极验行为验证（GeeTest v4）配置
+ */
+function geetest_config(): array
+{
+    $enabled = (string) sys_setting('service_enabled_geetest', '0') === '1';
+    $config = json_decode((string) sys_setting('service_config_geetest', '{}'), true);
+    if (!is_array($config)) {
+        $config = [];
+    }
+    $captchaId = trim((string) ($config['captcha_id'] ?? ''));
+    $captchaKey = trim((string) sys_setting('geetest_captcha_key', ''));
+    $product = (string) ($config['product'] ?? 'float');
+    if (!in_array($product, ['float', 'popup'], true)) {
+        $product = 'float';
+    }
+    $configured = $captchaId !== '' && $captchaKey !== '';
+
+    return [
+        'enabled'     => $enabled,
+        'captcha_id'  => $captchaId,
+        'captcha_key' => $captchaKey,
+        'product'     => $product,
+        'configured'  => $configured,
+        'ready'       => $enabled && $configured,
+    ];
+}
+
+/**
+ * 输出给前端的行为验证参数，不包含验证密钥
+ */
+function geetest_client_config(): array
+{
+    $config = geetest_config();
+    return [
+        'enabled'   => $config['ready'],
+        'captchaId' => $config['captcha_id'],
+        'product'   => $config['product'],
+    ];
+}
+
+/**
+ * 调用极验服务端二次校验接口
+ */
+function geetest_verify_payload(array $payload): array
+{
+    $config = geetest_config();
+    $result = ['ok' => false, 'message' => '', 'http' => 0, 'reason' => ''];
+    if (!$config['ready']) {
+        $result['message'] = '极验行为验证服务未启用或未完成配置';
+        return $result;
+    }
+
+    $lotNumber = trim((string) ($payload['lot_number'] ?? ''));
+    $captchaOutput = trim((string) ($payload['captcha_output'] ?? ''));
+    $passToken = trim((string) ($payload['pass_token'] ?? ''));
+    $genTime = trim((string) ($payload['gen_time'] ?? ''));
+    if ($lotNumber === '' || $captchaOutput === '' || $passToken === '' || $genTime === '') {
+        $result['message'] = '验证参数不完整，请重新完成行为验证';
+        return $result;
+    }
+
+    $fields = [
+        'lot_number'     => $lotNumber,
+        'captcha_output' => $captchaOutput,
+        'pass_token'     => $passToken,
+        'gen_time'       => $genTime,
+        'sign_token'     => hash_hmac('sha256', $lotNumber, $config['captcha_key']),
+    ];
+    $endpoint = 'https://gcaptcha4.geetest.com/validate?captcha_id=' . rawurlencode($config['captcha_id']);
+    $body = http_build_query($fields);
+    $caFile = dirname(__DIR__) . '/extend/certs/cacert.pem';
+    if (!is_file($caFile)) {
+        $iniCa = (string) ini_get('curl.cainfo');
+        $caFile = $iniCa !== '' && is_file($iniCa) ? $iniCa : '';
+    }
+
+    $response = '';
+    $httpCode = 0;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
+            CURLOPT_USERAGENT      => 'NorthmuDocs/' . app_version(),
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+        ]);
+        if ($caFile !== '') {
+            curl_setopt($ch, CURLOPT_CAINFO, $caFile);
+        }
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = (string) curl_error($ch);
+        curl_close($ch);
+        if ($response === false) {
+            $result['message'] = '网络请求失败：' . ($error !== '' ? $error : '未知错误');
+            return $result;
+        }
+    } else {
+        $context = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: NorthmuDocs/" . app_version(),
+                'content'       => $body,
+                'timeout'       => 10,
+                'ignore_errors' => true,
+            ],
+            'ssl' => ['verify_peer' => true, 'verify_peer_name' => true] + ($caFile !== '' ? ['cafile' => $caFile] : []),
+        ]);
+        $response = @file_get_contents($endpoint, false, $context);
+        if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $matches)) {
+            $httpCode = (int) $matches[1];
+        }
+        if ($response === false) {
+            $result['message'] = '网络请求失败，请检查服务器网络与 OpenSSL 扩展';
+            return $result;
+        }
+    }
+
+    $result['http'] = $httpCode;
+    $json = json_decode(trim((string) $response), true);
+    if (!is_array($json)) {
+        $result['message'] = $httpCode >= 400
+            ? '验证服务响应异常（HTTP ' . $httpCode . '），请检查极验配置或稍后重试'
+            : '极验接口返回内容无法解析';
+        return $result;
+    }
+
+    $reason = (string) ($json['reason'] ?? ($json['msg'] ?? ''));
+    $result['reason'] = $reason;
+    if ((string) ($json['status'] ?? '') === 'success' && (string) ($json['result'] ?? '') === 'success') {
+        $result['ok'] = true;
+        $result['message'] = '验证通过';
+        return $result;
+    }
+
+    $result['message'] = $reason !== '' ? '验证未通过：' . $reason : '行为验证未通过，请重试';
+    return $result;
+}
+
+/**
+ * 一次授权有效期（秒），按会话与场景隔离
+ */
+function geetest_grant_key(string $scene, string $sessionId): string
+{
+    return 'geetest_grant_' . md5($sessionId . '|' . $scene);
+}
+
+function geetest_issue_grant(string $scene): string
+{
+    $scene = in_array($scene, ['login', 'publish', 'delete'], true) ? $scene : 'login';
+    $token = bin2hex(random_bytes(16));
+    Cache::set(geetest_grant_key($scene, Session::getId()), $token, 300);
+    return $token;
+}
+
+/**
+ * 消费一次性授权；服务未就绪时直接放行，避免未启用时阻断业务
+ */
+function geetest_consume_grant(string $scene, string $token): bool
+{
+    if (!geetest_config()['ready']) {
+        return true;
+    }
+    $token = trim($token);
+    if ($token === '') {
+        return false;
+    }
+    $key = geetest_grant_key($scene, Session::getId());
+    $stored = (string) Cache::get($key, '');
+    if ($stored === '' || !hash_equals($stored, $token)) {
+        return false;
+    }
+    Cache::delete($key);
+    return true;
+}
+
+/**
+ * AI 摘要（TianliGPT / 洪墨 AI）配置
+ */
+function ai_summary_config(): array
+{
+    $stored = json_decode((string) sys_setting('service_config_ai_summary', '{}'), true);
+    if (!is_array($stored)) {
+        $stored = [];
+    }
+    $key = trim((string) sys_setting('ai_summary_key', ''));
+    $enabled = (string) sys_setting('service_enabled_ai_summary', '0') === '1';
+
+    $selector = array_key_exists('post_selector', $stored) ? trim((string) $stored['post_selector']) : '.article-body';
+    if ($selector === '') {
+        $selector = '.article-body';
+    }
+    $theme = (string) ($stored['theme'] ?? 'default');
+    if (!in_array($theme, ['default', 'simple', 'yanzhi', 'menghuan'], true)) {
+        $theme = 'default';
+    }
+
+    return [
+        'enabled'        => $enabled && $key !== '',
+        'configured'     => $key !== '',
+        'key'            => $key,
+        'post_selector'  => $selector,
+        'post_url'       => array_key_exists('post_url', $stored) ? trim((string) $stored['post_url']) : '',
+        'blacklist'      => array_key_exists('blacklist', $stored) ? trim((string) $stored['blacklist']) : '',
+        'word_limit'     => max(100, min(5000, (int) ($stored['word_limit'] ?? 1000))),
+        'typing_animate' => array_key_exists('typing_animate', $stored) ? (string) $stored['typing_animate'] === '1' : true,
+        'title'          => array_key_exists('title', $stored) ? trim((string) $stored['title']) : '文章摘要',
+        'name'           => array_key_exists('name', $stored) ? trim((string) $stored['name']) : '洪墨AI',
+        'inject_dom'     => array_key_exists('inject_dom', $stored) ? trim((string) $stored['inject_dom']) : '#docAiSummary',
+        'beginning_text' => array_key_exists('beginning_text', $stored) ? trim((string) $stored['beginning_text']) : '这篇文章介绍了',
+        'loading_text'   => array_key_exists('loading_text', $stored) ? (string) $stored['loading_text'] === '1' : true,
+        'theme'          => $theme,
+    ];
+}
+
+/**
+ * 素颜API 配置：主开关统管全部子服务，子服务各自保留开关
+ */
+function suyan_config(): array
+{
+    static $config = null;
+    if ($config !== null) {
+        return $config;
+    }
+
+    $stored = json_decode((string) sys_setting('service_config_suyan', '{}'), true);
+    if (!is_array($stored)) {
+        $stored = [];
+    }
+    $enabled = (string) sys_setting('service_enabled_suyan', '0') === '1';
+    $subs = [
+        'tongyi3' => [
+            'name'    => '通义3.0Ai',
+            'enabled' => (string) ($stored['tongyi3_enabled'] ?? '0') === '1',
+        ],
+    ];
+    $anySub = false;
+    foreach ($subs as $sub) {
+        if ($sub['enabled']) {
+            $anySub = true;
+            break;
+        }
+    }
+
+    $config = [
+        'enabled'    => $enabled,
+        'subs'       => $subs,
+        'configured' => $anySub,
+        'ready'      => $enabled && $anySub,
+    ];
+
+    return $config;
+}
+
+/**
+ * AI 聊天入口是否可用（主开关与至少一个子服务均开启）
+ */
+function suyan_chat_ready(): bool
+{
+    return suyan_config()['ready'];
 }
 
 /**
@@ -1666,6 +1945,7 @@ function admin_nav_groups(): array
         ['label' => '站点设置', 'icon' => 'ti-brush', 'items' => [
             ['key' => 'appearance', 'title' => '前台设置', 'url' => '/admin/appearance', 'icon' => 'ti-layout-navbar', 'desc' => '品牌、导航与首页外观'],
             ['key' => 'settings', 'title' => '系统设置', 'url' => '/admin/settings', 'icon' => 'ti-settings', 'desc' => '站点信息、SEO 与登录安全'],
+            ['key' => 'services', 'title' => '三方服务', 'url' => '/admin/services', 'icon' => 'ti-plug', 'desc' => '接入与管理第三方服务'],
         ]],
         ['label' => '系统工具', 'icon' => 'ti-tool', 'items' => [
             ['key' => 'logs', 'title' => '操作日志', 'url' => '/admin/logs', 'icon' => 'ti-list-details', 'desc' => '追踪后台操作记录'],
@@ -1864,6 +2144,65 @@ function admin_welcome_pull(): string
 function passkey_login_enabled(): bool
 {
     return (string) sys_setting('passkey_login', '0') === '1';
+}
+
+/**
+ * QQ 登录（QQ互联）配置与绑定信息
+ */
+function qq_login_config(): array
+{
+    $config = json_decode((string) sys_setting('service_config_qq_login', '{}'), true);
+    if (!is_array($config)) {
+        $config = [];
+    }
+    $appId = trim((string) ($config['app_id'] ?? ''));
+    $appKey = trim((string) sys_setting('qq_login_app_key', ''));
+    $enabled = (string) sys_setting('service_enabled_qq_login', '0') === '1';
+    $binding = qq_login_binding();
+    $configured = $appId !== '' && $appKey !== '';
+
+    return [
+        'enabled'    => $enabled,
+        'app_id'     => $appId,
+        'app_key'    => $appKey,
+        'configured' => $configured,
+        'binding'    => $binding,
+        'bound'      => $binding !== null,
+        'ready'      => $enabled && $configured && $binding !== null,
+    ];
+}
+
+/**
+ * 当前绑定的 QQ 账号，未绑定时返回 null
+ */
+function qq_login_binding(): ?array
+{
+    static $binding = false;
+    if ($binding !== false) {
+        return $binding;
+    }
+
+    $raw = json_decode((string) sys_setting('qq_login_binding', ''), true);
+    if (!is_array($raw) || trim((string) ($raw['openid'] ?? '')) === '') {
+        return $binding = null;
+    }
+
+    return $binding = [
+        'openid'   => (string) $raw['openid'],
+        'nickname' => (string) ($raw['nickname'] ?? ''),
+        'avatar'   => (string) ($raw['avatar'] ?? ''),
+        'admin_id' => (int) ($raw['admin_id'] ?? 0),
+        'bound_at' => (string) ($raw['bound_at'] ?? ''),
+    ];
+}
+
+/**
+ * QQ互联授权回调地址，需与开放平台应用配置完全一致
+ */
+function qq_login_redirect_uri(): string
+{
+    $base = site_base_url();
+    return $base !== '' ? $base . '/admin/qq/callback' : '';
 }
 
 /**
